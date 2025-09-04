@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('server/pyproject.toml') }}
+      - name: Install backend deps
+        working-directory: server
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Run backend tests
+        working-directory: server
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          REDIS_URL: redis://localhost:6379/1
+        run: |
+          pytest -q
+
+  android:
+    name: Android build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle.kts') }}
+      - name: Build Android Debug
+        working-directory: mobile
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
