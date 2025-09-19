@@ -7,20 +7,22 @@ impl QuestTemplates {
         todo_text: &str,
         context: Option<&str>,
         difficulty: i32,
-        theme: Option<&str>,
         user_level: i32,
     ) -> QuestGenerationResponse {
-        let (title, description, story_context) = match theme.unwrap_or("fantasy") {
+        // Авто-детекция темы по содержимому TODO
+        let theme = detect_theme(todo_text);
+        let (title, description, story_context) = match theme.as_str() {
             "fantasy" => generate_fantasy_quest(todo_text, difficulty, user_level),
             "sci-fi" => generate_scifi_quest(todo_text, difficulty, user_level),
             "modern" => generate_modern_quest(todo_text, difficulty, user_level),
             "medieval" => generate_medieval_quest(todo_text, difficulty, user_level),
-            _ => generate_fantasy_quest(todo_text, difficulty, user_level),
+            _ => generate_modern_quest(todo_text, difficulty, user_level),
         };
+
 
         let base_exp = calculate_base_experience(difficulty, user_level);
         let tasks = generate_quest_tasks(todo_text, difficulty, base_exp);
-        let tags = generate_tags_for_quest(todo_text, theme.unwrap_or("fantasy"));
+        let tags = generate_tags_for_quest(todo_text, &theme);
 
         QuestGenerationResponse {
             title,
@@ -28,7 +30,7 @@ impl QuestTemplates {
             difficulty,
             reward_experience: base_exp * 3,
             reward_description: format!("Complete this {} adventure to earn {} experience points and unlock new abilities!", 
-                theme.unwrap_or("fantasy"), base_exp * 3),
+                theme, base_exp * 3),
             tags,
             quest_type: "generated".to_string(),
             tasks,
@@ -213,6 +215,7 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
             difficulty,
             experience_reward: base_exp,
             estimated_duration: Some(30 * difficulty),
+            is_boss: is_boss_task(todo_text),
         });
     } else {
         // Break down into subtasks
@@ -222,6 +225,7 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
             difficulty: 1,
             experience_reward: base_exp / task_count,
             estimated_duration: Some(15),
+            is_boss: false,
         });
 
         for i in 1..task_count-1 {
@@ -231,6 +235,7 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
                 difficulty: difficulty - 1,
                 experience_reward: base_exp / task_count,
                 estimated_duration: Some(20 * difficulty),
+                is_boss: false,
             });
         }
 
@@ -240,6 +245,7 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
             difficulty: 2,
             experience_reward: base_exp / task_count,
             estimated_duration: Some(10),
+            is_boss: is_boss_task(todo_text),
         });
     }
 
@@ -358,6 +364,13 @@ fn generate_tags_for_quest(todo_text: &str, theme: &str) -> Vec<String> {
         tags.push("home".to_string());
     }
     
+    // ML-тренировочные метки
+    if is_boss_task(todo_text) {
+        tags.push("boss".to_string());
+    }
+    let est_diff = calculate_task_difficulty(todo_text, 1);
+    tags.push(format!("difficulty:{}", est_diff));
+
     tags
 }
 
@@ -390,4 +403,26 @@ impl ToTitleCase for str {
             .collect::<Vec<_>>()
             .join(" ")
     }
+}
+
+fn detect_theme(todo_text: &str) -> String {
+    let text = todo_text.to_lowercase();
+    if text.contains("экзамен") || text.contains("зачет") || text.contains("лекция") || text.contains("курс") || text.contains("study") {
+        return "modern".to_string();
+    }
+    if text.contains("данные") || text.contains("api") || text.contains("deploy") || text.contains("cloud") || text.contains("project") {
+        return "sci-fi".to_string();
+    }
+    if text.contains("уборк") || text.contains("дом") || text.contains("покупк") || text.contains("домашн") {
+        return "modern".to_string();
+    }
+    "fantasy".to_string()
+}
+
+fn is_boss_task(text: &str) -> bool {
+    let t = text.to_lowercase();
+    let boss_markers = [
+        "дедлайн", "deadline", "экзамен", "зачет", "защита", "презентация", "release", "релиз", "собеседование",
+    ];
+    boss_markers.iter().any(|m| t.contains(m))
 }

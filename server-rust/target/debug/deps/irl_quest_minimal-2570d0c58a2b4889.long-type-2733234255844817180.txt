@@ -1,0 +1,2 @@
+fn(middleware::auth::CurrentUser) -> impl Future<Output = Json<models::user::UserOut>> {get_me}
+fn(middleware::auth::CurrentUser) -> impl Future<Output = Json<models::user::UserOut>> {get_me}: Handler<_, _>

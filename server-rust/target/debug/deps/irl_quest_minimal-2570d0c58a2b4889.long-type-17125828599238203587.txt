@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser) -> impl Future<Output = Result<Json<models::user::UserStats>, axum::http::StatusCode>> {get_user_stats}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser) -> impl Future<Output = Result<Json<models::user::UserStats>, axum::http::StatusCode>> {get_user_stats}: Handler<_, _>

@@ -1,0 +1,1 @@
+fn(middleware::auth::CurrentUser) -> impl Future<Output = Json<models::user::UserOut>> {me}: Handler<_, _>

@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, axum::extract::Path<i32>) -> impl Future<Output = Result<axum::http::StatusCode, axum::http::StatusCode>> {delete_task}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, axum::extract::Path<i32>) -> impl Future<Output = Result<axum::http::StatusCode, axum::http::StatusCode>> {delete_task}: Handler<_, _>

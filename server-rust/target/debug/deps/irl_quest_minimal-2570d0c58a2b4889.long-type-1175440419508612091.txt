@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser) -> impl Future<Output = Result<Json<Vec<models::quest::QuestOut>>, axum::http::StatusCode>> {list_quests}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser) -> impl Future<Output = Result<Json<Vec<models::quest::QuestOut>>, axum::http::StatusCode>> {list_quests}: Handler<_, _>

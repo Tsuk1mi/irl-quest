@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser) -> impl Future<Output = Result<Json<Vec<models::user::UserAchievementOut>>, axum::http::StatusCode>> {get_user_achievements}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser) -> impl Future<Output = Result<Json<Vec<models::user::UserAchievementOut>>, axum::http::StatusCode>> {get_user_achievements}: Handler<_, _>
