@@ -37,6 +37,32 @@ struct TaskResponse {
     estimated_duration: u32,
 }
 
+#[derive(Debug, Deserialize)]
+struct DatasetTodos {
+    todos: Vec<String>,
+    context: Option<String>,
+    difficulty_preference: Option<u8>,
+}
+
+#[derive(Debug, Serialize)]
+struct TodoQuestPair {
+    todo_text: String,
+    quest: QuestResponse,
+}
+
+#[derive(Debug, Deserialize)]
+struct TagDatasetRequest {
+    tasks: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct TagRecord {
+    task_text: String,
+    tags: Vec<String>,
+    estimated_difficulty: u8,
+    is_boss: bool,
+}
+
 // Встроенные шаблоны для генерации квестов
 fn generate_quest(req: QuestRequest) -> QuestResponse {
     let theme = detect_theme(&req.todo_text);
@@ -172,6 +198,26 @@ async fn generate_quest_handler(Json(request): Json<QuestRequest>) -> Result<Jso
     Ok(Json(quest))
 }
 
+async fn dataset_todo_to_quest(Json(req): Json<DatasetTodos>) -> Result<Json<Vec<TodoQuestPair>>, StatusCode> {
+    let mut pairs = Vec::with_capacity(req.todos.len());
+    for todo in req.todos {
+        let quest = generate_quest(QuestRequest { todo_text: todo.clone(), difficulty_preference: req.difficulty_preference, context: req.context.clone() });
+        pairs.push(TodoQuestPair { todo_text: todo, quest });
+    }
+    Ok(Json(pairs))
+}
+
+async fn dataset_task_tags(Json(req): Json<TagDatasetRequest>) -> Result<Json<Vec<TagRecord>>, StatusCode> {
+    let mut records = Vec::with_capacity(req.tasks.len());
+    for task in req.tasks {
+        let diff = estimate_difficulty(&task);
+        let tags = auto_tags_for_text(&task);
+        let is_boss = is_boss_task(&task);
+        records.push(TagRecord { task_text: task, tags, estimated_difficulty: diff, is_boss });
+    }
+    Ok(Json(records))
+}
+
 async fn list_quests() -> Json<Vec<serde_json::Value>> {
     Json(vec![
         serde_json::json!({
@@ -218,6 +264,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/", get(health))
         .route("/api/v1/health", get(health))
         .route("/api/v1/rag/generate-quest", post(generate_quest_handler))
+        .route("/api/v1/ml/dataset/todo_to_quest", post(dataset_todo_to_quest))
+        .route("/api/v1/ml/dataset/task_tags", post(dataset_task_tags))
         .route("/api/v1/quests", get(list_quests))
         .route("/api/v1/users/me", get(get_user_profile))
         .route("/api/v1/users/me/achievements", get(get_achievements))
@@ -246,6 +294,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+fn is_boss_task(text: &str) -> bool {
+    let t = text.to_lowercase();
+    let boss_markers = [
+        "дедлайн", "deadline", "экзамен", "зачет", "защита", "презентация", "release", "релиз", "собеседование",
+    ];
+    boss_markers.iter().any(|m| t.contains(m))
+}
+
+fn estimate_difficulty(task_text: &str) -> u8 {
+    let mut difficulty: i32 = 2; // default medium
+    let words = task_text.split_whitespace().count();
+    if words < 3 { difficulty = 1; } else if words > 10 { difficulty = 3; }
+
+    let text_lower = task_text.to_lowercase();
+    let complexity_keywords = ["project", "complete", "finish", "develop", "create", "build", "исслед", "архитектур", "оптимиз"];
+    let simple_keywords = ["simple", "easy", "quick", "basic", "straightforward", "быстро", "просто", "легко"];
+
+    if complexity_keywords.iter().any(|k| text_lower.contains(k)) { difficulty += 1; }
+    if simple_keywords.iter().any(|k| text_lower.contains(k)) { difficulty = difficulty.saturating_sub(1); }
+
+    difficulty.clamp(1, 5) as u8
+}
+
+fn auto_tags_for_text(text: &str) -> Vec<String> {
+    let mut tags = vec![detect_theme(text), "generated".to_string()];
+    let tl = text.to_lowercase();
+    if tl.contains("work") || tl.contains("job") || tl.contains("office") { tags.push("work".to_string()); }
+    if tl.contains("study") || tl.contains("learn") || tl.contains("read") || tl.contains("экзам") || tl.contains("зачет") { tags.push("learning".to_string()); }
+    if tl.contains("exercise") || tl.contains("gym") || tl.contains("health") { tags.push("health".to_string()); }
+    if tl.contains("clean") || tl.contains("organize") || tl.contains("tidy") || tl.contains("уборк") || tl.contains("дом") { tags.push("home".to_string()); }
+    if is_boss_task(text) { tags.push("boss".to_string()); }
+    tags.push(format!("difficulty:{}", estimate_difficulty(text)));
+    tags
 }
 
 fn detect_theme(todo_text: &str) -> String {
