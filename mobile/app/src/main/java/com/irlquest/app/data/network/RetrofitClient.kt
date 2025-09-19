@@ -22,8 +22,8 @@ object RetrofitClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // TODO: заменить на конфигируемый URL через BuildConfig
-    private const val BASE_URL = "http://10.0.2.2:8000"
+    // Обновленный URL для работы с внешним сервером
+    private const val BASE_URL = "https://8000-iessh243ptqf83yx518ah-6532622b.e2b.dev"
 
     val apiService: ApiService by lazy {
         val contentType = "application/json".toMediaType()

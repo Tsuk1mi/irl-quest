@@ -24,6 +24,5 @@ class QuestOut(QuestBase):
     created_at: datetime
     owner_id: Optional[int] = None
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
