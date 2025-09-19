@@ -110,7 +110,7 @@ impl RagService {
         let metadata = serde_json::json!({
             "context": request.context,
             "difficulty_preference": request.difficulty_preference,
-            "theme_preference": request.theme_preference,
+
             "user_level": request.user_level,
             "type": "quest_generation"
         });
