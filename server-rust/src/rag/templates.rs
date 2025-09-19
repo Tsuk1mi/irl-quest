@@ -378,6 +378,11 @@ fn generate_tags_for_task(task_text: &str) -> Vec<String> {
     generate_tags_for_quest(task_text, "enhanced")
 }
 
+// Экспорт вспомогательных функций для подготовки датасетов
+pub fn auto_tags_for_text(text: &str) -> Vec<String> { generate_tags_for_task(text) }
+pub fn auto_difficulty_for_text(text: &str) -> i32 { calculate_task_difficulty(text, 1) }
+pub fn is_boss_marker(text: &str) -> bool { is_boss_task(text) }
+
 fn hash_string(s: &str) -> usize {
     let mut hash = 0usize;
     for byte in s.bytes() {
