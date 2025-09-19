@@ -10,7 +10,7 @@ use tower_http::cors::CorsLayer;
 #[derive(Debug, Deserialize)]
 struct QuestRequest {
     todo_text: String,
-    theme_preference: Option<String>,
+    // theme_preference removed; theme now auto-detected
     difficulty_preference: Option<u8>,
     context: Option<String>,
 }
@@ -39,7 +39,7 @@ struct TaskResponse {
 
 // Встроенные шаблоны для генерации квестов
 fn generate_quest(req: QuestRequest) -> QuestResponse {
-    let theme = req.theme_preference.unwrap_or_else(|| "fantasy".to_string());
+    let theme = detect_theme(&req.todo_text);
     let difficulty = req.difficulty_preference.unwrap_or(3).min(5).max(1);
     let base_exp = (difficulty as u32) * 50 + 100;
     
@@ -227,9 +227,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🚀 Transform your boring TODO into epic D&D adventures!");
     println!("🌐 Server running at http://0.0.0.0:8006");
 
+    fn detect_theme(todo_text: &str) -> String {
+        let text = todo_text.to_lowercase();
+        if text.contains("экзамен") || text.contains("зачет") || text.contains("lecture") || text.contains("course") || text.contains("study") {
+            return "modern".to_string();
+        }
+        if text.contains("api") || text.contains("deploy") || text.contains("cloud") || text.contains("project") {
+            return "sci-fi".to_string();
+        }
+        if text.contains("уборк") || text.contains("дом") || text.contains("покупк") || text.contains("домашн") {
+            return "modern".to_string();
+        }
+        "fantasy".to_string()
+    }
+
     // Run the server
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8006").await?;
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+fn detect_theme(todo_text: &str) -> String {
+    let text = todo_text.to_lowercase();
+    if text.contains("экзамен") || text.contains("зачет") || text.contains("lecture") || text.contains("course") || text.contains("study") {
+        return "modern".to_string();
+    }
+    if text.contains("api") || text.contains("deploy") || text.contains("cloud") || text.contains("project") {
+        return "sci-fi".to_string();
+    }
+    if text.contains("уборк") || text.contains("дом") || text.contains("покупк") || text.contains("домашн") {
+        return "modern".to_string();
+    }
+    "fantasy".to_string()
 }
