@@ -89,7 +89,7 @@ impl TaskService {
             task.title = title;
         }
         if let Some(description) = task_update.description {
-            task.description = description;
+            task.description = Some(description);
         }
         if let Some(completed) = task_update.completed {
             task.completed = completed;

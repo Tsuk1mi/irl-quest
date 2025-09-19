@@ -89,7 +89,7 @@ impl QuestService {
             quest.title = title;
         }
         if let Some(description) = quest_update.description {
-            quest.description = description;
+            quest.description = Some(description);
         }
         if let Some(difficulty) = quest_update.difficulty {
             quest.difficulty = difficulty;

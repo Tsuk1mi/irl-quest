@@ -22,8 +22,8 @@ object RetrofitClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // Обновленный URL для работы с внешним сервером
-    private const val BASE_URL = "https://8000-iessh243ptqf83yx518ah-6532622b.e2b.dev"
+    // Rust сервер URL
+    private const val BASE_URL = "https://8001-iessh243ptqf83yx518ah-6532622b.e2b.dev"
 
     val apiService: ApiService by lazy {
         val contentType = "application/json".toMediaType()

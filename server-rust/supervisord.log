@@ -1,0 +1,10 @@
+2025-09-19 17:09:14,318 INFO RPC interface 'supervisor' initialized
+2025-09-19 17:09:14,318 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-09-19 17:09:14,320 INFO daemonizing the supervisord process
+2025-09-19 17:09:14,321 INFO supervisord started with pid 21785
+2025-09-19 17:09:15,325 INFO spawned: 'rustserver' with pid 21787
+2025-09-19 17:09:16,425 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-19 17:11:19,388 INFO waiting for rustserver to stop
+2025-09-19 17:11:19,389 WARN stopped: rustserver (terminated by SIGTERM)
+2025-09-19 17:11:19,395 INFO spawned: 'rustserver' with pid 22245
+2025-09-19 17:11:20,449 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
