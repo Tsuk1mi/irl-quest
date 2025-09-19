@@ -13,3 +13,8 @@
 INFO:     10.12.253.16:46678 - "GET /api/v1/health HTTP/1.1" 404 Not Found
 INFO:     10.12.253.16:46678 - "GET / HTTP/1.1" 200 OK
 INFO:     10.12.253.16:46678 - "POST /api/v1/rag/generate-quest HTTP/1.1" 200 OK
+INFO:     10.12.253.16:53860 - "GET / HTTP/1.1" 200 OK
+INFO:     10.12.253.16:53860 - "POST /api/v1/rag/generate-quest HTTP/1.1" 200 OK
+INFO:     10.12.253.16:53860 - "POST /api/v1/rag/generate-quest HTTP/1.1" 200 OK
+INFO:     10.12.253.16:59222 - "GET / HTTP/1.1" 200 OK
+INFO:     10.12.253.16:59222 - "GET /favicon.ico HTTP/1.1" 404 Not Found
