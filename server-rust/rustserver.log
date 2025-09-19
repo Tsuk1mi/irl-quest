@@ -1,0 +1,18 @@
+[2m2025-09-19T17:09:15.355028Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://irlquest:password@localhost:5432/irlquest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:09:15.408742Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:09:15.422850Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:09:15.423681Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:09:15.423758Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+[2m2025-09-19T17:09:15.424076Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Server listening on 0.0.0.0:8001
+[2m2025-09-19T17:11:19.404714Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://irlquest:password@localhost:5432/irlquest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:11:19.432128Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:11:19.445861Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:11:19.446922Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:11:19.447231Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+[2m2025-09-19T17:11:19.447620Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Server listening on 0.0.0.0:8001
+[2m2025-09-19T17:36:15.775350Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://irlquest:password@localhost:5432/irlquest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:36:15.813050Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:36:15.825389Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:36:15.826247Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:36:15.826499Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+[2m2025-09-19T17:36:15.826864Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Server listening on 0.0.0.0:8001

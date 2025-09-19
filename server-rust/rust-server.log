@@ -1,0 +1,173 @@
+[2m2025-09-19T17:24:17.160512Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.417136Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.555242Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.621308Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.651173Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.693842Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.726721Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.788562Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.831956Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.856707Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.879295Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.917445Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.950625Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:17.975350Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:18.000055Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:18.031477Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+Error: error returned from database: database "irl_quest" does not exist
+
+Caused by:
+    database "irl_quest" does not exist
+[2m2025-09-19T17:24:46.258711Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:46.525069Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:46.600023Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:46.692161Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:46.753074Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:46.757496Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:46.757545Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:46.867246Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:46.914303Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:46.929711Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:46.930498Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:46.930616Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:46.963023Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:46.994741Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.008431Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.010063Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.010670Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.034761Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.051771Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.067596Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.070417Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.071462Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.177716Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.227070Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.242143Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.243030Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.243123Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.278705Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.306778Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.321862Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.322528Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.322638Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.360023Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.388488Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.402071Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.403982Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.404765Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.444743Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.465879Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.491719Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.493759Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.493838Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.535057Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.574895Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.588367Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.588868Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.588894Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.607236Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.621905Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.635476Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.636155Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.636315Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.647805Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.673447Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.688737Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.689392Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.689490Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.707579Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.738952Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.754729Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.756090Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.756602Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.796997Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.840506Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.858926Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.859991Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.860239Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:47.913702Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:47.941409Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:47.957984Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:47.960113Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:47.961369Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
+[2m2025-09-19T17:24:48.011165Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Starting server with settings: Settings { database_url: "postgresql://postgres:password@localhost:5432/irl_quest", redis_url: "redis://localhost:6379/0", pgvector_dim: 1536, debug: true, secret_key: "rust-secret-key-for-dev", jwt_algorithm: "HS256", access_token_expire_minutes: 60, server_host: "0.0.0.0", server_port: 8001 }
+[2m2025-09-19T17:24:48.035758Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "users" already exists, skipping
+[2m2025-09-19T17:24:48.049532Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "tasks" already exists, skipping
+[2m2025-09-19T17:24:48.051077Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "quests" already exists, skipping
+[2m2025-09-19T17:24:48.051594Z[0m [32m INFO[0m [2mirl_quest_server[0m[2m:[0m Database connection established
+Error: Address already in use (os error 98)
