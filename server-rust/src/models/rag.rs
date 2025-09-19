@@ -51,7 +51,6 @@ pub struct QuestGenerationRequest {
     pub todo_text: String,
     pub context: Option<String>,
     pub difficulty_preference: Option<i32>,
-    pub theme_preference: Option<String>,
     pub user_level: Option<i32>,
 }
 
@@ -75,6 +74,7 @@ pub struct GeneratedTask {
     pub difficulty: i32,
     pub experience_reward: i32,
     pub estimated_duration: Option<i32>,
+    pub is_boss: bool,
 }
 
 #[derive(Debug, Deserialize)]

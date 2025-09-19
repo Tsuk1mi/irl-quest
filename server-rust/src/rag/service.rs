@@ -37,7 +37,6 @@ impl RagService {
             &request.todo_text,
             request.context.as_deref(),
             difficulty,
-            request.theme_preference.as_deref(),
             user_level,
         );
 
