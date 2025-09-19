@@ -1,12 +1,14 @@
 use axum::{
     extract::{Request, State},
-    http::{header::AUTHORIZATION, StatusCode},
+    http::{header, StatusCode},
     middleware::Next,
     response::Response,
 };
 use std::sync::Arc;
 
-use crate::{config::Settings, models::User, services::AuthService, AppState};
+use crate::{models::User, services::AuthService, AppState};
+
+pub struct CurrentUser(pub User);
 
 pub async fn auth_middleware(
     State(state): State<Arc<AppState>>,
@@ -15,53 +17,39 @@ pub async fn auth_middleware(
 ) -> Result<Response, StatusCode> {
     let auth_header = req
         .headers()
-        .get(AUTHORIZATION)
+        .get(header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
 
-    if let Some(auth_header) = auth_header {
-        if let Some(token) = auth_header.strip_prefix("Bearer ") {
-            let auth_service = AuthService::new(state.settings.clone());
-            
-            match auth_service.verify_token(token) {
-                Ok(claims) => {
-                    let user_id: i32 = claims.claims.sub.parse().map_err(|_| StatusCode::UNAUTHORIZED)?;
-                    
-                    match auth_service.get_user_by_id(&state.db, user_id).await {
-                        Ok(Some(user)) => {
-                            // Add user to request extensions
-                            req.extensions_mut().insert(user);
-                            return Ok(next.run(req).await);
-                        }
-                        _ => return Err(StatusCode::UNAUTHORIZED),
-                    }
-                }
-                Err(_) => return Err(StatusCode::UNAUTHORIZED),
-            }
-        }
+    let auth_header = match auth_header {
+        Some(header) => header,
+        None => return Err(StatusCode::UNAUTHORIZED),
+    };
+
+    if !auth_header.starts_with("Bearer ") {
+        return Err(StatusCode::UNAUTHORIZED);
     }
 
-    Err(StatusCode::UNAUTHORIZED)
-}
+    let token = &auth_header[7..]; // Remove "Bearer " prefix
 
-// Extractor for getting current user from request
-use axum::{async_trait, extract::FromRequestParts, http::request::Parts};
+    let auth_service = AuthService::new(state.settings.clone());
+    
+    let token_data = match auth_service.verify_token(token) {
+        Ok(data) => data,
+        Err(_) => return Err(StatusCode::UNAUTHORIZED),
+    };
 
-#[derive(Debug)]
-pub struct CurrentUser(pub User);
+    let user_id: i32 = match token_data.claims.sub.parse() {
+        Ok(id) => id,
+        Err(_) => return Err(StatusCode::UNAUTHORIZED),
+    };
 
-#[async_trait]
-impl<S> FromRequestParts<S> for CurrentUser
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
+    let user = match auth_service.get_user_by_id(&state.db, user_id).await {
+        Ok(Some(user)) => user,
+        _ => return Err(StatusCode::UNAUTHORIZED),
+    };
 
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        parts
-            .extensions
-            .get::<User>()
-            .cloned()
-            .map(CurrentUser)
-            .ok_or(StatusCode::UNAUTHORIZED)
-    }
+    // Add user to request extensions
+    req.extensions_mut().insert(CurrentUser(user));
+
+    Ok(next.run(req).await)
 }

@@ -96,7 +96,7 @@ async def ready():
     try:
         import redis.asyncio as aioredis
         settings = get_settings()
-        r = aiorededis.from_url(settings.REDIS_URL)
+        r = aioredis.from_url(settings.REDIS_URL)
         pong = await r.ping()
         ready["redis"] = bool(pong)
         await r.close()

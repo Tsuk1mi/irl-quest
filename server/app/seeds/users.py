@@ -8,7 +8,7 @@ from typing import Optional
 async def seed_admin_user() -> Optional[int]:
     """Создает тестового администратора, если не существует. Возвращает id или None."""
     async with AsyncSessionLocal() as session:
-        admin_email = "admin@irlquest.local"
+        admin_email = "admin@example.com"
         exists = await get_user_by_email(session, admin_email)
         if exists:
             return None

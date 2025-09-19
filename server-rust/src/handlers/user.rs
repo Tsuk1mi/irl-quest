@@ -1,10 +1,14 @@
-use axum::{extract::State, http::StatusCode, response::Json, Json as ExtractJson};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::Json,
+    Json as ExtractJson,
+};
 use std::sync::Arc;
 
 use crate::{
     middleware::CurrentUser,
-    models::{UserOut, UserUpdate},
-    services::UserService,
+    models::{UserOut, UserUpdate, UserStats, UserAchievementOut},
     AppState,
 };
 
@@ -13,13 +17,26 @@ pub async fn get_me(CurrentUser(user): CurrentUser) -> Json<UserOut> {
 }
 
 pub async fn update_me(
-    State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
-    ExtractJson(user_update): ExtractJson<UserUpdate>,
+    State(_state): State<Arc<AppState>>,
+    CurrentUser(_user): CurrentUser,
+    ExtractJson(_user_update): ExtractJson<UserUpdate>,
 ) -> Result<Json<UserOut>, StatusCode> {
-    match UserService::update_user(&state.db, user.id, user_update).await {
-        Ok(Some(updated_user)) => Ok(Json(updated_user)),
-        Ok(None) => Err(StatusCode::NOT_FOUND),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-    }
+    // Placeholder - implement actual user update
+    Err(StatusCode::NOT_IMPLEMENTED)
+}
+
+pub async fn get_user_stats(
+    State(_state): State<Arc<AppState>>,
+    CurrentUser(_user): CurrentUser,
+) -> Result<Json<UserStats>, StatusCode> {
+    // Placeholder - implement actual user stats
+    Err(StatusCode::NOT_IMPLEMENTED)
+}
+
+pub async fn get_user_achievements(
+    State(_state): State<Arc<AppState>>,
+    CurrentUser(_user): CurrentUser,
+) -> Result<Json<Vec<UserAchievementOut>>, StatusCode> {
+    // Placeholder - implement actual user achievements
+    Ok(Json(vec![]))
 }

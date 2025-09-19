@@ -1,0 +1,18 @@
+2025-09-19 18:06:49,390 INFO RPC interface 'supervisor' initialized
+2025-09-19 18:06:49,390 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-09-19 18:06:49,392 INFO daemonizing the supervisord process
+2025-09-19 18:06:49,393 INFO supervisord started with pid 33476
+2025-09-19 18:06:50,397 INFO spawned: 'rag-server' with pid 33499
+2025-09-19 18:06:51,755 INFO success: rag-server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-19 18:06:51,755 WARN exited: rag-server (exit status 1; not expected)
+2025-09-19 18:06:51,758 INFO spawned: 'rag-server' with pid 33531
+2025-09-19 18:06:52,491 WARN exited: rag-server (exit status 1; not expected)
+2025-09-19 18:06:53,495 INFO spawned: 'rag-server' with pid 33546
+2025-09-19 18:06:54,215 WARN exited: rag-server (exit status 1; not expected)
+2025-09-19 18:06:56,218 INFO spawned: 'rag-server' with pid 33558
+2025-09-19 18:06:56,920 WARN exited: rag-server (exit status 1; not expected)
+2025-09-19 18:07:00,256 INFO spawned: 'rag-server' with pid 33619
+2025-09-19 18:07:01,029 WARN exited: rag-server (exit status 1; not expected)
+2025-09-19 18:07:02,030 INFO gave up: rag-server entered FATAL state, too many start retries too quickly
+2025-09-19 18:07:12,953 INFO spawned: 'rag-server' with pid 33756
+2025-09-19 18:07:14,588 INFO success: rag-server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

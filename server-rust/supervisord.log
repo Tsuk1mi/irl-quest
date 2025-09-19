@@ -8,3 +8,6 @@
 2025-09-19 17:11:19,389 WARN stopped: rustserver (terminated by SIGTERM)
 2025-09-19 17:11:19,395 INFO spawned: 'rustserver' with pid 22245
 2025-09-19 17:11:20,449 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-19 17:36:14,752 WARN exited: rustserver (terminated by SIGTERM; not expected)
+2025-09-19 17:36:15,760 INFO spawned: 'rustserver' with pid 25699
+2025-09-19 17:36:16,828 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

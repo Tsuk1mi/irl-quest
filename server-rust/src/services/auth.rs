@@ -43,15 +43,22 @@ impl AuthService {
         // Create user
         let user: User = sqlx::query_as(
             r#"
-            INSERT INTO users (email, username, hashed_password, is_active, created_at)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, email, username, hashed_password, is_active, created_at
+            INSERT INTO users (
+                email, username, hashed_password, is_active, 
+                level, experience, timezone, settings, created_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING *
             "#,
         )
         .bind(&user_create.email)
         .bind(&user_create.username)
         .bind(&hashed_password)
         .bind(true)
+        .bind(1) // level
+        .bind(0) // experience
+        .bind(user_create.timezone.as_deref().unwrap_or("UTC"))
+        .bind(serde_json::json!({}))
         .bind(Utc::now())
         .fetch_one(pool)
         .await?;
@@ -64,7 +71,7 @@ impl AuthService {
         pool: &PgPool,
         username_or_email: &str,
         password: &str,
-    ) -> Result<String> {
+    ) -> Result<(String, UserOut)> {
         // Find user by email or username
         let user: Option<User> = sqlx::query_as(
             "SELECT * FROM users WHERE email = $1 OR username = $1"
@@ -80,8 +87,18 @@ impl AuthService {
             return Err(anyhow!("Invalid credentials"));
         }
 
+        // Update last login
+        sqlx::query("UPDATE users SET last_login = $1 WHERE id = $2")
+            .bind(Utc::now())
+            .bind(user.id)
+            .execute(pool)
+            .await?;
+
         // Generate token
-        self.create_access_token(&user.id.to_string())
+        let token = self.create_access_token(&user.id.to_string())?;
+        let user_out = UserOut::from(user);
+        
+        Ok((token, user_out))
     }
 
     pub fn create_access_token(&self, user_id: &str) -> Result<String> {

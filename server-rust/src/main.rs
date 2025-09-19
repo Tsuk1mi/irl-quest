@@ -4,12 +4,13 @@ mod handlers;
 mod middleware;
 mod models;
 mod services;
+mod rag;
 
 use std::sync::Arc;
 
 use axum::{
     middleware::from_fn_with_state,
-    routing::{delete, get, post, put},
+    routing::{get, post, put, delete},
     Router,
 };
 use dotenv::dotenv;
@@ -22,7 +23,7 @@ use tracing_subscriber;
 
 use config::Settings;
 use db::create_database_pool;
-use handlers::{auth, health, quest, task, user};
+use handlers::{auth, health, quest, task, user, rag as rag_handler};
 use middleware::auth_middleware;
 
 #[derive(Clone)]
@@ -32,10 +33,12 @@ pub struct AppState {
 }
 
 async fn create_app(state: Arc<AppState>) -> Router {
+    // Public routes (no auth required)
     let public_auth_routes = Router::new()
         .route("/register", post(auth::register))
-        .route("/token", post(auth::login));
+        .route("/login", post(auth::login));
 
+    // Protected auth routes
     let protected_auth_routes = Router::new()
         .route("/me", get(auth::me))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
@@ -44,36 +47,43 @@ async fn create_app(state: Arc<AppState>) -> Router {
         .merge(public_auth_routes)
         .merge(protected_auth_routes);
 
+    // Task routes (all protected)
     let task_routes = Router::new()
         .route("/", get(task::list_tasks).post(task::create_task))
-        .route(
-            "/:task_id",
-            get(task::get_task)
-                .put(task::update_task)
-                .delete(task::delete_task),
-        )
+        .route("/:task_id", get(task::get_task).put(task::update_task).delete(task::delete_task))
+        .route("/:task_id/complete", post(task::complete_task))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 
+    // Quest routes (all protected)
     let quest_routes = Router::new()
         .route("/", get(quest::list_quests).post(quest::create_quest))
-        .route(
-            "/:quest_id",
-            get(quest::get_quest)
-                .put(quest::update_quest)
-                .delete(quest::delete_quest),
-        )
+        .route("/:quest_id", get(quest::get_quest).put(quest::update_quest).delete(quest::delete_quest))
+        .route("/:quest_id/complete", post(quest::complete_quest))
+        .route("/generate", post(quest::generate_quest_from_todo))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 
+    // User routes (all protected)
     let user_routes = Router::new()
         .route("/me", get(user::get_me).put(user::update_me))
+        .route("/me/stats", get(user::get_user_stats))
+        .route("/me/achievements", get(user::get_user_achievements))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 
+    // RAG routes (all protected)
+    let rag_routes = Router::new()
+        .route("/generate-quest", post(rag_handler::generate_quest))
+        .route("/enhance-task", post(rag_handler::enhance_task))
+        .route_layer(from_fn_with_state(state.clone(), auth_middleware));
+
+    // API routes
     let api_routes = Router::new()
         .nest("/auth", auth_routes)
         .nest("/tasks", task_routes)
         .nest("/quests", quest_routes)
-        .nest("/users", user_routes);
+        .nest("/users", user_routes)
+        .nest("/rag", rag_routes);
 
+    // Main app
     Router::new()
         .route("/", get(health::root))
         .route("/health", get(health::health))
@@ -101,7 +111,7 @@ async fn main() -> anyhow::Result<()> {
     let settings = Settings::new();
     info!("Starting server with settings: {:?}", settings);
 
-    // Create database pool
+    // Create database pool and run migrations
     let pool = create_database_pool(&settings.database_url).await?;
     info!("Database connection established");
 

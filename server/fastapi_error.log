@@ -384,3 +384,91 @@ Traceback (most recent call last):
     version = _bcrypt.__about__.__version__
               ^^^^^^^^^^^^^^^^^
 AttributeError: module 'bcrypt' has no attribute '__about__'
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [17816]
+INFO:     Started server process [29124]
+INFO:     Waiting for application startup.
+Failed to run alembic migrations: 'logger_sqlalchemy'
+Traceback (most recent call last):
+  File "/home/user/webapp/server/app/migrations_runner.py", line 25, in run_migrations
+    command.upgrade(alembic_cfg, 'head')
+  File "/usr/local/lib/python3.12/site-packages/alembic/command.py", line 483, in upgrade
+    script.run_env()
+  File "/usr/local/lib/python3.12/site-packages/alembic/script/base.py", line 549, in run_env
+    util.load_python_file(self.dir, "env.py")
+  File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 116, in load_python_file
+    module = load_module_py(module_id, path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 136, in load_module_py
+    spec.loader.exec_module(module)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/user/webapp/server/app/migrations/env.py", line 19, in <module>
+    fileConfig(config.config_file_name)
+  File "/usr/local/lib/python3.12/logging/config.py", line 92, in fileConfig
+    _install_loggers(cp, handlers, disable_existing_loggers)
+  File "/usr/local/lib/python3.12/logging/config.py", line 246, in _install_loggers
+    section = cp["logger_%s" % log]
+              ~~^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/configparser.py", line 941, in __getitem__
+    raise KeyError(key)
+KeyError: 'logger_sqlalchemy'
+Failed to seed admin user
+Traceback (most recent call last):
+  File "/home/user/webapp/server/app/main.py", line 48, in on_startup
+    admin_added = await seed_admin_user()
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/webapp/server/app/seeds/users.py", line 15, in seed_admin_user
+    admin = UserCreate(email=admin_email, username="admin", password="adminpass")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for UserCreate
+email
+  value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email. [type=value_error, input_value='admin@irlquest.local', input_type=str]
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/seeds/users.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29124]
+INFO:     Started server process [29445]
+INFO:     Waiting for application startup.
+Failed to run alembic migrations: 'logger_sqlalchemy'
+Traceback (most recent call last):
+  File "/home/user/webapp/server/app/migrations_runner.py", line 25, in run_migrations
+    command.upgrade(alembic_cfg, 'head')
+  File "/usr/local/lib/python3.12/site-packages/alembic/command.py", line 483, in upgrade
+    script.run_env()
+  File "/usr/local/lib/python3.12/site-packages/alembic/script/base.py", line 549, in run_env
+    util.load_python_file(self.dir, "env.py")
+  File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 116, in load_python_file
+    module = load_module_py(module_id, path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 136, in load_module_py
+    spec.loader.exec_module(module)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/user/webapp/server/app/migrations/env.py", line 19, in <module>
+    fileConfig(config.config_file_name)
+  File "/usr/local/lib/python3.12/logging/config.py", line 92, in fileConfig
+    _install_loggers(cp, handlers, disable_existing_loggers)
+  File "/usr/local/lib/python3.12/logging/config.py", line 246, in _install_loggers
+    section = cp["logger_%s" % log]
+              ~~^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/configparser.py", line 941, in __getitem__
+    raise KeyError(key)
+KeyError: 'logger_sqlalchemy'
+(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+INFO:     Application startup complete.

@@ -30,7 +30,7 @@ pub async fn login(
         .authenticate_and_issue_token(&state.db, &login_request.username, &login_request.password)
         .await
     {
-        Ok(access_token) => Ok(Json(Token::new(access_token))),
+        Ok((access_token, user)) => Ok(Json(Token::new(access_token, user))),
         Err(_) => Err(StatusCode::UNAUTHORIZED),
     }
 }

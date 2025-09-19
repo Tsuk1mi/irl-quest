@@ -1,12 +1,12 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt")
     id("kotlinx-serialization") version "1.8.0"
 }
 
 android {
     compileSdk = 34
+    namespace = "com.irlquest.app"
 
     defaultConfig {
         applicationId = "com.irlquest.app"
@@ -16,12 +16,23 @@ android {
         versionName = "0.1"
     }
 
+    buildTypes {
+        debug {
+            isMinifyEnabled = false
+        }
+    }
+
     buildFeatures {
         compose = true
     }
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.3"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
