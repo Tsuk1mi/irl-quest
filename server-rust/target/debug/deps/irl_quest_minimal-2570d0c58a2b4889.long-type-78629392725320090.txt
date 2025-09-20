@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, Json<models::rag::QuestGenerationRequest>) -> impl Future<Output = Result<Json<models::rag::QuestGenerationResponse>, axum::http::StatusCode>> {generate_quest}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, Json<models::rag::QuestGenerationRequest>) -> impl Future<Output = Result<Json<models::rag::QuestGenerationResponse>, axum::http::StatusCode>> {generate_quest}: Handler<_, _>

@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, Json<models::rag::TaskEnhancementRequest>) -> impl Future<Output = Result<Json<models::rag::TaskEnhancementResponse>, axum::http::StatusCode>> {enhance_task}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, Json<models::rag::TaskEnhancementRequest>) -> impl Future<Output = Result<Json<models::rag::TaskEnhancementResponse>, axum::http::StatusCode>> {enhance_task}: Handler<_, _>

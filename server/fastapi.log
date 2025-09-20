@@ -12,3 +12,4 @@ INFO:     10.12.253.16:51198 - "GET /api/v1/tasks/ HTTP/1.1" 200 OK
 INFO:     10.12.253.16:51198 - "POST /api/v1/quests/ HTTP/1.1" 201 Created
 INFO:     10.12.253.16:51198 - "GET /api/v1/quests/ HTTP/1.1" 200 OK
 INFO:     10.12.253.16:51198 - "PUT /api/v1/tasks/2 HTTP/1.1" 200 OK
+INFO:     10.12.50.162:48158 - "HEAD / HTTP/1.1" 405 Method Not Allowed

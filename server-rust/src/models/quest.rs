@@ -109,5 +109,5 @@ pub struct TodoToQuestRequest {
     pub todo_text: String,
     pub context: Option<String>,
     pub difficulty_preference: Option<i32>,
-    pub theme_preference: Option<String>,
+
 }

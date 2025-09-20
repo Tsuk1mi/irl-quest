@@ -1,0 +1,2 @@
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, Json<models::task::TaskCreate>) -> impl Future<Output = Result<(axum::http::StatusCode, Json<models::task::TaskOut>), axum::http::StatusCode>> {create_task}
+fn(axum::extract::State<Arc<AppState>>, middleware::auth::CurrentUser, Json<models::task::TaskCreate>) -> impl Future<Output = Result<(axum::http::StatusCode, Json<models::task::TaskOut>), axum::http::StatusCode>> {create_task}: Handler<_, _>

@@ -1,0 +1,28 @@
+# Rust
+/target
+server-rust/target
+**/*.rs.bk
+
+# Logs
+logs/
+*.log
+server-rust/*.log
+
+# dotenv
+.env
+server-rust/.env
+
+# Python caches
+**/__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Editors/IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Build artifacts
+*.tar.gz
