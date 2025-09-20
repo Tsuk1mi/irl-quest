@@ -94,6 +94,17 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
     .execute(pool)
     .await?;
 
+    // Ensure required columns exist on older databases
+    sqlx::query(
+        r#"
+        ALTER TABLE tasks 
+            ADD COLUMN IF NOT EXISTS quest_id INTEGER REFERENCES quests(id) ON DELETE SET NULL,
+            ADD COLUMN IF NOT EXISTS owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
     // User achievements table
     sqlx::query(
         r#"
