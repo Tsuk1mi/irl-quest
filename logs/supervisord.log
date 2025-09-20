@@ -16,3 +16,6 @@
 2025-09-19 18:07:02,030 INFO gave up: rag-server entered FATAL state, too many start retries too quickly
 2025-09-19 18:07:12,953 INFO spawned: 'rag-server' with pid 33756
 2025-09-19 18:07:14,588 INFO success: rag-server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:40:53,852 WARN received SIGTERM indicating exit request
+2025-09-20 10:40:53,853 INFO waiting for rag-server to die
+2025-09-20 10:40:54,970 WARN stopped: rag-server (terminated by SIGTERM)

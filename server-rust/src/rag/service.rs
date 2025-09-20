@@ -33,12 +33,14 @@ impl RagService {
         // Store the request for future training/analysis
         self.store_generation_request(&request).await?;
         
-        let quest_response = QuestTemplates::generate_quest_from_todo(
+        let mut quest_response = QuestTemplates::generate_quest_from_todo(
             &request.todo_text,
             request.context.as_deref(),
             difficulty,
             user_level,
         );
+        // Apply manual tags override if provided
+        if let Some(tags) = &request.tags_override { quest_response.tags = tags.clone(); }
 
         Ok(quest_response)
     }
@@ -159,7 +161,7 @@ impl RagService {
         let complexity_indicators = ["project", "complete", "finish", "develop", "create", "build"];
         let simple_indicators = ["check", "call", "email", "buy", "read"];
         
-        let mut difficulty = 2; // Default medium
+        let mut difficulty: i32 = 2; // Default medium
         
         if words < 3 {
             difficulty = 1;
@@ -192,7 +194,7 @@ impl RagService {
             RagKnowledgeCreate {
                 content: "Fantasy quest templates for turning everyday tasks into epic adventures".to_string(),
                 content_type: "template".to_string(),
-                tags: Some(vec!["fantasy", "template", "quest".to_string()]),
+                tags: Some(vec!["fantasy".to_string(), "template".to_string(), "quest".to_string()]),
                 metadata: Some(serde_json::json!({
                     "category": "quest_template",
                     "theme": "fantasy"
@@ -201,7 +203,7 @@ impl RagService {
             RagKnowledgeCreate {
                 content: "Sci-fi themed quest generation for futuristic task enhancement".to_string(),
                 content_type: "template".to_string(),
-                tags: Some(vec!["sci-fi", "template", "quest".to_string()]),
+                tags: Some(vec!["sci-fi".to_string(), "template".to_string(), "quest".to_string()]),
                 metadata: Some(serde_json::json!({
                     "category": "quest_template", 
                     "theme": "sci-fi"
@@ -210,7 +212,7 @@ impl RagService {
             RagKnowledgeCreate {
                 content: "Modern productivity themes for realistic task gamification".to_string(),
                 content_type: "template".to_string(),
-                tags: Some(vec!["modern", "template", "productivity".to_string()]),
+                tags: Some(vec!["modern".to_string(), "template".to_string(), "productivity".to_string()]),
                 metadata: Some(serde_json::json!({
                     "category": "quest_template",
                     "theme": "modern"

@@ -1,6 +1,0 @@
-2025-09-19 16:55:36,707 INFO RPC interface 'supervisor' initialized
-2025-09-19 16:55:36,707 CRIT Server 'unix_http_server' running without any HTTP authentication checking
-2025-09-19 16:55:36,720 INFO daemonizing the supervisord process
-2025-09-19 16:55:36,721 INFO supervisord started with pid 17804
-2025-09-19 16:55:37,725 INFO spawned: 'fastapi' with pid 17814
-2025-09-19 16:55:38,997 INFO success: fastapi entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

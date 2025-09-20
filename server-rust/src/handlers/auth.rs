@@ -1,4 +1,4 @@
-use axum::{extract::State, http::StatusCode, response::Json, Json as ExtractJson};
+use axum::{extract::{State, Extension}, http::StatusCode, response::Json, Json as ExtractJson};
 use std::sync::Arc;
 
 use crate::{
@@ -35,6 +35,6 @@ pub async fn login(
     }
 }
 
-pub async fn me(CurrentUser(user): CurrentUser) -> Json<UserOut> {
+pub async fn me(Extension(CurrentUser(user)): Extension<CurrentUser>) -> Json<UserOut> {
     Json(UserOut::from(user))
 }

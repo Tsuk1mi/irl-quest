@@ -26,3 +26,11 @@ node_modules/
 
 # Build artifacts
 *.tar.gz
+
+# Supervisor/runtime artifacts
+server-rust/*.pid
+server-rust/supervisor.sock
+server-rust/run.out
+server-rust/run.err
+server-rust/*.out
+server-rust/*.err

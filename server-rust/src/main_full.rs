@@ -23,7 +23,7 @@ use tracing_subscriber;
 
 use config::Settings;
 use db::create_database_pool;
-use handlers::{auth, health, quest, task, user, rag as rag_handler};
+use handlers::{auth, health, quest, task, user, rag as rag_handler, ml as ml_handler};
 use middleware::auth_middleware;
 
 #[derive(Clone)]
@@ -40,7 +40,7 @@ async fn create_app(state: Arc<AppState>) -> Router {
 
     // Protected auth routes
     let protected_auth_routes = Router::new()
-        .route("/me", get(auth::me))
+        .route("/me", get(auth::me).route_layer(from_fn_with_state(state.clone(), auth_middleware)))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 
     let auth_routes = Router::new()
@@ -51,37 +51,39 @@ async fn create_app(state: Arc<AppState>) -> Router {
     let task_routes = Router::new()
         .route("/", get(task::list_tasks).post(task::create_task))
         .route("/:task_id", get(task::get_task).put(task::update_task).delete(task::delete_task))
-        .route("/:task_id/complete", post(task::complete_task))
-        .route_layer(from_fn_with_state(state.clone(), auth_middleware));
+        .route("/:task_id/complete", post(task::complete_task));
 
     // Quest routes (all protected)
     let quest_routes = Router::new()
         .route("/", get(quest::list_quests).post(quest::create_quest))
         .route("/:quest_id", get(quest::get_quest).put(quest::update_quest).delete(quest::delete_quest))
         .route("/:quest_id/complete", post(quest::complete_quest))
-        .route("/generate", post(quest::generate_quest_from_todo))
-        .route_layer(from_fn_with_state(state.clone(), auth_middleware));
+        .route("/generate", post(quest::generate_quest_from_todo));
 
     // User routes (all protected)
     let user_routes = Router::new()
         .route("/me", get(user::get_me).put(user::update_me))
         .route("/me/stats", get(user::get_user_stats))
-        .route("/me/achievements", get(user::get_user_achievements))
-        .route_layer(from_fn_with_state(state.clone(), auth_middleware));
+        .route("/me/achievements", get(user::get_user_achievements));
 
     // RAG routes (all protected)
     let rag_routes = Router::new()
         .route("/generate-quest", post(rag_handler::generate_quest))
-        .route("/enhance-task", post(rag_handler::enhance_task))
-        .route_layer(from_fn_with_state(state.clone(), auth_middleware));
+        .route("/enhance-task", post(rag_handler::enhance_task));
+
+    // ML dataset routes (public for now; can protect later if needed)
+    let ml_routes = Router::new()
+        .route("/dataset/todo_to_quest", post(ml_handler::dataset_todo_to_quest))
+        .route("/dataset/task_tags", post(ml_handler::dataset_task_tags));
 
     // API routes
     let api_routes = Router::new()
         .nest("/auth", auth_routes)
-        .nest("/tasks", task_routes)
-        .nest("/quests", quest_routes)
-        .nest("/users", user_routes)
-        .nest("/rag", rag_routes);
+        .nest("/tasks", task_routes.route_layer(from_fn_with_state(state.clone(), auth_middleware)))
+        .nest("/quests", quest_routes.route_layer(from_fn_with_state(state.clone(), auth_middleware)))
+        .nest("/users", user_routes.route_layer(from_fn_with_state(state.clone(), auth_middleware)))
+        .nest("/rag", rag_routes.route_layer(from_fn_with_state(state.clone(), auth_middleware)))
+        .nest("/ml", ml_routes);
 
     // Main app
     Router::new()

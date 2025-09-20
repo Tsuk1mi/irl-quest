@@ -1,6 +1,6 @@
 use axum::{
-    extract::{Request, State},
-    http::{header, StatusCode},
+    extract::{Request, State, FromRequestParts},
+    http::{header, StatusCode, request::Parts},
     middleware::Next,
     response::Response,
 };
@@ -8,7 +8,24 @@ use std::sync::Arc;
 
 use crate::{models::User, services::AuthService, AppState};
 
+#[derive(Clone)]
 pub struct CurrentUser(pub User);
+
+#[axum::async_trait]
+impl<S> FromRequestParts<S> for CurrentUser
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        parts
+            .extensions
+            .get::<CurrentUser>()
+            .cloned()
+            .ok_or(StatusCode::UNAUTHORIZED)
+    }
+}
 
 pub async fn auth_middleware(
     State(state): State<Arc<AppState>>,

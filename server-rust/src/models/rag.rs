@@ -52,6 +52,7 @@ pub struct QuestGenerationRequest {
     pub context: Option<String>,
     pub difficulty_preference: Option<i32>,
     pub user_level: Option<i32>,
+    pub tags_override: Option<Vec<String>>, // allow manual tags override
 }
 
 #[derive(Debug, Serialize)]
