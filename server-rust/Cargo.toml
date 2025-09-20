@@ -1,27 +1,35 @@
 [package]
-name = "irl-quest-minimal"
+name = "irl-quest-server"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "minimal-server"
-path = "src/main_minimal.rs"
+name = "irl-quest-server"
+path = "src/main_full.rs"
 
 [dependencies]
-# Минимальные зависимости для быстрой компиляции
+# Web
 axum = { version = "0.7", features = ["macros"] }
 tokio = { version = "1", features = ["rt-multi-thread", "net", "macros"] }
 tower = "0.5"
-tower-http = { version = "0.5", features = ["cors"] }
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono", "json"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
+# Auth
+jsonwebtoken = "9.3"
+bcrypt = "0.15"
+
 # Utilities  
 chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1.0"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 
-# Random for quest generation
-rand = "0.8"
+# Config
+dotenv = "0.15"

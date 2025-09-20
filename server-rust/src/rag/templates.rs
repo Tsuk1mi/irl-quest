@@ -22,7 +22,8 @@ impl QuestTemplates {
 
         let base_exp = calculate_base_experience(difficulty, user_level);
         let tasks = generate_quest_tasks(todo_text, difficulty, base_exp);
-        let tags = generate_tags_for_quest(todo_text, &theme);
+        let mut tags = generate_tags_for_quest(todo_text, &theme);
+        if let Some(ctx) = context { let _ = ctx; }
 
         QuestGenerationResponse {
             title,

@@ -4,3 +4,6 @@
 2025-09-19 16:55:36,721 INFO supervisord started with pid 17804
 2025-09-19 16:55:37,725 INFO spawned: 'fastapi' with pid 17814
 2025-09-19 16:55:38,997 INFO success: fastapi entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:40:53,862 WARN received SIGTERM indicating exit request
+2025-09-20 10:40:53,876 INFO waiting for fastapi to die
+2025-09-20 10:40:54,249 INFO stopped: fastapi (exit status 0)

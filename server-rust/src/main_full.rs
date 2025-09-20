@@ -23,7 +23,7 @@ use tracing_subscriber;
 
 use config::Settings;
 use db::create_database_pool;
-use handlers::{auth, health, quest, task, user, rag as rag_handler};
+use handlers::{auth, health, quest, task, user, rag as rag_handler, ml as ml_handler};
 use middleware::auth_middleware;
 
 #[derive(Clone)]
@@ -75,13 +75,19 @@ async fn create_app(state: Arc<AppState>) -> Router {
         .route("/enhance-task", post(rag_handler::enhance_task))
         .route_layer(from_fn_with_state(state.clone(), auth_middleware));
 
+    // ML dataset routes (public for now; can protect later if needed)
+    let ml_routes = Router::new()
+        .route("/dataset/todo_to_quest", post(ml_handler::dataset_todo_to_quest))
+        .route("/dataset/task_tags", post(ml_handler::dataset_task_tags));
+
     // API routes
     let api_routes = Router::new()
         .nest("/auth", auth_routes)
         .nest("/tasks", task_routes)
         .nest("/quests", quest_routes)
         .nest("/users", user_routes)
-        .nest("/rag", rag_routes);
+        .nest("/rag", rag_routes)
+        .nest("/ml", ml_routes);
 
     // Main app
     Router::new()

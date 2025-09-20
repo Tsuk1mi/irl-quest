@@ -33,12 +33,14 @@ impl RagService {
         // Store the request for future training/analysis
         self.store_generation_request(&request).await?;
         
-        let quest_response = QuestTemplates::generate_quest_from_todo(
+        let mut quest_response = QuestTemplates::generate_quest_from_todo(
             &request.todo_text,
             request.context.as_deref(),
             difficulty,
             user_level,
         );
+        // Apply manual tags override if provided
+        if let Some(tags) = &request.tags_override { quest_response.tags = tags.clone(); }
 
         Ok(quest_response)
     }
