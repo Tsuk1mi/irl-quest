@@ -11,11 +11,8 @@ pub async fn create_database_pool(database_url: &str) -> Result<PgPool> {
 }
 
 async fn run_migrations(pool: &PgPool) -> Result<()> {
-    // Enable extensions
-    sqlx::query("CREATE EXTENSION IF NOT EXISTS vector")
-        .execute(pool)
-        .await?;
-
+    // Enable extensions if available (ignore errors where not supported)
+    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS vector").execute(pool).await;
     // Users table
     sqlx::query(
         r#"
@@ -121,7 +118,7 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
             content TEXT NOT NULL,
             content_type VARCHAR(50) NOT NULL,
             tags TEXT[] DEFAULT '{}',
-            embedding vector(384),
+            embedding REAL[],
             metadata JSONB DEFAULT '{}'::jsonb,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )

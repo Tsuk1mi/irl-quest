@@ -1,5 +1,6 @@
 use axum::{
     extract::State,
+    Extension,
     http::StatusCode,
     response::Json,
     Json as ExtractJson,
@@ -19,7 +20,7 @@ use crate::{
 
 pub async fn generate_quest(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
     ExtractJson(mut request): ExtractJson<QuestGenerationRequest>,
 ) -> Result<Json<QuestGenerationResponse>, StatusCode> {
     // Add user level to request
@@ -35,7 +36,7 @@ pub async fn generate_quest(
 
 pub async fn enhance_task(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
     ExtractJson(mut request): ExtractJson<TaskEnhancementRequest>,
 ) -> Result<Json<TaskEnhancementResponse>, StatusCode> {
     // Add user level to request

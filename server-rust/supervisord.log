@@ -13,3 +13,78 @@
 2025-09-19 17:36:16,828 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 2025-09-20 10:40:53,785 WARN exited: rustserver (terminated by SIGTERM; not expected)
 2025-09-20 10:40:53,788 WARN received SIGTERM indicating exit request
+2025-09-20 10:49:47,566 INFO RPC interface 'supervisor' initialized
+2025-09-20 10:49:47,567 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-09-20 10:49:47,569 INFO daemonizing the supervisord process
+2025-09-20 10:49:47,570 INFO supervisord started with pid 58520
+2025-09-20 10:49:48,574 INFO spawned: 'rustserver' with pid 58523
+2025-09-20 10:49:49,598 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:49:49,598 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:49:49,727 INFO spawned: 'rustserver' with pid 58530
+2025-09-20 10:49:49,753 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:49:50,756 INFO spawned: 'rustserver' with pid 58536
+2025-09-20 10:49:51,781 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:49:51,781 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:49:52,785 INFO spawned: 'rustserver' with pid 58543
+2025-09-20 10:49:53,809 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:49:53,809 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:49:54,812 INFO spawned: 'rustserver' with pid 58551
+2025-09-20 10:49:55,837 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:49:55,837 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:49:56,841 INFO spawned: 'rustserver' with pid 58561
+2025-09-20 10:49:57,218 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:49:58,228 INFO spawned: 'rustserver' with pid 58567
+2025-09-20 10:49:59,257 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:49:59,258 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:00,262 INFO spawned: 'rustserver' with pid 58578
+2025-09-20 10:50:01,293 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:50:01,294 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:02,297 INFO spawned: 'rustserver' with pid 58591
+2025-09-20 10:50:03,329 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:50:03,330 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:04,334 INFO spawned: 'rustserver' with pid 58660
+2025-09-20 10:50:05,364 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:50:05,364 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:06,368 INFO spawned: 'rustserver' with pid 58667
+2025-09-20 10:50:06,398 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:07,402 INFO spawned: 'rustserver' with pid 58679
+2025-09-20 10:50:07,431 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:09,435 INFO spawned: 'rustserver' with pid 58691
+2025-09-20 10:50:10,466 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:50:10,466 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:11,470 INFO spawned: 'rustserver' with pid 58700
+2025-09-20 10:50:12,499 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:50:12,499 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:13,503 INFO spawned: 'rustserver' with pid 58718
+2025-09-20 10:50:13,680 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:14,687 INFO spawned: 'rustserver' with pid 58725
+2025-09-20 10:50:15,712 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:50:15,712 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:16,716 INFO spawned: 'rustserver' with pid 58732
+2025-09-20 10:50:16,947 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:17,956 INFO spawned: 'rustserver' with pid 58746
+2025-09-20 10:50:17,979 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:20,169 INFO spawned: 'rustserver' with pid 58755
+2025-09-20 10:50:21,010 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:24,019 INFO spawned: 'rustserver' with pid 58769
+2025-09-20 10:50:24,042 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:50:24,043 INFO gave up: rustserver entered FATAL state, too many start retries too quickly
+2025-09-20 10:51:03,235 INFO spawned: 'rustserver' with pid 58884
+2025-09-20 10:51:04,259 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:51:04,260 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:51:04,262 INFO spawned: 'rustserver' with pid 58890
+2025-09-20 10:51:05,299 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:51:05,299 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:51:06,303 INFO spawned: 'rustserver' with pid 58897
+2025-09-20 10:51:07,328 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:51:07,328 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:51:08,332 INFO spawned: 'rustserver' with pid 58904
+2025-09-20 10:51:09,357 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:51:09,358 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:51:10,361 INFO spawned: 'rustserver' with pid 58918
+2025-09-20 10:51:11,386 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:51:11,386 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:51:12,389 INFO spawned: 'rustserver' with pid 58931
+2025-09-20 10:51:13,414 INFO success: rustserver entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2025-09-20 10:51:13,414 WARN exited: rustserver (exit status 1; not expected)
+2025-09-20 10:51:14,418 INFO spawned: 'rustserver' with pid 58938

@@ -100,16 +100,16 @@ impl QuestService {
         let mut quest = match quest { Some(q) => q, None => return Ok(None) };
 
         if let Some(title) = quest_update.title { quest.title = title; }
-        if let Some(description) = quest_update.description { quest.description = description; }
+        if let Some(description) = quest_update.description { quest.description = Some(description); }
         if let Some(difficulty) = quest_update.difficulty { quest.difficulty = difficulty; }
         if let Some(status) = quest_update.status { quest.status = status; }
         if let Some(priority) = quest_update.priority { quest.priority = priority; }
         if let Some(deadline) = quest_update.deadline { quest.deadline = Some(deadline); }
         if let Some(reward_experience) = quest_update.reward_experience { quest.reward_experience = reward_experience; }
-        if let Some(reward_description) = quest_update.reward_description { quest.reward_description = reward_description; }
+        if let Some(reward_description) = quest_update.reward_description { quest.reward_description = Some(reward_description); }
         if let Some(tags) = quest_update.tags { quest.tags = tags; }
         if let Some(is_public) = quest_update.is_public { quest.is_public = is_public; }
-        if let Some(location_name) = quest_update.location_name { quest.location_name = location_name; }
+        if let Some(location_name) = quest_update.location_name { quest.location_name = Some(location_name); }
         if let Some(quest_type) = quest_update.quest_type { quest.quest_type = quest_type; }
         if let Some(metadata) = quest_update.metadata { quest.metadata = metadata; }
 

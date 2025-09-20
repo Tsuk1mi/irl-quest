@@ -5,7 +5,7 @@ pub struct QuestTemplates;
 impl QuestTemplates {
     pub fn generate_quest_from_todo(
         todo_text: &str,
-        context: Option<&str>,
+        _context: Option<&str>,
         difficulty: i32,
         user_level: i32,
     ) -> QuestGenerationResponse {
@@ -22,8 +22,8 @@ impl QuestTemplates {
 
         let base_exp = calculate_base_experience(difficulty, user_level);
         let tasks = generate_quest_tasks(todo_text, difficulty, base_exp);
-        let mut tags = generate_tags_for_quest(todo_text, &theme);
-        if let Some(ctx) = context { let _ = ctx; }
+        let tags = generate_tags_for_quest(todo_text, &theme);
+        if let Some(ctx) = _context { let _ = ctx; }
 
         QuestGenerationResponse {
             title,
@@ -41,7 +41,7 @@ impl QuestTemplates {
 
     pub fn enhance_task(
         task_text: &str,
-        context: Option<&str>,
+        _context: Option<&str>,
         user_level: i32,
     ) -> TaskEnhancementResponse {
         let difficulty = calculate_task_difficulty(task_text, user_level);
@@ -312,7 +312,7 @@ fn calculate_base_experience(difficulty: i32, user_level: i32) -> i32 {
 }
 
 fn calculate_task_difficulty(task_text: &str, user_level: i32) -> i32 {
-    let mut difficulty = 2; // Default
+    let mut difficulty: i32 = 2; // Default
     
     // Simple heuristics based on text analysis
     let words = task_text.split_whitespace().count();

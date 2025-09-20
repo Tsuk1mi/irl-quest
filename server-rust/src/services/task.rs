@@ -102,7 +102,7 @@ impl TaskService {
         let mut task = match task { Some(t) => t, None => return Ok(None) };
 
         if let Some(title) = task_update.title { task.title = title; }
-        if let Some(description) = task_update.description { task.description = description; }
+        if let Some(description) = task_update.description { task.description = Some(description); }
         if let Some(completed) = task_update.completed { task.completed = completed; }
         if let Some(status) = task_update.status { task.status = status; }
         if let Some(priority) = task_update.priority { task.priority = priority; }
@@ -112,11 +112,11 @@ impl TaskService {
         if let Some(difficulty) = task_update.difficulty { task.difficulty = difficulty; }
         if let Some(experience_reward) = task_update.experience_reward { task.experience_reward = experience_reward; }
         if let Some(tags) = task_update.tags { task.tags = tags; }
-        if let Some(location_name) = task_update.location_name { task.location_name = location_name; }
+        if let Some(location_name) = task_update.location_name { task.location_name = Some(location_name); }
         if let Some(subtasks) = task_update.subtasks { task.subtasks = subtasks; }
-        if let Some(notes) = task_update.notes { task.notes = notes; }
+        if let Some(notes) = task_update.notes { task.notes = Some(notes); }
         if let Some(attachments) = task_update.attachments { task.attachments = attachments; }
-        if let Some(completion_proof) = task_update.completion_proof { task.completion_proof = completion_proof; }
+        if let Some(completion_proof) = task_update.completion_proof { task.completion_proof = Some(completion_proof); }
         if let Some(metadata) = task_update.metadata { task.metadata = metadata; }
 
         let updated: Task = sqlx::query_as::<_, Task>(

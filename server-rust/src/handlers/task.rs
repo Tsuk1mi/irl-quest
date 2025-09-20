@@ -1,5 +1,6 @@
 use axum::{
     extract::{Path, State},
+    Extension,
     http::StatusCode,
     response::Json,
     Json as ExtractJson,
@@ -16,7 +17,7 @@ use crate::{
 
 pub async fn list_tasks(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
 ) -> Result<Json<Vec<TaskOut>>, StatusCode> {
     let result = TaskService::list_tasks_for_user(&state.db, user.id, 0, 100).await;
     match result {
@@ -27,7 +28,7 @@ pub async fn list_tasks(
 
 pub async fn create_task(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
     ExtractJson(task_create): ExtractJson<TaskCreate>,
 ) -> Result<(StatusCode, Json<TaskOut>), StatusCode> {
     match TaskService::create_task_for_user(&state.db, user.id, task_create).await {
@@ -38,7 +39,7 @@ pub async fn create_task(
 
 pub async fn get_task(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
     Path(task_id): Path<i32>,
 ) -> Result<Json<TaskOut>, StatusCode> {
     match TaskService::get_task_for_user(&state.db, user.id, task_id).await {
@@ -50,7 +51,7 @@ pub async fn get_task(
 
 pub async fn update_task(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
     Path(task_id): Path<i32>,
     ExtractJson(task_update): ExtractJson<TaskUpdate>,
 ) -> Result<Json<TaskOut>, StatusCode> {
@@ -63,7 +64,7 @@ pub async fn update_task(
 
 pub async fn delete_task(
     State(state): State<Arc<AppState>>,
-    CurrentUser(user): CurrentUser,
+    Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
     Path(task_id): Path<i32>,
 ) -> Result<StatusCode, StatusCode> {
     match TaskService::delete_task_for_user(&state.db, user.id, task_id).await {
@@ -75,7 +76,7 @@ pub async fn delete_task(
 
 pub async fn complete_task(
     State(_state): State<Arc<AppState>>,
-    CurrentUser(_user): CurrentUser,
+    Extension(CurrentUser(_user)): Extension<crate::middleware::CurrentUser>,
     Path(_task_id): Path<i32>,
 ) -> Result<Json<TaskOut>, StatusCode> {
     // Placeholder - implement actual task completion
