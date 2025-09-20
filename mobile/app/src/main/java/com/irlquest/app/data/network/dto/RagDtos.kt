@@ -9,7 +9,8 @@ data class QuestGenerationRequest(
     @SerialName("todo_text") val todoText: String,
     val context: String? = null,
     @SerialName("difficulty_preference") val difficultyPreference: Int? = null,
-    @SerialName("theme_preference") val themePreference: String? = null,
+    // theme_preference больше не поддерживается сервером (тема авто-детект по тексту)
+    @SerialName("tags_override") val tagsOverride: List<String>? = null,
     @SerialName("user_level") val userLevel: Int? = null
 )
 

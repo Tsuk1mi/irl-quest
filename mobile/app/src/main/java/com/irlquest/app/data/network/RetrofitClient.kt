@@ -22,8 +22,8 @@ object RetrofitClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // Rust сервер URL на порту 8006
-    private const val BASE_URL = "https://8006-iessh243ptqf83yx518ah-6532622b.e2b.dev/api/v1/"
+    // Rust сервер URL (порт 8003 — full server)
+    private const val BASE_URL = "https://8003-iessh243ptqf83yx518ah-6532622b.e2b.dev/api/v1/"
 
     val apiService: ApiService by lazy {
         val contentType = "application/json".toMediaType()
