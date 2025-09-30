@@ -17,6 +17,7 @@ import com.irlquest.app.feature.focus.FocusSessionScreen
 import com.irlquest.app.feature.quests.QuestsScreen
 import com.irlquest.app.feature.stats.StatsScreen
 import com.irlquest.app.feature.tasks.TasksScreen
+import com.irlquest.app.ui.theme.Orange
 
 sealed class BottomNavItem(
     val route: String,

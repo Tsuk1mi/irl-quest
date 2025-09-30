@@ -68,6 +68,7 @@ impl TaskService {
         Ok(TaskOut::from(task))
     }
 
+    #[allow(dead_code)]
     pub async fn get_task_for_user(
         pool: &PgPool,
         user_id: i32,
@@ -84,6 +85,7 @@ impl TaskService {
         Ok(task.map(TaskOut::from))
     }
 
+    #[allow(dead_code)]
     pub async fn update_task_for_user(
         pool: &PgPool,
         user_id: i32,
@@ -91,7 +93,7 @@ impl TaskService {
         task_update: TaskUpdate,
     ) -> Result<Option<TaskOut>> {
         // Load existing
-        let mut task: Option<Task> = sqlx::query_as::<_, Task>(
+        let task: Option<Task> = sqlx::query_as::<_, Task>(
             "SELECT * FROM tasks WHERE id = $1 AND owner_id = $2",
         )
         .bind(task_id)
@@ -155,6 +157,7 @@ impl TaskService {
         Ok(Some(TaskOut::from(updated)))
     }
 
+    #[allow(dead_code)]
     pub async fn delete_task_for_user(
         pool: &PgPool,
         user_id: i32,
@@ -171,6 +174,7 @@ impl TaskService {
         Ok(result.rows_affected() > 0)
     }
 
+    #[allow(dead_code)]
     pub async fn complete_task_for_user(
         pool: &PgPool,
         user_id: i32,

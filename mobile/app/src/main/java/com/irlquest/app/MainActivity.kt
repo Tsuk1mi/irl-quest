@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Home
@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IRLQuestApp() {
     val navController = rememberNavController()
@@ -41,11 +42,14 @@ fun IRLQuestApp() {
         topBar = {
             TopAppBar(
                 title = { Text("IRL Quest") },
-                backgroundColor = MaterialTheme.colors.primary
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         },
         bottomBar = {
-            BottomNavigation {
+            NavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 
@@ -56,7 +60,7 @@ fun IRLQuestApp() {
                 )
                 
                 items.forEach { (route, label, icon) ->
-                    BottomNavigationItem(
+                    NavigationBarItem(
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label) },
                         selected = currentDestination?.hierarchy?.any { it.route == route } == true,
@@ -73,13 +77,13 @@ fun IRLQuestApp() {
                 }
             }
         }
-    ) { innerPadding ->
+    ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = "generator",
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(paddingValues)
         ) {
             composable("home") {
                 HomeScreen()
@@ -98,28 +102,26 @@ fun IRLQuestApp() {
 
 @Composable
 fun HomeScreen() {
-    // Placeholder for home screen
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colors.background
+        color = MaterialTheme.colorScheme.background
     ) {
         Text(
             text = "Home Screen - Coming Soon!",
-            style = MaterialTheme.typography.h4
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }
 
 @Composable
 fun ProfileScreen() {
-    // Placeholder for profile screen  
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colors.background
+        color = MaterialTheme.colorScheme.background
     ) {
         Text(
             text = "Profile Screen - Coming Soon!",
-            style = MaterialTheme.typography.h4
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }

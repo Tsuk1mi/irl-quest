@@ -4,6 +4,7 @@ use serde_json::Value as JsonValue;
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow, Serialize)]
+#[allow(dead_code)]
 pub struct RagKnowledge {
     pub id: i32,
     pub content: String,
@@ -16,6 +17,7 @@ pub struct RagKnowledge {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct RagKnowledgeCreate {
     pub content: String,
     pub content_type: String,
@@ -24,6 +26,7 @@ pub struct RagKnowledgeCreate {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct RagKnowledgeOut {
     pub id: i32,
     pub content: String,

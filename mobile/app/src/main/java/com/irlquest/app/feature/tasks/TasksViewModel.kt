@@ -51,19 +51,20 @@ data class TaskUi(
 )
 
 data class TaskSummary(
-    val total: Int = 0,
-    val completed: Int = 0,
-    val experienceGained: Int = 0
+    val total: Int,
+    val completed: Int,
+    val experienceGained: Int
 )
 
 data class TasksUiState(
-    val isLoading: Boolean = false,
     val tasks: List<TaskUi> = emptyList(),
-    val filteredTasks: List<TaskUi> = emptyList(),
+    val isLoading: Boolean = false,
+    val showCreateDialog: Boolean = false,
     val selectedFilter: TaskFilter = TaskFilter.ALL,
-    val todaySummary: TaskSummary = TaskSummary(),
+    val todaySummary: TaskSummary = TaskSummary(0, 0, 0),
     val error: String? = null
 )
+
 
 class TasksViewModel : ViewModel() {
     
@@ -72,68 +73,32 @@ class TasksViewModel : ViewModel() {
     
     private val dateFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
     
+    init {
+        loadTasks()
+    }
+
+    fun showCreateDialog() {
+        _uiState.value = _uiState.value.copy(showCreateDialog = true)
+    }
+
+    fun hideCreateDialog() {
+        _uiState.value = _uiState.value.copy(showCreateDialog = false)
+    }
+
     fun loadTasks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
             try {
-                // TODO: Implement actual API calls
-                // val tasks = taskRepository.getTasks()
-                
-                // Mock data for now
-                val mockTasks = createMockTasks()
-                val todaySummary = calculateTodaySummary(mockTasks)
-                
+                // TODO: Загрузка задач с сервера
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    tasks = mockTasks,
-                    filteredTasks = filterTasks(mockTasks, _uiState.value.selectedFilter),
-                    todaySummary = todaySummary
+                    tasks = emptyList() // Временно пустой список
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Ошибка загрузки задач"
-                )
-            }
-        }
-    }
-    
-    fun setFilter(filter: TaskFilter) {
-        val currentTasks = _uiState.value.tasks
-        _uiState.value = _uiState.value.copy(
-            selectedFilter = filter,
-            filteredTasks = filterTasks(currentTasks, filter)
-        )
-    }
-    
-    fun toggleTask(taskId: Int) {
-        viewModelScope.launch {
-            try {
-                // TODO: Implement actual API call
-                // taskRepository.toggleTask(taskId)
-                
-                val updatedTasks = _uiState.value.tasks.map { task ->
-                    if (task.id == taskId) {
-                        task.copy(
-                            completed = !task.completed,
-                            status = if (!task.completed) TaskStatus.COMPLETED else TaskStatus.PENDING,
-                            completedAt = if (!task.completed) dateFormatter.format(Date()) else null
-                        )
-                    } else task
-                }
-                
-                val todaySummary = calculateTodaySummary(updatedTasks)
-                
-                _uiState.value = _uiState.value.copy(
-                    tasks = updatedTasks,
-                    filteredTasks = filterTasks(updatedTasks, _uiState.value.selectedFilter),
-                    todaySummary = todaySummary,
-                    error = null
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Ошибка обновления задачи"
+                    error = e.message
                 )
             }
         }
@@ -142,52 +107,22 @@ class TasksViewModel : ViewModel() {
     fun createTask(title: String, description: String, priority: TaskPriority) {
         viewModelScope.launch {
             try {
-                // TODO: Implement actual API call
-                // val newTask = taskRepository.createTask(title, description, priority)
-                
-                // Mock creation
-                val newTask = TaskUi(
-                    id = System.currentTimeMillis().toInt(),
-                    title = title,
-                    description = description,
-                    completed = false,
-                    status = TaskStatus.PENDING,
-                    priority = priority,
-                    deadline = null,
-                    isOverdue = false,
-                    estimatedDuration = null,
-                    actualDuration = null,
-                    difficulty = when (priority) {
-                        TaskPriority.LOW -> 1
-                        TaskPriority.MEDIUM -> 2
-                        TaskPriority.HIGH -> 3
-                        TaskPriority.CRITICAL -> 4
-                    },
-                    experienceReward = when (priority) {
-                        TaskPriority.LOW -> 10
-                        TaskPriority.MEDIUM -> 20
-                        TaskPriority.HIGH -> 30
-                        TaskPriority.CRITICAL -> 50
-                    },
-                    tags = emptyList(),
-                    questId = null,
-                    createdAt = dateFormatter.format(Date()),
-                    completedAt = null
-                )
-                
-                val updatedTasks = listOf(newTask) + _uiState.value.tasks
-                val todaySummary = calculateTodaySummary(updatedTasks)
-                
-                _uiState.value = _uiState.value.copy(
-                    tasks = updatedTasks,
-                    filteredTasks = filterTasks(updatedTasks, _uiState.value.selectedFilter),
-                    todaySummary = todaySummary,
-                    error = null
-                )
+                // TODO: Создание задачи на сервере
+                hideCreateDialog()
+                loadTasks()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Ошибка создания задачи"
-                )
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+    
+    fun toggleTask(taskId: Int) {
+        viewModelScope.launch {
+            try {
+                // TODO: Обновление статуса задачи на сервере
+                loadTasks()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
@@ -195,26 +130,18 @@ class TasksViewModel : ViewModel() {
     fun deleteTask(taskId: Int) {
         viewModelScope.launch {
             try {
-                // TODO: Implement actual API call
-                // taskRepository.deleteTask(taskId)
-                
-                val updatedTasks = _uiState.value.tasks.filter { it.id != taskId }
-                val todaySummary = calculateTodaySummary(updatedTasks)
-                
-                _uiState.value = _uiState.value.copy(
-                    tasks = updatedTasks,
-                    filteredTasks = filterTasks(updatedTasks, _uiState.value.selectedFilter),
-                    todaySummary = todaySummary,
-                    error = null
-                )
+                // TODO: Удаление задачи на сервере
+                loadTasks()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Ошибка удаления задачи"
-                )
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
-    
+
+    fun setFilter(filter: TaskFilter) {
+        _uiState.value = _uiState.value.copy(selectedFilter = filter)
+    }
+
     private fun filterTasks(tasks: List<TaskUi>, filter: TaskFilter): List<TaskUi> {
         return when (filter) {
             TaskFilter.ALL -> tasks

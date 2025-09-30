@@ -88,6 +88,7 @@ impl From<Quest> for QuestOut {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct QuestUpdate {
     pub title: Option<String>,
     pub description: Option<String>,
@@ -105,6 +106,7 @@ pub struct QuestUpdate {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct TodoToQuestRequest {
     pub todo_text: String,
     pub context: Option<String>,

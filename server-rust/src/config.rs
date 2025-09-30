@@ -16,7 +16,7 @@ impl Settings {
     pub fn new() -> Self {
         Self {
             database_url: env::var("DATABASE_URL")
-                .unwrap_or_else(|_| "postgresql://postgres:password@localhost:5432/irl_quest".to_string()),
+                .unwrap_or_else(|_| "postgresql://postgres:tsukimi@localhost:5432/irl_quest".to_string()),
             server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             server_port: env::var("SERVER_PORT")
                 .unwrap_or_else(|_| "8003".to_string())

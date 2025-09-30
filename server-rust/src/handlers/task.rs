@@ -37,6 +37,7 @@ pub async fn create_task(
     }
 }
 
+#[allow(dead_code)]
 pub async fn get_task(
     State(state): State<Arc<AppState>>,
     Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
@@ -49,6 +50,7 @@ pub async fn get_task(
     }
 }
 
+#[allow(dead_code)]
 pub async fn update_task(
     State(state): State<Arc<AppState>>,
     Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
@@ -62,6 +64,7 @@ pub async fn update_task(
     }
 }
 
+#[allow(dead_code)]
 pub async fn delete_task(
     State(state): State<Arc<AppState>>,
     Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,

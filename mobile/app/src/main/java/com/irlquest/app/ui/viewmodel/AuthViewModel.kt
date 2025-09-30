@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.irlquest.app.data.repository.AuthRepository
-import com.irlquest.app.data.network.dto.UserOutResponse
+import com.irlquest.app.data.network.dto.UserDto
 
 class AuthViewModel(private val repo: AuthRepository = AuthRepository()) : ViewModel() {
     private val _loading = MutableStateFlow(false)
@@ -15,8 +15,8 @@ class AuthViewModel(private val repo: AuthRepository = AuthRepository()) : ViewM
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _currentUser = MutableStateFlow<UserOutResponse?>(null)
-    val currentUser: StateFlow<UserOutResponse?> = _currentUser
+    private val _currentUser = MutableStateFlow<UserDto?>(null)
+    val currentUser: StateFlow<UserDto?> = _currentUser
 
     fun login(username: String, password: String, onSuccess: () -> Unit) {
         viewModelScope.launch {

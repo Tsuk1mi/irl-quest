@@ -2,8 +2,17 @@
 
 **IRL Quest** — платформа для геймифицированной продуктивности, обучения и совместных челленджей с использованием локальных ML-решений и векторной базы данных pgvector.
 
-## Возможности
+## Кратко о проекте
+IRL Quest объединяет задачи, квесты, обучение и совместную работу в единой экосистеме с элементами игры, AI и AR.
 
+## Стек технологий
+- Backend: Rust, FastAPI, Celery, PostgreSQL + pgvector, Redis
+- Mobile: Kotlin (Android, Jetpack Compose)
+- Инфраструктура: Docker, Kubernetes, Terraform
+- AI: Локальные ML-модели, RAG, pgvector
+- CI/CD: GitHub Actions
+
+## Основные возможности
 - Квесты и задачи с прогрессом и наградами
 - Битвы с "боссами" — преодоление сложных целей
 - Фокус-сессии (Pomodoro, статистики)
@@ -13,19 +22,16 @@
 - AR и геолокация для подтверждения достижений
 - Система наград и инвентаря
 
-## Технологии
-
-- Backend: Python (FastAPI, Celery), PostgreSQL + pgvector, Redis
-- Mobile: Kotlin (Android, Jetpack Compose)
-- Инфраструктура: Docker, Kubernetes, Terraform
-- AI: Локальные ML-модели, pgvector (RAG)
-- CI/CD: GitHub Actions
+## Архитектура
+- Микросервисный backend (Rust, FastAPI)
+- Векторный поиск и RAG-пайплайн
+- Мобильное приложение на Kotlin
+- Интеграция с календарями, ML, AR
 
 ## Быстрый старт
-
 ### Backend
 ```bash
-cd server
+cd server-rust
 make dev-up
 ```
 
@@ -33,7 +39,6 @@ make dev-up
 Откройте проект в Android Studio, соберите и запустите на устройстве.
 
 ## Документация
-
 - [Архитектура](docs/architecture.md)
 - [Backend](docs/backend.md)
 - [Мобильное приложение](docs/mobile.md)
@@ -42,10 +47,3 @@ make dev-up
 - [Модель данных](docs/data-model.md)
 - [Безопасность](docs/security-privacy.md)
 
-## Вклад
-
-Смотрите [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Лицензия
-
-[MIT](LICENSE)

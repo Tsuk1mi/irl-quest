@@ -98,6 +98,7 @@ impl From<Task> for TaskOut {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct TaskUpdate {
     pub title: Option<String>,
     pub description: Option<String>,

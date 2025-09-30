@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use axum::{
     middleware::from_fn_with_state,
-    routing::{get, post, put, delete},
+    routing::{get, post},
     Router,
 };
 use dotenv::dotenv;
@@ -50,13 +50,11 @@ async fn create_app(state: Arc<AppState>) -> Router {
     // Task routes (all protected)
     let task_routes = Router::new()
         .route("/", get(task::list_tasks).post(task::create_task))
-        .route("/:task_id", get(task::get_task).put(task::update_task).delete(task::delete_task))
         .route("/:task_id/complete", post(task::complete_task));
 
     // Quest routes (all protected)
     let quest_routes = Router::new()
         .route("/", get(quest::list_quests).post(quest::create_quest))
-        .route("/:quest_id", get(quest::get_quest).put(quest::update_quest).delete(quest::delete_quest))
         .route("/:quest_id/complete", post(quest::complete_quest))
         .route("/generate", post(quest::generate_quest_from_todo));
 

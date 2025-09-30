@@ -37,6 +37,7 @@ pub async fn create_quest(
     }
 }
 
+#[allow(dead_code)]
 pub async fn get_quest(
     State(state): State<Arc<AppState>>,
     Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
@@ -49,6 +50,7 @@ pub async fn get_quest(
     }
 }
 
+#[allow(dead_code)]
 pub async fn update_quest(
     State(state): State<Arc<AppState>>,
     Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,
@@ -62,6 +64,7 @@ pub async fn update_quest(
     }
 }
 
+#[allow(dead_code)]
 pub async fn delete_quest(
     State(state): State<Arc<AppState>>,
     Extension(CurrentUser(user)): Extension<crate::middleware::CurrentUser>,

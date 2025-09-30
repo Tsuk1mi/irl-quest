@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -46,13 +46,13 @@ fun FocusSessionScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            elevation = 8.dp,
+            elevation = CardDefaults.cardElevation(8.dp),
             shape = RoundedCornerShape(12.dp),
-            backgroundColor = if (uiState.activeSession != null) MaterialTheme.colors.primary else Color.White
-        ) {
-            if (uiState.activeSession != null) {
+             ) {
+            val session = uiState.activeSession
+            if (session is FocusSessionUi) {
                 ActiveSessionCard(
-                    session = uiState.activeSession,
+                    session = session,
                     onStop = { viewModel.stopSession() }
                 )
             } else {
@@ -60,7 +60,7 @@ fun FocusSessionScreen(
                     onStart = { duration -> viewModel.startSession(duration) }
                 )
             }
-        }
+         }
 
         // Статистика
         Row(
@@ -106,14 +106,12 @@ fun ActiveSessionCard(
     onStop: () -> Unit
 ) {
     var timeRemaining by remember { mutableStateOf(session.durationMinutes * 60) }
-    
     LaunchedEffect(session) {
         while (timeRemaining > 0) {
             delay(1000)
             timeRemaining--
         }
     }
-    
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -126,43 +124,40 @@ fun ActiveSessionCard(
             tint = Color.White,
             modifier = Modifier.size(48.dp)
         )
-        
         Spacer(modifier = Modifier.height(8.dp))
-        
         Text(
             text = formatTime(timeRemaining),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
-        
         Text(
             text = session.taskTitle ?: "Фокус-сессия",
             fontSize = 16.sp,
             color = Color.White.copy(alpha = 0.8f)
         )
-        
         Spacer(modifier = Modifier.height(16.dp))
-        
         Button(
             onClick = onStop,
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White
+            ),
             shape = RoundedCornerShape(20.dp)
         ) {
             Icon(Icons.Default.Stop, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Завершить", color = MaterialTheme.colors.primary)
+            Text("Завершить", color = MaterialTheme.colorScheme.primary)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartSessionCard(
     onStart: (Int) -> Unit
 ) {
     var selectedDuration by remember { mutableStateOf(25) }
     val durations = listOf(15, 25, 45, 60)
-    
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -174,9 +169,7 @@ fun StartSessionCard(
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium
         )
-        
         Spacer(modifier = Modifier.height(16.dp))
-        
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -184,21 +177,30 @@ fun StartSessionCard(
                 FilterChip(
                     selected = selectedDuration == duration,
                     onClick = { selectedDuration = duration },
-                    content = { Text("${duration} мин") }
+                    label = { Text("${duration} мин") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
             }
         }
-        
         Spacer(modifier = Modifier.height(16.dp))
-        
         Button(
             onClick = { onStart(selectedDuration) },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Начать сессию")
+            Text(
+                text = "Начать фокус-сессию",
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }
@@ -209,8 +211,7 @@ fun StatCard(
     value: String
 ) {
     Card(
-        modifier = Modifier.size(width = 100.dp, height = 80.dp),
-        elevation = 4.dp
+        modifier = Modifier.size(width = 100.dp, height = 80.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp),
@@ -221,12 +222,12 @@ fun StatCard(
                 text = value,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colors.primary
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = title,
                 fontSize = 12.sp,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
     }
@@ -243,11 +244,9 @@ fun FocusSessionItem(session: FocusSessionUi) {
         Icon(
             Icons.Default.Timer,
             contentDescription = null,
-            tint = MaterialTheme.colors.primary
+            tint = MaterialTheme.colorScheme.primary
         )
-        
         Spacer(modifier = Modifier.width(16.dp))
-        
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = session.taskTitle ?: "Фокус-сессия",
@@ -256,30 +255,23 @@ fun FocusSessionItem(session: FocusSessionUi) {
             Text(
                 text = "${session.durationMinutes} мин • ${session.formattedDate}",
                 fontSize = 14.sp,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
-        
         session.productivityRating?.let { rating ->
-            Card(
-                backgroundColor = when {
-                    rating >= 4 -> Color.Green.copy(alpha = 0.1f)
-                    rating >= 3 -> Color.Yellow.copy(alpha = 0.1f)
-                    else -> Color.Red.copy(alpha = 0.1f)
-                }
-            ) {
-                Text(
-                    text = "★ $rating",
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontSize = 12.sp
-                )
-            }
-        }
-    }
-}
+            Card {
+                 Text(
+                     text = "★ $rating",
+                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                     fontSize = 12.sp
+                 )
+             }
+         }
+     }
+ }
 
-private fun formatTime(seconds: Int): String {
-    val minutes = seconds / 60
-    val secs = seconds % 60
-    return "%02d:%02d".format(minutes, secs)
-}
+ private fun formatTime(seconds: Int): String {
+     val minutes = seconds / 60
+     val secs = seconds % 60
+     return "%02d:%02d".format(minutes, secs)
+ }

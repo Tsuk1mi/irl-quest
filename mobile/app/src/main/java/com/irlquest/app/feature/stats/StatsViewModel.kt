@@ -3,6 +3,7 @@ package com.irlquest.app.feature.stats
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.irlquest.app.ui.theme.Orange
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,86 +51,167 @@ data class StatsUiState(
     val weeklyData: List<DayData> = emptyList(),
     val achievements: List<Achievement> = emptyList(),
     val activityData: List<ActivityDay> = emptyList(),
+    val focusTimeStats: List<DayData> = emptyList(),
+    val levelProgress: Float = 0f,
+    val currentLevel: Int = 1,
+    val currentExperience: Int = 0,
+    val nextLevelExperience: Int = 1000,
     val error: String? = null
 )
 
+data class StatsData(
+    val levelProgress: Float,
+    val currentLevel: Int,
+    val currentExperience: Int,
+    val nextLevelExperience: Int,
+    val focusTimeStats: List<DayData>,
+    val todayStats: TodayStats,
+    val weeklyData: List<DayData>
+)
+
 class StatsViewModel : ViewModel() {
-    
     private val _uiState = MutableStateFlow(StatsUiState())
     val uiState: StateFlow<StatsUiState> = _uiState.asStateFlow()
-    
+
+    private val achievementColors = listOf(
+        Color(0xFF6200EE), // Primary
+        Orange,
+        Color(0xFF03DAC6), // Secondary
+        Color(0xFF018786), // Secondary variant
+        Color(0xFFB00020)  // Error
+    )
+
+    init {
+        loadStats()
+    }
+
     fun loadStats() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
             try {
-                // TODO: Implement actual API calls
-                // val userProfile = userRepository.getCurrentUser()
-                // val todayStats = statsRepository.getTodayStats()
-                // val weeklyData = statsRepository.getWeeklyStats()
-                // val achievements = achievementsRepository.getUserAchievements()
-                // val activityData = statsRepository.getActivityData()
-                
-                // Mock data for now
-                val mockUserProfile = UserProfile(
-                    username = "IRL Quest Hero",
-                    level = 7,
-                    experience = 1420,
-                    nextLevelExperience = 2000,
-                    experienceProgress = 0.71f
-                )
-                
-                val mockTodayStats = TodayStats(
-                    completedTasks = 5,
-                    focusMinutes = 120,
-                    experienceGained = 85,
-                    productivityScore = 92
-                )
-                
-                val mockWeeklyData = listOf(
-                    DayData("Пн", 45f),
-                    DayData("Вт", 60f),
-                    DayData("Ср", 30f),
-                    DayData("Чт", 75f),
-                    DayData("Пт", 90f),
-                    DayData("Сб", 20f),
-                    DayData("Вс", 15f)
-                )
-                
-                val mockAchievements = listOf(
-                    Achievement("first_task", "Первая задача", "🎯", "Выполни свою первую задачу", true, Color.Green),
-                    Achievement("focus_master", "Мастер фокуса", "🧠", "Проведи 10 фокус-сессий", true, Color.Blue),
-                    Achievement("week_streak", "Недельная серия", "🔥", "Выполняй задачи 7 дней подряд", false, Color.Orange),
-                    Achievement("early_bird", "Ранняя пташка", "🐣", "Начни задачу до 8 утра", true, Color.Yellow),
-                    Achievement("night_owl", "Сова", "🦉", "Выполни задачу после 22:00", false, Color.Purple),
-                    Achievement("quest_master", "Мастер квестов", "👑", "Заверши 5 квестов", false, Color.Red)
-                )
-                
-                val mockActivityData = generateMockActivityData()
-                
+                // Имитация загрузки данных
+                val mockData = createMockData()
+                val mockStats = createMockStats()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    userProfile = mockUserProfile,
-                    todayStats = mockTodayStats,
-                    weeklyData = mockWeeklyData,
-                    achievements = mockAchievements,
-                    activityData = mockActivityData
+                    userProfile = mockData.first,
+                    todayStats = mockData.second,
+                    weeklyData = mockStats.weeklyData,
+                    achievements = createMockAchievements(),
+                    activityData = createMockActivityData(),
+                    focusTimeStats = mockStats.focusTimeStats,
+                    levelProgress = mockStats.levelProgress,
+                    currentLevel = mockStats.currentLevel,
+                    currentExperience = mockStats.currentExperience,
+                    nextLevelExperience = mockStats.nextLevelExperience
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Ошибка загрузки статистики"
+                    error = e.message
                 )
             }
         }
     }
-    
-    private fun generateMockActivityData(): List<ActivityDay> {
-        return (0..29).map { dayOffset ->
+
+    private fun createMockData(): Pair<UserProfile, TodayStats> {
+        val level = 5
+        val currentExp = 750
+        val nextLevelExp = 1000
+
+        return Pair(
+            UserProfile(
+                username = "Максим",
+                level = level,
+                experience = currentExp,
+                nextLevelExperience = nextLevelExp,
+                experienceProgress = currentExp.toFloat() / nextLevelExp
+            ),
+            TodayStats(
+                completedTasks = 5,
+                focusMinutes = 120,
+                experienceGained = 150,
+                productivityScore = 85
+            )
+        )
+    }
+
+    private fun createMockWeeklyData(): List<DayData> {
+        val days = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+        return days.map { day ->
+            DayData(
+                dayName = day,
+                value = Random.nextFloat() * 100
+            )
+        }
+    }
+
+    private fun createMockAchievements(): List<Achievement> {
+        return listOf(
+            Achievement(
+                id = "1",
+                name = "Первые шаги",
+                emoji = "🎯",
+                description = "Выполнить первую задачу",
+                isUnlocked = true,
+                color = achievementColors[0]
+            ),
+            Achievement(
+                id = "2",
+                name = "Фокус",
+                emoji = "⏱️",
+                description = "30 минут концентрации",
+                isUnlocked = true,
+                color = achievementColors[1]
+            ),
+            Achievement(
+                id = "3",
+                name = "Мастер",
+                emoji = "🌟",
+                description = "Достичь 5 уровня",
+                isUnlocked = false,
+                color = achievementColors[2]
+            )
+        )
+    }
+
+    private fun createMockActivityData(): List<ActivityDay> {
+        return List(30) { index ->
             ActivityDay(
-                date = "2024-${12 - dayOffset / 30}-${(dayOffset % 30) + 1}",
+                date = "2024-${Random.nextInt(1, 13)}-${Random.nextInt(1, 29)}",
                 intensity = Random.nextInt(0, 5)
             )
-        }.reversed()
+        }
+    }
+
+    private fun createMockFocusTimeData(): List<DayData> {
+        val days = List(7) { index ->
+            DayData(
+                dayName = when (index) {
+                    0 -> "Пн"
+                    1 -> "Вт"
+                    2 -> "Ср"
+                    3 -> "Чт"
+                    4 -> "Пт"
+                    5 -> "Сб"
+                    else -> "Вс"
+                },
+                value = Random.nextFloat() * 180 // минут
+            )
+        }
+        return days
+    }
+
+    private fun createMockStats(): StatsData {
+        return StatsData(
+            levelProgress = 0.75f,
+            currentLevel = 5,
+            currentExperience = 750,
+            nextLevelExperience = 1000,
+            focusTimeStats = createMockFocusTimeData(),
+            todayStats = TodayStats(5, 120, 150, 85),
+            weeklyData = createMockWeeklyData()
+        )
     }
 }

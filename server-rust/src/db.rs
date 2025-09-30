@@ -1,13 +1,44 @@
 use anyhow::Result;
 use sqlx::{PgPool, Row};
+use sqlx::postgres::PgPoolOptions;
+use std::time::Duration;
 
 pub async fn create_database_pool(database_url: &str) -> Result<PgPool> {
-    let pool = PgPool::connect(database_url).await?;
+    // Configure the pool with sensible defaults and a connect timeout.
+    // If the database is not ready (e.g. Postgres container not started),
+    // retry a few times with a short backoff so the server can start reliably.
+    let max_retries = 5;
+    let mut attempt = 0;
 
-    // Run basic migrations
-    run_migrations(&pool).await?;
+    loop {
+        attempt += 1;
+        match PgPoolOptions::new()
+            .max_connections(10)
+            .acquire_timeout(Duration::from_secs(5))
+            .connect(database_url)
+            .await
+        {
+            Ok(pool) => {
+                // Run basic migrations
+                run_migrations(&pool).await?;
+                return Ok(pool);
+            }
+            Err(e) => {
+                // If we've exhausted retries, return a detailed error.
+                if attempt >= max_retries {
+                    return Err(anyhow::anyhow!(
+                        "Failed to connect to database after {} attempts: {}",
+                        attempt,
+                        e
+                    ));
+                }
 
-    Ok(pool)
+                // Otherwise, log and sleep briefly before retrying.
+                tracing::warn!("Database connection attempt {}/{} failed: {}. Retrying in 2s...", attempt, max_retries, e);
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        }
+    }
 }
 
 async fn run_migrations(pool: &PgPool) -> Result<()> {

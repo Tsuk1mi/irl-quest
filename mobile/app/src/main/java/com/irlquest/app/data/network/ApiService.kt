@@ -15,6 +15,10 @@ interface ApiService {
     @GET("auth/me")
     suspend fun getMe(): Response<UserDto>
 
+    // Quest Generation
+    @POST("quests/generate")
+    suspend fun generateQuest(@Body request: QuestGenerationRequest): Response<QuestGenerationResponse>
+
     // Quests
     @GET("quests")
     suspend fun getQuests(): Response<List<QuestDto>>
@@ -53,17 +57,17 @@ interface ApiService {
     @POST("tasks/{id}/complete")
     suspend fun completeTask(@Path("id") id: Int): Response<TaskDto>
 
-    // RAG System - Главная фича для преобразования TODO в квесты
-    @POST("rag/generate-quest")
-    suspend fun generateQuest(@Body request: QuestGenerationRequest): Response<QuestGenerationResponse>
+    // RAG
+    @POST("rag/study")
+    suspend fun studyWithRag(@Body request: RagStudyRequest): Response<RagStudyResponse>
 
-    @POST("rag/enhance-task") 
-    suspend fun enhanceTask(@Body request: TaskEnhancementRequest): Response<TaskEnhancementResponse>
+    @POST("rag/generate")
+    suspend fun generateWithRag(@Body request: RagGenerateRequest): Response<RagGenerateResponse>
 
-    // User Stats and Achievements
-    @GET("users/me/stats")
-    suspend fun getUserStats(): Response<UserStatsDto>
+    // Stats
+    @GET("stats/daily")
+    suspend fun getDailyStats(): Response<List<DailyStatsDto>>
 
-    @GET("users/me/achievements")
-    suspend fun getUserAchievements(): Response<List<AchievementDto>>
+    @GET("stats/total")
+    suspend fun getTotalStats(): Response<TotalStatsDto>
 }

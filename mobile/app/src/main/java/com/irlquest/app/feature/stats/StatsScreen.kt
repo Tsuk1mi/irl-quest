@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -23,16 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.irlquest.app.ui.theme.Orange
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
     viewModel: StatsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
-    LaunchedEffect(Unit) {
-        viewModel.loadStats()
-    }
 
     LazyColumn(
         modifier = Modifier
@@ -43,9 +41,84 @@ fun StatsScreen(
         item {
             Text(
                 text = "Статистика",
-                fontSize = 24.sp,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
+        }
+
+        // Прогресс уровня
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Ваш уровень",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = uiState.levelProgress,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = "Уровень ${uiState.currentLevel}")
+                        Text(text = "${uiState.currentExperience}/${uiState.nextLevelExperience} XP")
+                    }
+                }
+            }
+        }
+
+        // Статистика фокуса
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Фокус",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Timer,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    StatsChart(
+                        data = uiState.focusTimeStats,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                }
+            }
         }
 
         // Профиль пользователя
@@ -81,7 +154,7 @@ fun UserProfileCard(userProfile: UserProfile) {
         modifier = Modifier.fillMaxWidth(),
         elevation = 8.dp,
         shape = RoundedCornerShape(12.dp),
-        backgroundColor = MaterialTheme.colors.primary
+        backgroundColor = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
@@ -173,7 +246,7 @@ fun TodayStatsCard(todayStats: TodayStats) {
                     icon = Icons.Default.Star,
                     value = "${todayStats.experienceGained}",
                     label = "Опыта",
-                    color = Color.Orange
+                    color = Orange
                 )
                 StatItem(
                     icon = Icons.Default.Favorite,
@@ -212,7 +285,7 @@ fun StatItem(
         Text(
             text = label,
             fontSize = 12.sp,
-            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
 }
@@ -237,7 +310,7 @@ fun WeeklyStatsCard(weeklyData: List<DayData>) {
                     .fillMaxWidth()
                     .height(120.dp)
             ) {
-                drawWeeklyChart(weeklyData, size)
+                drawWeeklyChart(weeklyData, size, MaterialTheme.colorScheme.primary)
             }
             
             // Легенда дней недели
@@ -249,7 +322,7 @@ fun WeeklyStatsCard(weeklyData: List<DayData>) {
                     Text(
                         text = day.dayName,
                         fontSize = 12.sp,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -355,7 +428,22 @@ fun ActivityHeatmapCard(activityData: List<ActivityDay>) {
     }
 }
 
-private fun DrawScope.drawWeeklyChart(weeklyData: List<DayData>, size: androidx.compose.ui.geometry.Size) {
+@Composable
+fun StatisticsItem(/* параметры */) {
+    // ...существующий код...
+}
+
+@Composable
+fun renderStatItem(/* параметры */) {
+    // ...существующий код...
+}
+
+@Composable
+fun renderChart(/* параметры */) {
+    // ...существующий код...
+}
+
+private fun DrawScope.drawWeeklyChart(weeklyData: List<DayData>, size: androidx.compose.ui.geometry.Size, color: androidx.compose.ui.graphics.Color) {
     if (weeklyData.isEmpty()) return
     
     val maxValue = weeklyData.maxOfOrNull { it.value } ?: 0f
@@ -378,7 +466,7 @@ private fun DrawScope.drawWeeklyChart(weeklyData: List<DayData>, size: androidx.
         
         // Рисуем точку
         drawCircle(
-            color = MaterialTheme.colors.primary,
+            color = color,
             radius = 4.dp.toPx(),
             center = Offset(x, y)
         )
@@ -387,7 +475,7 @@ private fun DrawScope.drawWeeklyChart(weeklyData: List<DayData>, size: androidx.
     // Рисуем линию
     drawPath(
         path = path,
-        color = MaterialTheme.colors.primary,
+        color = color,
         style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx())
     )
 }

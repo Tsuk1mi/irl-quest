@@ -25,7 +25,9 @@ pub struct UserCreate {
     pub email: String,
     pub username: String,
     pub password: String,
+    #[allow(dead_code)]
     pub avatar_url: Option<String>,
+    #[allow(dead_code)]
     pub bio: Option<String>,
     pub timezone: Option<String>,
 }
@@ -77,6 +79,7 @@ impl From<User> for UserOut {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct UserUpdate {
     pub username: Option<String>,
     pub password: Option<String>,

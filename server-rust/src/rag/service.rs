@@ -63,6 +63,7 @@ impl RagService {
         Ok(enhancement_response)
     }
 
+    #[allow(dead_code)]
     pub async fn add_knowledge(
         &self,
         knowledge: RagKnowledgeCreate,
@@ -84,6 +85,7 @@ impl RagService {
         Ok(RagKnowledgeOut::from(record))
     }
 
+    #[allow(dead_code)]
     pub async fn search_knowledge(
         &self,
         query: &str,
@@ -188,6 +190,7 @@ impl RagService {
         difficulty.clamp(1, 5)
     }
 
+    #[allow(dead_code)]
     pub async fn initialize_default_knowledge(&self) -> Result<()> {
         // Add some default quest templates and knowledge
         let default_knowledge = vec![

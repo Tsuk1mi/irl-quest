@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 data class QuestGeneratorUiState(
     val isLoading: Boolean = false,
-    val generatedQuest: QuestGenerationResponse? = null,
+    val quest: QuestGenerationResponse? = null,
     val error: String? = null
 )
 
@@ -22,42 +22,34 @@ class QuestGeneratorViewModel : ViewModel() {
     
     private val apiService = RetrofitClient.apiService
 
-    suspend fun generateQuest(request: QuestGenerationRequest) {
-        _uiState.value = _uiState.value.copy(
-            isLoading = true,
-            error = null
-        )
-        
+    fun generateQuest(request: QuestGenerationRequest) {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null
+            )
+
             try {
                 val response = apiService.generateQuest(request)
                 
                 if (response.isSuccessful) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        generatedQuest = response.body(),
+                        quest = response.body(),
                         error = null
                     )
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "Failed to generate quest: ${response.message()}"
+                        error = "Не удалось сгенерировать квест: ${response.message()}"
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Network error: ${e.message}"
+                    error = "Ошибка сети: ${e.message}"
                 )
             }
         }
-    }
-    
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-    }
-    
-    fun clearGeneratedQuest() {
-        _uiState.value = _uiState.value.copy(generatedQuest = null)
     }
 }

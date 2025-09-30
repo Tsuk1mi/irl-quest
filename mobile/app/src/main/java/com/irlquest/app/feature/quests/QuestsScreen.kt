@@ -3,10 +3,11 @@ package com.irlquest.app.feature.quests
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.irlquest.app.ui.theme.Orange
 
 @Composable
 fun QuestsScreen(
@@ -54,7 +56,7 @@ fun QuestsScreen(
                     Icon(
                         Icons.Default.Add,
                         contentDescription = "Создать квест",
-                        tint = MaterialTheme.colors.primary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -100,6 +102,7 @@ fun QuestsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestFilters(
     selectedFilter: QuestFilter,
@@ -136,10 +139,10 @@ fun QuestCard(
     onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        elevation = 4.dp,
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(),
         onClick = onClick
     ) {
         Column(
@@ -163,7 +166,7 @@ fun QuestCard(
                         Text(
                             text = quest.description,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 4.dp)
@@ -215,7 +218,7 @@ fun QuestCard(
                             Icon(
                                 Icons.Default.Star,
                                 contentDescription = null,
-                                tint = Color.Orange,
+                                tint = Orange,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -237,7 +240,7 @@ fun QuestCard(
                         Icon(
                             Icons.Default.Assignment,
                             contentDescription = null,
-                            tint = MaterialTheme.colors.primary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
@@ -254,13 +257,13 @@ fun QuestCard(
                         Icon(
                             Icons.Default.EmojiEvents,
                             contentDescription = null,
-                            tint = Color.Orange,
+                            tint = Orange,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = "${quest.rewardExperience} XP",
                             fontSize = 12.sp,
-                            color = Color.Orange
+                            color = Orange
                         )
                     }
                 }
@@ -279,13 +282,13 @@ fun QuestCard(
                     Icon(
                         Icons.Default.Schedule,
                         contentDescription = null,
-                        tint = if (quest.isOverdue) Color.Red else MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                        tint = if (quest.isOverdue) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = quest.deadline,
                         fontSize = 12.sp,
-                        color = if (quest.isOverdue) Color.Red else MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                        color = if (quest.isOverdue) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     if (quest.isOverdue) {
                         Text(
@@ -312,7 +315,7 @@ fun QuestStatusBadge(status: QuestStatus) {
     val (backgroundColor, textColor, text) = when (status) {
         QuestStatus.ACTIVE -> Triple(Color.Green.copy(alpha = 0.1f), Color.Green, "Активен")
         QuestStatus.COMPLETED -> Triple(Color.Blue.copy(alpha = 0.1f), Color.Blue, "Завершен")
-        QuestStatus.PAUSED -> Triple(Color.Orange.copy(alpha = 0.1f), Color.Orange, "Приостановлен")
+        QuestStatus.PAUSED -> Triple(Orange.copy(alpha = 0.1f), Orange, "Приостановлен")
         QuestStatus.ARCHIVED -> Triple(Color.Gray.copy(alpha = 0.1f), Color.Gray, "Архив")
     }
     
@@ -334,7 +337,7 @@ fun QuestStatusBadge(status: QuestStatus) {
 fun PriorityIndicator(priority: QuestPriority) {
     val color = when (priority) {
         QuestPriority.LOW -> Color.Green
-        QuestPriority.MEDIUM -> Color.Orange
+        QuestPriority.MEDIUM -> Orange
         QuestPriority.HIGH -> Color.Red
         QuestPriority.CRITICAL -> Color.Red
     }
@@ -412,7 +415,7 @@ fun CreateQuestDialog(
 private fun getProgressColor(percentage: Int): Color {
     return when {
         percentage < 30 -> Color.Red
-        percentage < 70 -> Color.Orange
+        percentage < 70 -> Orange
         else -> Color.Green
     }
 }

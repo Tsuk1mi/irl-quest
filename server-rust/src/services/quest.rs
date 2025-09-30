@@ -66,6 +66,7 @@ impl QuestService {
         Ok(QuestOut::from(quest))
     }
 
+    #[allow(dead_code)]
     pub async fn get_quest_for_user(
         pool: &PgPool,
         user_id: i32,
@@ -82,6 +83,7 @@ impl QuestService {
         Ok(quest.map(QuestOut::from))
     }
 
+    #[allow(dead_code)]
     pub async fn update_quest_for_user(
         pool: &PgPool,
         user_id: i32,
@@ -89,7 +91,7 @@ impl QuestService {
         quest_update: QuestUpdate,
     ) -> Result<Option<QuestOut>> {
         // Load existing
-        let mut quest: Option<Quest> = sqlx::query_as::<_, Quest>(
+        let quest: Option<Quest> = sqlx::query_as::<_, Quest>(
             "SELECT * FROM quests WHERE id = $1 AND owner_id = $2",
         )
         .bind(quest_id)
@@ -144,6 +146,7 @@ impl QuestService {
         Ok(Some(QuestOut::from(updated)))
     }
 
+    #[allow(dead_code)]
     pub async fn delete_quest_for_user(
         pool: &PgPool,
         user_id: i32,

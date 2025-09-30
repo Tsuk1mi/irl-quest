@@ -11,8 +11,7 @@ use crate::{
     middleware::CurrentUser,
     models::{
         QuestGenerationRequest, QuestGenerationResponse,
-        TaskEnhancementRequest, TaskEnhancementResponse,
-        User
+        TaskEnhancementRequest, TaskEnhancementResponse
     },
     rag::RagService,
     AppState,
