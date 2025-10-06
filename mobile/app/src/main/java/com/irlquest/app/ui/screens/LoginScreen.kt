@@ -7,15 +7,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.ui.viewmodel.AuthViewModel
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, onRegister: () -> Unit = {}, viewModel: AuthViewModel = AuthViewModel()) {
-    val loading by viewModel.loading.collectAsState()
+fun LoginScreen(onLoginSuccess: () -> Unit, onRegister: () -> Unit = {}, viewModel: AuthViewModel = viewModel()) {
+    val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    // When user becomes non-null, notify caller
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) onLoginSuccess()
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "IRL Quest", style = MaterialTheme.typography.h4)
@@ -31,8 +38,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onRegister: () -> Unit = {}, viewMod
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        Button(onClick = { viewModel.login(username, password) { onLoginSuccess() } }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
-            if (loading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colors.onPrimary) else Text("Login")
+        Button(onClick = { viewModel.login(username.trim(), password) }, enabled = !isLoading, modifier = Modifier.fillMaxWidth()) {
+            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colors.onPrimary) else Text("Login")
         }
 
         Spacer(modifier = Modifier.height(8.dp))

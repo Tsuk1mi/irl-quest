@@ -1,39 +1,19 @@
-version: '3.9'
+version: '3.8'
 services:
   postgres:
-    image: pgvector/pgvector:pg16
-    container_name: irlquest-postgres
+    image: postgres:latest
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: irl_quest
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: irl_quest_db
+      LANG: en_US.utf8
+      LC_COLLATE: en_US.utf8
+      LC_CTYPE: en_US.utf8
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  postgres_vector:
-    image: ankane/pgvector
-    container_name: irlquest-postgres-vector
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: irl_quest_vec
-    ports:
-      - "5433:5432"
-    volumes:
-      - pgvector_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - postgres_data:/var/lib/postgresql/data
+    command: postgres -c lc_messages='en_US.utf8'
 
 volumes:
-  pgdata:
-  pgvector_data:
+  postgres_data:

@@ -1,7 +1,5 @@
-pub mod auth;
-pub mod task;
-pub mod quest;
-pub mod user;
-pub mod health;
-pub mod rag;
-pub mod ml;
+pub mod auth_handlers;
+pub mod quest_handlers;
+pub mod task_handlers;
+pub mod search_handlers;
+

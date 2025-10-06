@@ -3,24 +3,30 @@ package com.irlquest.app
 import android.content.Context
 
 object TokenStorage {
-    private const val PREFS_NAME = "irl_quest_prefs"
-    private const val KEY_ACCESS_TOKEN = "access_token"
-    private lateinit var prefs: android.content.SharedPreferences
+    private const val PREFS_NAME = "irlquest_auth"
+    private const val KEY_TOKEN = "access_token"
+
+    private var ctx: Context? = null
 
     fun init(context: Context) {
-        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        ctx = context.applicationContext
     }
 
-    fun saveToken(token: String) {
-        prefs.edit().putString(KEY_ACCESS_TOKEN, token).apply()
+    fun setToken(token: String?) {
+        val c = ctx ?: return
+        val prefs = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_TOKEN, token).apply()
     }
 
     fun getToken(): String? {
-        return prefs.getString(KEY_ACCESS_TOKEN, null)
+        val c = ctx ?: return null
+        val prefs = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_TOKEN, null)
     }
 
     fun clear() {
-        prefs.edit().remove(KEY_ACCESS_TOKEN).apply()
+        val c = ctx ?: return
+        val prefs = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().remove(KEY_TOKEN).apply()
     }
 }
-

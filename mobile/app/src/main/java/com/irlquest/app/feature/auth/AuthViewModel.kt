@@ -1,15 +1,17 @@
-package com.irlquest.app.ui.viewmodel
+package com.irlquest.app.feature.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.irlquest.app.data.network.dto.UserDto
+import com.irlquest.app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.irlquest.app.data.repository.AuthRepository
-import com.irlquest.app.data.network.dto.UserDto
 
-class AuthViewModel(private val repo: AuthRepository = AuthRepository()) : ViewModel() {
+class AuthViewModel(
+    private val repo: AuthRepository = AuthRepository()
+) : ViewModel() {
     private val _currentUser = MutableStateFlow<UserDto?>(null)
     val currentUser: StateFlow<UserDto?> = _currentUser.asStateFlow()
 
@@ -39,9 +41,7 @@ class AuthViewModel(private val repo: AuthRepository = AuthRepository()) : ViewM
             _isLoading.value = true
             _error.value = null
             try {
-                // register may not return token — register then login
-                repo.register(email, username, password)
-                val user = repo.login(username, password)
+                val user = repo.register(email, username, password)
                 _currentUser.value = user
             } catch (e: Exception) {
                 _error.value = e.message ?: "Ошибка регистрации"
@@ -71,3 +71,4 @@ class AuthViewModel(private val repo: AuthRepository = AuthRepository()) : ViewM
         _currentUser.value = null
     }
 }
+

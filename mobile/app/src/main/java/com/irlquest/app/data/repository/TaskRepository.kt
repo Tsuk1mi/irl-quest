@@ -12,12 +12,34 @@ class TaskRepository {
         return api.getTasks().body() ?: emptyList()
     }
 
+    suspend fun getTask(id: Int): TaskDto? {
+        return api.getTask(id).body()
+    }
+
     suspend fun createTask(title: String, description: String?): TaskDto {
-        return api.createTask(CreateTaskRequest(title = title, description = description)).body()!!
+        // CreateTaskRequest требует множество полей — заполним разумными значениями по умолчанию
+        val request = CreateTaskRequest(
+            title = title,
+            description = description ?: "",
+            priority = "medium",
+            experienceReward = 0,
+            estimatedDuration = null,
+            difficulty = 1,
+            questId = null,
+            deadline = null,
+            tags = emptyList()
+        )
+        return api.createTask(request).body()!!
     }
 
     suspend fun updateTask(id: Int, title: String? = null, description: String? = null, completed: Boolean? = null): TaskDto {
-        return api.updateTask(id, UpdateTaskRequest(title = title, description = description, completed = completed)).body()!!
+        // UpdateTaskRequest не содержит поля completed, зато есть status
+        val status = when (completed) {
+            true -> "completed"
+            false -> "pending"
+            null -> null
+        }
+        return api.updateTask(id, UpdateTaskRequest(title = title, description = description, status = status)).body()!!
     }
 
     suspend fun deleteTask(id: Int) {

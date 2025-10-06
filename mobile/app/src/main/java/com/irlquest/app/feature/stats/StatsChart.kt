@@ -16,6 +16,8 @@ fun StatsChart(
     data: List<DayData>,
     modifier: Modifier = Modifier
 ) {
+    val lineColor = MaterialTheme.colorScheme.primary
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -46,7 +48,7 @@ fun StatsChart(
         // Рисуем линию
         drawPath(
             path = path,
-            color = MaterialTheme.colorScheme.primary,
+            color = lineColor,
             style = Stroke(
                 width = 2.dp.toPx(),
                 cap = StrokeCap.Round
@@ -59,7 +61,7 @@ fun StatsChart(
             val y = height - (dayData.value / maxValue * height)
 
             drawCircle(
-                color = MaterialTheme.colorScheme.primary,
+                color = lineColor,
                 radius = 4.dp.toPx(),
                 center = Offset(x, y)
             )

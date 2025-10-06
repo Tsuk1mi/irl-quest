@@ -1,5 +1,6 @@
 package com.irlquest.app.feature.tasks
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(
+    onNavigateToTaskDetail: (Int) -> Unit = {},
     viewModel: TasksViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -59,7 +61,8 @@ fun TasksScreen(
                         TaskItem(
                             task = task,
                             onTaskToggle = { viewModel.toggleTask(task.id) },
-                            onTaskDelete = { viewModel.deleteTask(task.id) }
+                            onTaskDelete = { viewModel.deleteTask(task.id) },
+                            onClick = { onNavigateToTaskDetail(task.id) }
                         )
                     }
                 }
@@ -98,10 +101,13 @@ fun TasksScreen(
 fun TaskItem(
     task: TaskUi,
     onTaskToggle: () -> Unit,
-    onTaskDelete: () -> Unit
+    onTaskDelete: () -> Unit,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )

@@ -50,6 +50,7 @@ fun StatsScreen(
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -85,6 +86,7 @@ fun StatsScreen(
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface
@@ -148,13 +150,17 @@ fun StatsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileCard(userProfile: UserProfile) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 8.dp,
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         shape = RoundedCornerShape(12.dp),
-        backgroundColor = MaterialTheme.colorScheme.primary
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
@@ -196,7 +202,7 @@ fun UserProfileCard(userProfile: UserProfile) {
                 LinearProgressIndicator(
                     progress = userProfile.experienceProgress,
                     modifier = Modifier.fillMaxWidth(),
-                    backgroundColor = Color.White.copy(alpha = 0.3f),
+                    trackColor = Color.White.copy(alpha = 0.3f),
                     color = Color.White
                 )
                 
@@ -211,12 +217,14 @@ fun UserProfileCard(userProfile: UserProfile) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayStatsCard(todayStats: TodayStats) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -290,12 +298,14 @@ fun StatItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeeklyStatsCard(weeklyData: List<DayData>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -305,12 +315,14 @@ fun WeeklyStatsCard(weeklyData: List<DayData>) {
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             
+            // Линия графика активности
+            val chartColor = MaterialTheme.colorScheme.primary
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
             ) {
-                drawWeeklyChart(weeklyData, size, MaterialTheme.colorScheme.primary)
+                drawWeeklyChart(weeklyData, size, chartColor)
             }
             
             // Легенда дней недели
@@ -330,12 +342,14 @@ fun WeeklyStatsCard(weeklyData: List<DayData>) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementsSection(achievements: List<Achievement>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -360,9 +374,9 @@ fun AchievementsSection(achievements: List<Achievement>) {
 fun AchievementBadge(achievement: Achievement) {
     Card(
         modifier = Modifier.size(80.dp),
-        elevation = 4.dp,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = CircleShape,
-        backgroundColor = if (achievement.isUnlocked) achievement.color else Color.Gray.copy(alpha = 0.3f)
+        colors = CardDefaults.cardColors(containerColor = if (achievement.isUnlocked) achievement.color else Color.Gray.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier.padding(8.dp),
@@ -382,12 +396,14 @@ fun AchievementBadge(achievement: Achievement) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityHeatmapCard(activityData: List<ActivityDay>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

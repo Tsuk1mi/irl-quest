@@ -8,6 +8,7 @@ data class TaskDto(
     val id: Int,
     val title: String,
     val description: String,
+    val completed: Boolean,
     val status: String,
     val priority: String,
     @SerialName("experience_reward") val experienceReward: Int,
@@ -31,13 +32,15 @@ data class CreateTaskRequest(
     val difficulty: Int,
     @SerialName("quest_id") val questId: Int?,
     val deadline: String?,
-    val tags: List<String>
+    val tags: List<String>,
+    val completed: Boolean = false
 )
 
 @Serializable
 data class UpdateTaskRequest(
     val title: String? = null,
     val description: String? = null,
+    val completed: Boolean? = null,
     val status: String? = null,
     val priority: String? = null,
     @SerialName("experience_reward") val experienceReward: Int? = null,

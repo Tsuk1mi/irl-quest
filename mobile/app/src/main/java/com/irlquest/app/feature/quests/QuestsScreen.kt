@@ -1,6 +1,9 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.irlquest.app.feature.quests
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -102,37 +105,49 @@ fun QuestsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestFilters(
     selectedFilter: QuestFilter,
     onFilterChanged: (QuestFilter) -> Unit
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        items(QuestFilter.values()) { filter ->
-            FilterChip(
-                selected = selectedFilter == filter,
-                onClick = { onFilterChanged(filter) },
-                content = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = filter.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(filter.displayName)
-                    }
+        QuestFilter.values().forEach { filter ->
+            val isSelected = selectedFilter == filter
+            Surface(
+                modifier = Modifier
+                    .height(36.dp)
+                    .wrapContentWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .clickable { onFilterChanged(filter) },
+                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                tonalElevation = if (isSelected) 2.dp else 0.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = filter.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = filter.displayName,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
-            )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestCard(
     quest: QuestUi,
@@ -261,7 +276,7 @@ fun QuestCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "${quest.rewardExperience} XP",
+                            text = "${quest.experienceReward} XP",
                             fontSize = 12.sp,
                             color = Orange
                         )
@@ -350,6 +365,7 @@ fun PriorityIndicator(priority: QuestPriority) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateQuestDialog(
     onDismiss: () -> Unit,

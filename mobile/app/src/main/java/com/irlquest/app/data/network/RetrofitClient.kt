@@ -1,6 +1,7 @@
 package com.irlquest.app.data.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.irlquest.app.BuildConfig
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -22,8 +23,8 @@ object RetrofitClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // Rust сервер URL (порт 8003 — full server)
-    private const val BASE_URL = "https://8003-iessh243ptqf83yx518ah-6532622b.e2b.dev/api/v1/"
+    // Use base URL from BuildConfig so it can be overridden in Gradle
+    private val BASE_URL: String = BuildConfig.API_BASE_URL
 
     val apiService: ApiService by lazy {
         val contentType = "application/json".toMediaType()

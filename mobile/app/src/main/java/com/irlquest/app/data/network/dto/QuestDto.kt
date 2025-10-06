@@ -29,9 +29,12 @@ data class QuestDto(
     val description: String,
     @SerialName("experience_reward") val experienceReward: Int,
     @SerialName("estimated_time") val estimatedTime: Int,
+    @SerialName("completion_percentage") val completionPercentage: Int,
     val difficulty: Int,
+    val priority: Int,
     val status: String,
     val theme: String,
+    @SerialName("quest_type") val questType: String,
     @SerialName("completed_at") val completedAt: String?,
     @SerialName("created_at") val createdAt: String,
     val tasks: List<TaskDto>
@@ -44,6 +47,7 @@ data class CreateQuestRequest(
     @SerialName("experience_reward") val experienceReward: Int,
     @SerialName("estimated_time") val estimatedTime: Int,
     val difficulty: Int,
+    val priority: Int,
     val theme: String,
     val tasks: List<CreateTaskRequest>
 )
@@ -55,6 +59,7 @@ data class UpdateQuestRequest(
     @SerialName("experience_reward") val experienceReward: Int? = null,
     @SerialName("estimated_time") val estimatedTime: Int? = null,
     val difficulty: Int? = null,
+    val priority: Int? = null,
     val theme: String? = null,
     val status: String? = null
 )

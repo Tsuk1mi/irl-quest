@@ -9,14 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.irlquest.app.feature.focus.FocusSessionScreen
 import com.irlquest.app.feature.quests.QuestsScreen
+import com.irlquest.app.feature.quests.QuestDetailScreen
 import com.irlquest.app.feature.stats.StatsScreen
 import com.irlquest.app.feature.tasks.TasksScreen
+import com.irlquest.app.feature.tasks.TaskDetailScreen
 import com.irlquest.app.ui.theme.Orange
 
 sealed class BottomNavItem(
@@ -98,14 +102,34 @@ fun MainNavHost(
         modifier = modifier
     ) {
         composable(BottomNavItem.Tasks.route) {
-            TasksScreen()
+            TasksScreen(onNavigateToTaskDetail = { taskId ->
+                navController.navigate("tasks/$taskId")
+            })
         }
         composable(BottomNavItem.Quests.route) {
             QuestsScreen(
                 onNavigateToQuestDetail = { questId ->
-                    // TODO: Navigate to quest detail
+                    navController.navigate("quests/$questId")
                 }
             )
+        }
+        // Detail route with integer argument
+        composable(
+            route = "quests/{questId}",
+            arguments = listOf(navArgument("questId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val questId = backStackEntry.arguments?.getInt("questId") ?: 0
+            QuestDetailScreen(questId = questId, onTaskClick = { taskId ->
+                navController.navigate("tasks/$taskId")
+            })
+        }
+        // Task detail route
+        composable(
+            route = "tasks/{taskId}",
+            arguments = listOf(navArgument("taskId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getInt("taskId") ?: 0
+            TaskDetailScreen(taskId = taskId, onDeleted = { navController.popBackStack() })
         }
         composable(BottomNavItem.Focus.route) {
             FocusSessionScreen()

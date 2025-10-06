@@ -1,72 +1,50 @@
 use axum::{
-    extract::{Request, State, FromRequestParts},
-    http::{header, StatusCode, request::Parts},
+    extract::State,
+    http::{Request, StatusCode},
     middleware::Next,
     response::Response,
 };
-use std::sync::Arc;
+use jsonwebtoken::{decode, DecodingKey, Validation};
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
-use crate::{models::User, services::AuthService, AppState};
-
-#[derive(Clone)]
-pub struct CurrentUser(pub User);
-
-#[axum::async_trait]
-impl<S> FromRequestParts<S> for CurrentUser
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        parts
-            .extensions
-            .get::<CurrentUser>()
-            .cloned()
-            .ok_or(StatusCode::UNAUTHORIZED)
-    }
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: i32,
+    exp: i64,
+    iat: i64,
 }
 
-pub async fn auth_middleware(
-    State(state): State<Arc<AppState>>,
-    mut req: Request,
+pub async fn auth_middleware<B>(
+    State(pool): State<PgPool>,
+    mut req: Request<B>,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let auth_header = req
+    let token = req
         .headers()
-        .get(header::AUTHORIZATION)
-        .and_then(|header| header.to_str().ok());
+        .get("Authorization")
+        .and_then(|auth| auth.to_str().ok())
+        .and_then(|auth| auth.strip_prefix("Bearer "))
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    let auth_header = match auth_header {
-        Some(header) => header,
-        None => return Err(StatusCode::UNAUTHORIZED),
-    };
+    let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "your-secret-key".to_string());
 
-    if !auth_header.starts_with("Bearer ") {
-        return Err(StatusCode::UNAUTHORIZED);
-    }
+    let token_data = decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(jwt_secret.as_bytes()),
+        &Validation::default(),
+    )
+    .map_err(|_| StatusCode::UNAUTHORIZED)?;
 
-    let token = &auth_header[7..]; // Remove "Bearer " prefix
+    let user = sqlx::query!(
+        "SELECT id FROM users WHERE id = $1",
+        token_data.claims.sub
+    )
+    .fetch_optional(&pool)
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    let auth_service = AuthService::new(state.settings.clone());
-    
-    let token_data = match auth_service.verify_token(token) {
-        Ok(data) => data,
-        Err(_) => return Err(StatusCode::UNAUTHORIZED),
-    };
-
-    let user_id: i32 = match token_data.claims.sub.parse() {
-        Ok(id) => id,
-        Err(_) => return Err(StatusCode::UNAUTHORIZED),
-    };
-
-    let user = match auth_service.get_user_by_id(&state.db, user_id).await {
-        Ok(Some(user)) => user,
-        _ => return Err(StatusCode::UNAUTHORIZED),
-    };
-
-    // Add user to request extensions
-    req.extensions_mut().insert(CurrentUser(user));
-
-    Ok(next.run(req).await)
+    req.extensions_mut().insert(user.id);
+    Ok(next.run(req).await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?)
 }

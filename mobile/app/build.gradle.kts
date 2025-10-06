@@ -14,6 +14,9 @@ android {
     targetSdk = 34
     versionCode = 1
     versionName = "0.1"
+    // Configurable base URL for API. For local development on emulator use 10.0.2.2 -> host's localhost
+    // If you run on a physical device, replace with your machine IP (e.g. http://192.168.43.52:8003/)
+    buildConfigField("String", "API_BASE_URL", "\"http://192.168.43.52:8003/api/v1/\"")
   }
 
   buildTypes {
@@ -24,9 +27,11 @@ android {
 
   buildFeatures {
     compose = true
+    buildConfig = true
   }
 
   composeOptions {
+    // Use a released Compose compiler version compatible with dependencies
     kotlinCompilerExtensionVersion = "1.5.3"
   }
 
@@ -37,6 +42,17 @@ android {
 
   kotlinOptions {
     jvmTarget = "11"
+  }
+}
+
+// Force resolution to consistent Compose animation versions to avoid runtime NoSuchMethodError
+configurations.all {
+  resolutionStrategy {
+    // Align animation artifacts to Compose 1.5.3 (released)
+    force("androidx.compose.animation:animation:1.5.3")
+    force("androidx.compose.animation:animation-android:1.5.3")
+    force("androidx.compose.animation:animation-core:1.5.3")
+    force("androidx.compose.animation:animation-core-android:1.5.3")
   }
 }
 
@@ -51,6 +67,10 @@ dependencies {
   // Compose и Material3
   implementation("androidx.compose.ui:ui")
   implementation("androidx.compose.ui:ui-graphics")
+  // Compose animation (ensure animation core matches material3 expectations)
+  implementation("androidx.compose.animation:animation:1.5.3")
+  implementation("androidx.compose.animation:animation-core:1.5.3")
+  implementation("androidx.compose.animation:animation-android:1.5.3")
   implementation("androidx.compose.material3:material3")
   implementation("androidx.compose.material3:material3-window-size-class")
   implementation("androidx.compose.material:material-icons-extended")
@@ -84,4 +104,6 @@ dependencies {
 
   // Debug
   debugImplementation("androidx.compose.ui:ui-tooling")
+  // Timber logging
+  implementation("com.jakewharton.timber:timber:5.0.1")
 }

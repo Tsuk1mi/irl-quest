@@ -19,9 +19,32 @@ pub async fn create_database_pool(database_url: &str) -> Result<PgPool> {
             .await
         {
             Ok(pool) => {
-                // Run basic migrations
-                run_migrations(&pool).await?;
-                return Ok(pool);
+                info!("Successfully connected to the database");
+                let pool_options = PgPoolOptions::new()
+                    .max_connections(10)
+                    .acquire_timeout(Duration::from_secs(5)); // Use acquire_timeout
+                match pool_options.connect(&database_url).await {
+                    Ok(pool) => {
+                        info!("Successfully created database pool");
+                        // Run basic migrations
+                        run_migrations(&pool).await?;
+                        return Ok(pool);
+                    }
+                    Err(e) => {
+                        // If we've exhausted retries, return a detailed error.
+                        if attempt >= max_retries {
+                            return Err(anyhow::anyhow!(
+                                "Failed to connect to database after {} attempts: {}",
+                                attempt,
+                                e
+                            ));
+                        }
+
+                        // Otherwise, log and sleep briefly before retrying.
+                        tracing::warn!("Database connection attempt {}/{} failed: {}. Retrying in 2s...", attempt, max_retries, e);
+                        tokio::time::sleep(Duration::from_secs(2)).await;
+                    }
+                }
             }
             Err(e) => {
                 // If we've exhausted retries, return a detailed error.
@@ -44,6 +67,7 @@ pub async fn create_database_pool(database_url: &str) -> Result<PgPool> {
 async fn run_migrations(pool: &PgPool) -> Result<()> {
     // Enable extensions if available (ignore errors where not supported)
     let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS vector").execute(pool).await;
+
     // Users table
     sqlx::query(
         r#"
@@ -51,7 +75,7 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
             id SERIAL PRIMARY KEY,
             email VARCHAR(255) NOT NULL UNIQUE,
             username VARCHAR(50) NOT NULL UNIQUE,
-            hashed_password TEXT NOT NULL,
+            password_hash TEXT NOT NULL,
             is_active BOOLEAN NOT NULL DEFAULT TRUE,
             level INTEGER DEFAULT 1,
             experience INTEGER DEFAULT 0,

@@ -9,11 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.ui.viewmodel.TaskViewModel
 import com.irlquest.app.ui.viewmodel.AuthViewModel
 
 @Composable
-fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewModel: TaskViewModel = TaskViewModel(), authViewModel: AuthViewModel = AuthViewModel()) {
+fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewModel: TaskViewModel = viewModel(), authViewModel: AuthViewModel = viewModel()) {
     val loading by viewModel.loading.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -25,7 +26,7 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
     var newDesc by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        authViewModel.loadCurrentUser()
+        authViewModel.fetchMe()
         viewModel.loadTasks()
     }
 
@@ -59,6 +60,9 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(tasks) { t ->
+                // TaskDto не имеет поля `completed`; определим флаг завершения по status/completedAt
+                val isCompleted = (t.completedAt != null) || t.status.equals("completed", ignoreCase = true)
+
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -70,8 +74,8 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
                                 }
                             }
                             Row {
-                                val doneText = if (t.completed) "Undo" else "Done"
-                                TextButton(onClick = { viewModel.updateTask(t.id, completed = !t.completed) }) {
+                                val doneText = if (isCompleted) "Undo" else "Done"
+                                TextButton(onClick = { viewModel.updateTask(t.id, completed = !isCompleted) }) {
                                     Text(doneText)
                                 }
                                 Spacer(modifier = Modifier.width(4.dp))
