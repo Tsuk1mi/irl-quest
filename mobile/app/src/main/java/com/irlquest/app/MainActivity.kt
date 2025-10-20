@@ -83,7 +83,8 @@ fun MainEntry() {
 
     if (currentUser == null) {
         // Показываем экран логина/регистрации
-        AuthScreen(onLoginSuccess = { authViewModel.fetchMe() })
+        // Передаём тот же экземпляр viewModel, чтобы AuthScreen и MainEntry разделяли состояние
+        AuthScreen(onLoginSuccess = { authViewModel.fetchMe() }, viewModel = authViewModel)
     } else {
         IRLQuestApp()
     }

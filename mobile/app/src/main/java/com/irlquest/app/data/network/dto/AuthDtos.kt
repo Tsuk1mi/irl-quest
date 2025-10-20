@@ -23,9 +23,10 @@ data class LoginRequest(
 // Ответы аутентификации
 @Serializable
 data class LoginResponse(
-    @SerialName("access_token") val accessToken: String,
+    @SerialName("access_token") val accessToken: String? = null,
+    @SerialName("token") val token: String? = null,
     @SerialName("token_type") val tokenType: String = "bearer",
-    val user: UserDto
+    val user: UserDto? = null
 )
 
 @Serializable

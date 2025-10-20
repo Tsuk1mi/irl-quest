@@ -67,11 +67,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .allow_headers(tower_http::cors::Any)
         );
 
+    // Подготавливаем MakeService, чтобы axum добавил ConnectInfo<SocketAddr> в каждое обращение
+    let make_svc = app.into_make_service_with_connect_info::<SocketAddr>();
+
     // Запуск сервера
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
     tracing::info!("Starting server on {}", addr);
     let listener = TcpListener::bind(addr).await?;
-    serve(listener, app).await?;
+    serve(listener, make_svc).await?;
 
     Ok(())
 }
