@@ -5,6 +5,8 @@ import com.irlquest.app.data.network.RetrofitClient
 import com.irlquest.app.data.network.dto.LoginRequest
 import com.irlquest.app.data.network.dto.RegisterRequest
 import com.irlquest.app.data.network.dto.UserDto
+import com.irlquest.app.data.network.dto.LoginResponse
+import java.time.Instant
 import timber.log.Timber
 
 class AuthRepository {
@@ -37,11 +39,52 @@ class AuthRepository {
         if (meResp.isSuccessful) {
             val me = meResp.body()
             if (me != null) return me
-            else throw Exception("Login succeeded but /auth/me returned empty body")
+            else {
+                Timber.w("AuthRepository: /auth/me returned empty body despite success")
+                // fallthrough to fallback below
+            }
         } else {
-            val err = try { meResp.errorBody()?.string() } catch (_: Exception) { null }
-            throw Exception(err ?: "Login succeeded but failed to fetch profile: ${meResp.code()}")
+            // Если /auth/me вернул 404 — возможно API не реализует этот маршрут; не считаем это фатальной ошибкой
+            if (meResp.code() == 404) {
+                Timber.w("AuthRepository: /auth/me returned 404 Not Found, will use fallback from login response if available")
+            } else {
+                val err = try { meResp.errorBody()?.string() } catch (_: Exception) { null }
+                throw Exception(err ?: "Login succeeded but failed to fetch profile: ${meResp.code()}")
+            }
         }
+
+        // Если /auth/me отсутствует или вернул пусто, попытаемся собрать минимальный объект UserDto из полей login response
+        val fallbackId = when {
+            (body is LoginResponse) -> body.userId
+            else -> null
+        }
+        val fallbackUsername = when {
+            (body is LoginResponse) -> body.username
+            else -> null
+        }
+
+        val safeId = fallbackId ?: -1
+        val safeUsername = fallbackUsername ?: username
+        val now = Instant.now().toString()
+
+        Timber.i("AuthRepository: creating fallback UserDto id=%d username=%s", safeId, safeUsername)
+        // Собираем UserDto с безопасными значениями — эти поля могут быть не полными, но позволяют приложению продолжить работу
+        val fallbackUser = UserDto(
+            id = safeId,
+            email = "",
+            username = safeUsername,
+            isActive = true,
+            level = 0,
+            experience = 0,
+            avatarUrl = null,
+            bio = null,
+            timezone = "UTC",
+            lastLogin = null,
+            settings = emptyMap(),
+            createdAt = now
+        )
+
+        return fallbackUser
     }
 
     suspend fun register(email: String, username: String, password: String): UserDto {
@@ -64,6 +107,11 @@ class AuthRepository {
             // Если неавторизован — очистим токен
             if (resp.code() == 401) {
                 TokenStorage.clear()
+                return null
+            }
+            // Если маршрут отсутствует — вернём null вместо исключения
+            if (resp.code() == 404) {
+                Timber.w("AuthRepository.getMe: /auth/me returned 404 Not Found")
                 return null
             }
             val err = try { resp.errorBody()?.string() } catch (_: Exception) { null }

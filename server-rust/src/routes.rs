@@ -5,7 +5,7 @@ use axum::{
 };
 
 use crate::{
-    handlers::{auth_handlers, quest_handlers, task_handlers, search_handlers, ml},
+    handlers::{auth_handlers, quest_handlers, task_handlers, search_handlers, ml, rag},
     middleware::auth::auth_middleware,
     state::AppState,
 };
@@ -44,6 +44,15 @@ pub fn app_router(state: AppState) -> Router {
         .route("/api/v1/quests", get(quest_handlers::list_quests))
         .route("/api/v1/quests/:id", get(quest_handlers::get_quest))
         .route("/api/v1/quests/:id", post(quest_handlers::update_quest))
+
+        // RAG - protected endpoints
+        .route("/api/rag/generate_quest", post(rag::generate_quest))
+        .route("/api/rag/enhance_task", post(rag::enhance_task))
+        .route("/api/rag/classify_task", post(rag::classify_task))
+        // /api/v1 aliases
+        .route("/api/v1/rag/generate_quest", post(rag::generate_quest))
+        .route("/api/v1/rag/enhance_task", post(rag::enhance_task))
+        .route("/api/v1/rag/classify_task", post(rag::classify_task))
 
         // Задачи
         .route("/api/tasks", post(task_handlers::create_task))

@@ -8,6 +8,9 @@ pub struct Config {
     pub jwt_secret: String,
     pub cors_origin: String,
     pub ml_base_url: String,
+    pub ml_model_path: Option<String>,
+    pub ml_infer_cmd: Option<String>,
+    pub ml_embed_cmd: Option<String>,
 }
 
 pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
@@ -23,5 +26,8 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
             .unwrap_or_else(|_| "*".to_string()),
         ml_base_url: env::var("ML_BASE_URL")
             .unwrap_or_else(|_| "http://localhost:8080".to_string()),
+        ml_model_path: env::var("ML_MODEL_PATH").ok(),
+        ml_infer_cmd: env::var("ML_INFER_CMD").ok(),
+        ml_embed_cmd: env::var("ML_EMBED_CMD").ok(),
     })
 }

@@ -57,7 +57,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Создание состояния приложения
-    let state = AppState::new(pool, config.ml_base_url.clone());
+    let state = AppState::new(
+        pool,
+        config.ml_base_url.clone(),
+        config.ml_model_path.clone(),
+        config.ml_infer_cmd.clone(),
+        config.ml_embed_cmd.clone(),
+    );
 
     // Создание роутера с настроенными маршрутами
     let app = routes::app_router(state)

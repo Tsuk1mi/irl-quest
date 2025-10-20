@@ -26,7 +26,10 @@ data class LoginResponse(
     @SerialName("access_token") val accessToken: String? = null,
     @SerialName("token") val token: String? = null,
     @SerialName("token_type") val tokenType: String = "bearer",
-    val user: UserDto? = null
+    val user: UserDto? = null,
+    @SerialName("user_id") val userId: Int? = null,
+    val username: String? = null,
+    @SerialName("client_ip") val clientIp: String? = null
 )
 
 @Serializable
