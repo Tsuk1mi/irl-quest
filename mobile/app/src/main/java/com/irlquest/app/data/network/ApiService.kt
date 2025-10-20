@@ -64,6 +64,16 @@ interface ApiService {
     @POST("rag/generate")
     suspend fun generateWithRag(@Body request: RagGenerateRequest): Response<RagGenerateResponse>
 
+    // RAG server endpoints (new)
+    @POST("rag/generate_quest")
+    suspend fun generateQuestRag(@Body request: RagQuestGenerationRequest): Response<RagQuestGenerationResponse>
+
+    @POST("rag/classify_task")
+    suspend fun classifyTask(@Body request: RagClassifyRequest): Response<RagClassifyResponse>
+
+    @POST("rag/enhance_task")
+    suspend fun enhanceTask(@Body request: RagEnhanceRequest): Response<RagEnhanceResponse>
+
     // Stats
     @GET("stats/daily")
     suspend fun getDailyStats(): Response<List<DailyStatsDto>>

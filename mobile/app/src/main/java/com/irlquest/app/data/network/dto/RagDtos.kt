@@ -4,30 +4,65 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RagStudyRequest(
-    val content: String,
-    val metadata: Map<String, String> = emptyMap()
+data class RagQuestGenerationRequest(
+    @SerialName("todo_text") val todoText: String,
+    val context: String? = null,
+    @SerialName("difficulty_preference") val difficultyPreference: Int? = null,
+    @SerialName("user_level") val userLevel: Int? = null,
+    @SerialName("tags_override") val tagsOverride: List<String>? = null
 )
 
 @Serializable
-data class RagStudyResponse(
-    @SerialName("success") val success: Boolean,
-    @SerialName("message") val message: String? = null,
-    @SerialName("document_id") val documentId: String? = null
+data class RagGeneratedTask(
+    val title: String,
+    val description: String,
+    val difficulty: Int,
+    @SerialName("experience_reward") val experienceReward: Int,
+    @SerialName("estimated_duration") val estimatedDuration: Int? = null,
+    @SerialName("is_boss") val isBoss: Boolean = false
 )
 
 @Serializable
-data class RagGenerateRequest(
-    val query: String,
-    @SerialName("max_tokens") val maxTokens: Int = 1000,
-    @SerialName("temperature") val temperature: Double = 0.7
+data class RagQuestGenerationResponse(
+    val title: String,
+    val description: String,
+    val difficulty: Int,
+    @SerialName("reward_experience") val rewardExperience: Int,
+    @SerialName("reward_description") val rewardDescription: String,
+    val tags: List<String> = emptyList(),
+    @SerialName("quest_type") val questType: String = "personal",
+    val tasks: List<RagGeneratedTask> = emptyList(),
+    @SerialName("story_context") val storyContext: String? = null
 )
 
 @Serializable
-data class RagGenerateResponse(
-    @SerialName("success") val success: Boolean,
-    @SerialName("message") val message: String? = null,
-    @SerialName("generated_text") val generatedText: String? = null,
-    @SerialName("sources") val sources: List<String> = emptyList(),
-    @SerialName("metadata") val metadata: Map<String, String> = emptyMap()
+data class RagClassifyRequest(
+    @SerialName("task_text") val taskText: String,
+    val context: String? = null,
+    @SerialName("user_level") val userLevel: Int? = null
 )
+
+@Serializable
+data class RagClassifyResponse(
+    val tags: List<String> = emptyList(),
+    @SerialName("estimated_difficulty") val estimatedDifficulty: Int = 1,
+    @SerialName("exam_tasks") val examTasks: List<RagGeneratedTask> = emptyList()
+)
+
+@Serializable
+data class RagEnhanceRequest(
+    @SerialName("task_text") val taskText: String,
+    val context: String? = null,
+    @SerialName("user_level") val userLevel: Int? = null
+)
+
+@Serializable
+data class RagEnhanceResponse(
+    @SerialName("enhanced_title") val enhancedTitle: String,
+    @SerialName("enhanced_description") val enhancedDescription: String,
+    @SerialName("suggested_difficulty") val suggestedDifficulty: Int,
+    @SerialName("suggested_experience") val suggestedExperience: Int,
+    @SerialName("story_context") val storyContext: String? = null,
+    @SerialName("suggested_tags") val suggestedTags: List<String> = emptyList()
+)
+
