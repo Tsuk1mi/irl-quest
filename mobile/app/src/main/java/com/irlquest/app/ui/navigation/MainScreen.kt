@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.irlquest.app.feature.focus.FocusSessionScreen
+import com.irlquest.app.feature.home.HomeScreen
 import com.irlquest.app.feature.quests.QuestsScreen
 import com.irlquest.app.feature.quests.QuestDetailScreen
 import com.irlquest.app.feature.stats.StatsScreen
@@ -28,7 +29,9 @@ sealed class BottomNavItem(
     val title: String,
     val icon: ImageVector
 ) {
-    object Tasks : BottomNavItem("tasks", "Задачи", Icons.Default.Assignment)
+    object Home : BottomNavItem("home", "Главная", Icons.Default.Home)
+    // AutoMirrored иногда отсутствует в подключённых версиях — используем стабильный Filled
+    object Tasks : BottomNavItem("tasks", "Задачи", Icons.Filled.Assignment)
     object Quests : BottomNavItem("quests", "Квесты", Icons.Default.EmojiEvents)
     object Focus : BottomNavItem("focus", "Фокус", Icons.Default.Timer)
     object Stats : BottomNavItem("stats", "Статистика", Icons.Default.Analytics)
@@ -37,7 +40,7 @@ sealed class BottomNavItem(
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    
+
     Scaffold(
         bottomBar = {
             BottomNavigation(
@@ -46,36 +49,31 @@ fun MainScreen() {
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
-                
+
                 val items = listOf(
+                    BottomNavItem.Home,
                     BottomNavItem.Tasks,
                     BottomNavItem.Quests,
                     BottomNavItem.Focus,
                     BottomNavItem.Stats
                 )
-                
+
                 items.forEach { item ->
                     BottomNavigationItem(
-                        icon = { 
+                        icon = {
                             Icon(
-                                item.icon, 
+                                item.icon,
                                 contentDescription = item.title
-                            ) 
+                            )
                         },
                         label = { Text(item.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                         onClick = {
                             navController.navigate(item.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                // on the back stack as users select items
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
                                 }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
                                 launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
                                 restoreState = true
                             }
                         }
@@ -98,14 +96,22 @@ fun MainNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = BottomNavItem.Tasks.route,
+        startDestination = BottomNavItem.Home.route,
         modifier = modifier
     ) {
+        composable(BottomNavItem.Home.route) {
+            HomeScreen(
+                onNavigateToQuest = { questId -> navController.navigate("quests/$questId") },
+                onNavigateToTask = { taskId -> navController.navigate("tasks/$taskId") }
+            )
+        }
+
         composable(BottomNavItem.Tasks.route) {
             TasksScreen(onNavigateToTaskDetail = { taskId ->
                 navController.navigate("tasks/$taskId")
             })
         }
+
         composable(BottomNavItem.Quests.route) {
             QuestsScreen(
                 onNavigateToQuestDetail = { questId ->
@@ -113,6 +119,7 @@ fun MainNavHost(
                 }
             )
         }
+
         // Detail route with integer argument
         composable(
             route = "quests/{questId}",
@@ -123,6 +130,7 @@ fun MainNavHost(
                 navController.navigate("tasks/$taskId")
             })
         }
+
         // Task detail route
         composable(
             route = "tasks/{taskId}",
@@ -131,6 +139,7 @@ fun MainNavHost(
             val taskId = backStackEntry.arguments?.getInt("taskId") ?: 0
             TaskDetailScreen(taskId = taskId, onDeleted = { navController.popBackStack() })
         }
+
         composable(BottomNavItem.Focus.route) {
             FocusSessionScreen()
         }

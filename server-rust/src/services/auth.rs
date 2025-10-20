@@ -5,8 +5,10 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, 
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::config::Settings;
+use crate::config::Config;
 use crate::models::{User, UserCreate, UserOut};
+
+const ACCESS_TOKEN_EXPIRE_MINUTES: i64 = 60; // 1 hour
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -15,12 +17,12 @@ pub struct Claims {
 }
 
 pub struct AuthService {
-    settings: Settings,
+    config: Config,
 }
 
 impl AuthService {
-    pub fn new(settings: Settings) -> Self {
-        Self { settings }
+    pub fn new(config: Config) -> Self {
+        Self { config }
     }
 
     pub async fn register_user(&self, pool: &PgPool, user_create: UserCreate) -> Result<UserOut> {
@@ -103,7 +105,7 @@ impl AuthService {
 
     pub fn create_access_token(&self, user_id: &str) -> Result<String> {
         let expiration = Utc::now()
-            + Duration::minutes(self.settings.access_token_expire_minutes);
+            + Duration::minutes(ACCESS_TOKEN_EXPIRE_MINUTES);
 
         let claims = Claims {
             sub: user_id.to_owned(),
@@ -113,7 +115,7 @@ impl AuthService {
         let token = encode(
             &Header::default(),
             &claims,
-            &EncodingKey::from_secret(self.settings.secret_key.as_ref()),
+            &EncodingKey::from_secret(self.config.jwt_secret.as_ref()),
         )?;
 
         Ok(token)
@@ -122,7 +124,7 @@ impl AuthService {
     pub fn verify_token(&self, token: &str) -> Result<TokenData<Claims>> {
         let token_data = decode::<Claims>(
             token,
-            &DecodingKey::from_secret(self.settings.secret_key.as_ref()),
+            &DecodingKey::from_secret(self.config.jwt_secret.as_ref()),
             &Validation::default(),
         )?;
 

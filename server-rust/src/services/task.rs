@@ -1,8 +1,12 @@
 use anyhow::Result;
 use chrono::Utc;
 use sqlx::PgPool;
+use serde_json::json;
 
-use crate::models::{Task, TaskCreate, TaskOut, TaskUpdate};
+use crate::models::task::{Task, TaskCreate, TaskOut, TaskUpdate};
+
+// Для авто-определения сложности и тегов
+use crate::rag::templates::{auto_difficulty_for_text, auto_tags_for_text};
 
 pub struct TaskService;
 
@@ -30,6 +34,45 @@ impl TaskService {
         user_id: i32,
         task_create: TaskCreate,
     ) -> Result<TaskOut> {
+        // Determine difficulty (ML placeholder) if not provided
+        let mut difficulty = task_create.difficulty.unwrap_or_else(|| {
+            // use title + description to infer difficulty
+            let base_text = if let Some(desc) = &task_create.description {
+                format!("{} {}", task_create.title, desc)
+            } else {
+                task_create.title.clone()
+            };
+            auto_difficulty_for_text(&base_text).clamp(1, 5)
+        });
+
+        // Determine tags if not provided
+        let tags = task_create.tags.clone().unwrap_or_else(|| {
+            let base_text = if let Some(desc) = &task_create.description {
+                format!("{} {}", task_create.title, desc)
+            } else {
+                task_create.title.clone()
+            };
+            auto_tags_for_text(&base_text)
+        });
+
+        // Determine experience reward default
+        let experience_reward = task_create.experience_reward.unwrap_or(10);
+
+        // Determine status and priority defaults
+        let status = task_create.status.unwrap_or_else(|| "pending".to_string());
+        let priority = task_create.priority.unwrap_or_else(|| "medium".to_string());
+
+        // Merge metadata and add require_exam if priority high && difficulty high
+        let mut metadata = task_create.metadata.unwrap_or_else(|| json!({}));
+        let priority_lower = priority.to_lowercase();
+        if (priority_lower == "high" || priority_lower == "urgent") && difficulty >= 4 {
+            if let Some(obj) = metadata.as_object_mut() {
+                obj.insert("require_exam".to_string(), json!(true));
+            } else {
+                metadata = json!({ "require_exam": true });
+            }
+        }
+
         let task: Task = sqlx::query_as::<_, Task>(
             r#"
             INSERT INTO tasks (
@@ -37,30 +80,29 @@ impl TaskService {
                 actual_duration, difficulty, experience_reward, tags, location_name, subtasks,
                 notes, attachments, completion_proof, metadata, created_at, quest_id, owner_id
             )
-            VALUES (
-                $1, $2, false, COALESCE($3,'pending'), COALESCE($4,'medium'), $5, $6,
-                NULL, COALESCE($7,1), COALESCE($8,0), COALESCE($9, ARRAY[]::TEXT[]), $10, COALESCE($11,'[]'::jsonb),
-                $12, COALESCE($13, ARRAY[]::TEXT[]), NULL, COALESCE($14,'{}'::jsonb), $15, $16, $17
-            )
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
             RETURNING *
             "#,
         )
-        .bind(&task_create.title)
-        .bind(&task_create.description)
-        .bind(&task_create.priority)
-        .bind(&task_create.priority)
-        .bind(&task_create.deadline)
-        .bind(&task_create.estimated_duration)
-        .bind(&task_create.difficulty)
-        .bind(&task_create.experience_reward)
-        .bind(&task_create.tags)
-        .bind(&task_create.location_name)
-        .bind(&task_create.subtasks)
-        .bind(&task_create.notes)
-        .bind(&task_create.attachments)
-        .bind(&task_create.metadata)
+        .bind(task_create.title)
+        .bind(task_create.description)
+        .bind(false)
+        .bind(status)
+        .bind(priority)
+        .bind(task_create.deadline)
+        .bind(task_create.estimated_duration)
+        .bind::<Option<i32>>(None)
+        .bind(difficulty)
+        .bind(experience_reward)
+        .bind(&tags)
+        .bind(task_create.location_name)
+        .bind(task_create.subtasks.unwrap_or_else(|| json!([])))
+        .bind(task_create.notes)
+        .bind(task_create.attachments.unwrap_or_default())
+        .bind::<Option<String>>(None)
+        .bind(metadata)
         .bind(Utc::now())
-        .bind(&task_create.quest_id)
+        .bind(task_create.quest_id)
         .bind(user_id)
         .fetch_one(pool)
         .await?;

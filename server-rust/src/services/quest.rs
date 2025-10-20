@@ -2,7 +2,7 @@ use anyhow::Result;
 use chrono::Utc;
 use sqlx::PgPool;
 
-use crate::models::{Quest, QuestCreate, QuestOut, QuestUpdate};
+use crate::models::quest::{Quest, QuestCreate, QuestOut, QuestUpdate};
 
 pub struct QuestService;
 
@@ -107,7 +107,7 @@ impl QuestService {
         if let Some(status) = quest_update.status { quest.status = status; }
         if let Some(priority) = quest_update.priority { quest.priority = priority; }
         if let Some(deadline) = quest_update.deadline { quest.deadline = Some(deadline); }
-        if let Some(reward_experience) = quest_update.reward_experience { quest.reward_experience = reward_experience; }
+        if let Some(reward_experience) = quest_update.reward_experience { quest.reward_experience = Some(reward_experience); }
         if let Some(reward_description) = quest_update.reward_description { quest.reward_description = Some(reward_description); }
         if let Some(tags) = quest_update.tags { quest.tags = tags; }
         if let Some(is_public) = quest_update.is_public { quest.is_public = is_public; }

@@ -4,33 +4,52 @@ use axum::{
     Json,
 };
 use serde_json::json;
+use sqlx::error::Error as SqlxError;
 
 #[derive(Debug)]
 pub enum AppError {
-    Auth(String),
-    Internal(String),
-    Validation(String),
     NotFound(String),
+    BadRequest(String),
+    Unauthorized(String),
+    Forbidden(String),
+    Validation(String),
+    Auth(String),
+    Database(SqlxError),
+    Internal(String),
+}
+
+impl From<SqlxError> for AppError {
+    fn from(err: SqlxError) -> Self {
+        AppError::Database(err)
+    }
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
-            AppError::Auth(msg) => (StatusCode::UNAUTHORIZED, msg),
-            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
-            AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
+            AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, msg),
+            AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
+            AppError::Auth(msg) => (StatusCode::UNAUTHORIZED, msg),
+            AppError::Database(err) => {
+                tracing::error!("Database error: {:?}", err);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "An internal database error occurred".to_string(),
+                )
+            }
+            AppError::Internal(msg) => {
+                tracing::error!("Internal error: {}", msg);
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
+            }
         };
 
-        Json(json!({
+        let body = Json(json!({
             "error": message
-        }))
-        .into_response()
-    }
-}
+        }));
 
-impl From<sqlx::Error> for AppError {
-    fn from(err: sqlx::Error) -> Self {
-        AppError::Internal(err.to_string())
+        (status, body).into_response()
     }
 }

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Allow cleartext for local development hostnames and emulator loopback -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">10.0.2.2</domain>
-        <domain includeSubdomains="false">localhost</domain>
-    </domain-config>
+  <!-- Разрешить cleartext для локального IP разработки -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="false">192.168.43.52</domain>
+  </domain-config>
 
-    <!-- Default: block cleartext for other domains -->
-    <base-config cleartextTrafficPermitted="false" />
+  <!-- По умолчанию запретить cleartext для остальных доменов -->
+  <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

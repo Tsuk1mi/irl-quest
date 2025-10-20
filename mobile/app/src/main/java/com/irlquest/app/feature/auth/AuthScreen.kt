@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.BuildConfig
 import com.irlquest.app.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,15 +27,16 @@ fun AuthScreen(
     var showRegister by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(currentUser) {
         if (currentUser != null) onLoginSuccess()
     }
 
-    // Show error in snackbar when it appears
+    // Show error in snackbar when it appears using coroutineScope
     LaunchedEffect(error) {
         error?.let { msg ->
-            snackbarHostState.showSnackbar(msg)
+            coroutineScope.launch { snackbarHostState.showSnackbar(msg) }
         }
     }
 

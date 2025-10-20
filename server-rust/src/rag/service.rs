@@ -2,9 +2,9 @@ use anyhow::Result;
 use sqlx::PgPool;
 
 use crate::models::{
-    QuestGenerationRequest, QuestGenerationResponse, 
+    QuestGenerationRequest, QuestGenerationResponse,
     TaskEnhancementRequest, TaskEnhancementResponse,
-    RagKnowledge, RagKnowledgeCreate, RagKnowledgeOut
+    RagKnowledge, RagKnowledgeCreate, RagKnowledgeOut,
 };
 use super::templates::QuestTemplates;
 

@@ -31,7 +31,7 @@ android {
   }
 
   composeOptions {
-    // Use a released Compose compiler version compatible with dependencies
+    // Use a Compose compiler extension version available in public repos (reverted to 1.5.3)
     kotlinCompilerExtensionVersion = "1.5.3"
   }
 
@@ -45,36 +45,22 @@ android {
   }
 }
 
-// Force resolution to consistent Compose animation versions to avoid runtime NoSuchMethodError
-configurations.all {
-  resolutionStrategy {
-    // Align animation artifacts to Compose 1.5.3 (released)
-    force("androidx.compose.animation:animation:1.5.3")
-    force("androidx.compose.animation:animation-android:1.5.3")
-    force("androidx.compose.animation:animation-core:1.5.3")
-    force("androidx.compose.animation:animation-core-android:1.5.3")
-  }
-}
-
 dependencies {
-  val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
-  implementation(composeBom)
-  androidTestImplementation(composeBom)
+  // Заменяем BOM на явные версии, чтобы избежать проблем с разрешением артефактов
+  val composeVersion = "1.5.3"
+  val material3Version = "1.1.1"
 
   implementation("androidx.core:core-ktx:1.12.0")
   implementation("androidx.activity:activity-compose:1.8.2")
 
-  // Compose и Material3
-  implementation("androidx.compose.ui:ui")
-  implementation("androidx.compose.ui:ui-graphics")
-  // Compose animation (ensure animation core matches material3 expectations)
-  implementation("androidx.compose.animation:animation:1.5.3")
-  implementation("androidx.compose.animation:animation-core:1.5.3")
-  implementation("androidx.compose.animation:animation-android:1.5.3")
-  implementation("androidx.compose.material3:material3")
-  implementation("androidx.compose.material3:material3-window-size-class")
-  implementation("androidx.compose.material:material-icons-extended")
-  implementation("androidx.compose.ui:ui-tooling-preview")
+  // Compose и Material3 (указываем версии явно)
+  implementation("androidx.compose.ui:ui:$composeVersion")
+  implementation("androidx.compose.ui:ui-graphics:$composeVersion")
+  implementation("androidx.compose.animation:animation:$composeVersion")
+  implementation("androidx.compose.material3:material3:$material3Version")
+  implementation("androidx.compose.material3:material3-window-size-class:$material3Version")
+  implementation("androidx.compose.material:material-icons-extended:$composeVersion")
+  implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
 
   // Navigation
   implementation("androidx.navigation:navigation-compose:2.7.6")
@@ -100,10 +86,12 @@ dependencies {
 
   // Material Design
   implementation("com.google.android.material:material:1.11.0")
-  implementation("androidx.compose.material:material")
+  implementation("androidx.compose.material:material:$composeVersion")
 
   // Debug
-  debugImplementation("androidx.compose.ui:ui-tooling")
+  debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
+  androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVersion")
+
   // Timber logging
   implementation("com.jakewharton.timber:timber:5.0.1")
 }

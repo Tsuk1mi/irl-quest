@@ -89,8 +89,8 @@ fun TasksScreen(
     if (uiState.showCreateDialog) {
         CreateTaskDialog(
             onDismiss = { viewModel.hideCreateDialog() },
-            onCreateTask = { title, description, priority ->
-                viewModel.createTask(title, description, priority)
+            onCreateTask = { title, description, priority, difficulty, deadline, aiPick ->
+                viewModel.createTask(title, description, priority, difficulty, deadline, aiPick)
             }
         )
     }
@@ -152,11 +152,14 @@ fun TaskItem(
 @Composable
 fun CreateTaskDialog(
     onDismiss: () -> Unit,
-    onCreateTask: (String, String, TaskPriority) -> Unit
+    onCreateTask: (String, String, TaskPriority, Int, String?, Boolean) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(TaskPriority.MEDIUM) }
+    var difficulty by remember { mutableStateOf(3) }
+    var aiPick by remember { mutableStateOf(false) }
+    var deadline by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -179,6 +182,33 @@ fun CreateTaskDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 
+                // Deadline
+                TextField(
+                    value = deadline,
+                    onValueChange = { deadline = it },
+                    label = { Text("Срок (dd.MM.yyyy)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Difficulty and AI pick
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Сложность:")
+                    for (i in 1..5) {
+                        FilterChip(
+                            selected = difficulty == i,
+                            onClick = { difficulty = i; aiPick = false },
+                            label = { Text(i.toString()) },
+                            enabled = !aiPick
+                        )
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = aiPick, onCheckedChange = { aiPick = it })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Пусть ИИ выберет сложность")
+                }
+
                 // Priority selector
                 Column {
                     Text(
@@ -204,7 +234,7 @@ fun CreateTaskDialog(
             Button(
                 onClick = {
                     if (title.isNotBlank()) {
-                        onCreateTask(title, description, priority)
+                        onCreateTask(title, description, priority, difficulty, if (deadline.isBlank()) null else deadline, aiPick)
                         onDismiss()
                     }
                 }

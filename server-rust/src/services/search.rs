@@ -1,19 +1,19 @@
 use sqlx::PgPool;
 use crate::error::AppError;
+use sqlx::FromRow;
 
 pub async fn search_quests_and_tasks(
     pool: &PgPool,
-    user_id: i32,
+    owner_id: i32,
     query: &str,
     tags: Option<Vec<String>>,
 ) -> Result<SearchResults, AppError> {
-    let mut quests = sqlx::query_as!(
-        QuestSearchResult,
+    let mut quests = sqlx::query_as::<_, QuestSearchResult>(
         r#"
         SELECT id, title, description, difficulty, status,
                priority, deadline, completion_percentage
         FROM quests
-        WHERE (user_id = $1 OR is_public = true)
+        WHERE (owner_id = $1 OR is_public = true)
         AND (
             title ILIKE $2
             OR description ILIKE $2
@@ -23,20 +23,19 @@ pub async fn search_quests_and_tasks(
         ORDER BY created_at DESC
         LIMIT 10
         "#,
-        user_id,
-        format!("%{}%", query),
-        tags.as_deref(),
     )
+    .bind(owner_id)
+    .bind(format!("%{}%", query))
+    .bind(tags.clone())
     .fetch_all(pool)
     .await?;
 
-    let mut tasks = sqlx::query_as!(
-        TaskSearchResult,
+    let mut tasks = sqlx::query_as::<_, TaskSearchResult>(
         r#"
         SELECT id, title, description, status,
                priority, deadline, completed
         FROM tasks
-        WHERE user_id = $1
+        WHERE owner_id = $1
         AND (
             title ILIKE $2
             OR description ILIKE $2
@@ -46,10 +45,10 @@ pub async fn search_quests_and_tasks(
         ORDER BY created_at DESC
         LIMIT 10
         "#,
-        user_id,
-        format!("%{}%", query),
-        tags.as_deref(),
     )
+    .bind(owner_id)
+    .bind(format!("%{}%", query))
+    .bind(tags)
     .fetch_all(pool)
     .await?;
 
@@ -62,7 +61,7 @@ pub struct SearchResults {
     tasks: Vec<TaskSearchResult>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, FromRow)]
 pub struct QuestSearchResult {
     pub id: i32,
     pub title: String,
@@ -74,7 +73,7 @@ pub struct QuestSearchResult {
     pub completion_percentage: i32,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, FromRow)]
 pub struct TaskSearchResult {
     pub id: i32,
     pub title: String,
@@ -87,19 +86,18 @@ pub struct TaskSearchResult {
 
 pub async fn get_popular_tags(
     pool: &PgPool,
-    user_id: i32,
+    owner_id: i32,
 ) -> Result<Vec<TagCount>, AppError> {
-    sqlx::query_as!(
-        TagCount,
+    sqlx::query_as::<_, TagCount>(
         r#"
         WITH combined_tags AS (
             SELECT unnest(tags) as tag
             FROM quests
-            WHERE user_id = $1 OR is_public = true
+            WHERE owner_id = $1 OR is_public = true
             UNION ALL
             SELECT unnest(tags) as tag
             FROM tasks
-            WHERE user_id = $1
+            WHERE owner_id = $1
         )
         SELECT tag, COUNT(*) as count
         FROM combined_tags
@@ -107,14 +105,14 @@ pub async fn get_popular_tags(
         ORDER BY count DESC
         LIMIT 20
         "#,
-        user_id
     )
+    .bind(owner_id)
     .fetch_all(pool)
     .await
     .map_err(AppError::from)
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, FromRow)]
 pub struct TagCount {
     pub tag: String,
     pub count: i64,

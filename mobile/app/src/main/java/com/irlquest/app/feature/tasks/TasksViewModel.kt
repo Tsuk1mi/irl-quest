@@ -91,9 +91,12 @@ class TasksViewModel : ViewModel() {
 
             try {
                 // TODO: Загрузка задач с сервера
+                // Для разработки используем mock-список
+                val tasks = createMockTasks()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    tasks = emptyList() // Временно пустой список
+                    tasks = tasks,
+                    todaySummary = calculateTodaySummary(tasks)
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -104,12 +107,40 @@ class TasksViewModel : ViewModel() {
         }
     }
     
-    fun createTask(title: String, description: String, priority: TaskPriority) {
+    fun createTask(title: String, description: String, priority: TaskPriority, difficulty: Int = 3, deadline: String? = null, aiPick: Boolean = false) {
         viewModelScope.launch {
             try {
+                // Если пользователь попросил AI выбрать сложность — подставляем среднее значение (потом заменить вызовом AI)
+                val finalDifficulty = if (aiPick) 3 else difficulty
+
                 // TODO: Создание задачи на сервере
-                hideCreateDialog()
-                loadTasks()
+                // Сейчас добавляем в локальный список (mock)
+                val current = _uiState.value.tasks.toMutableList()
+                val newId = (current.maxOfOrNull { it.id } ?: 0) + 1
+                val now = dateFormatter.format(Date())
+                val newTask = TaskUi(
+                    id = newId,
+                    title = title,
+                    description = description,
+                    completed = false,
+                    status = TaskStatus.PENDING,
+                    priority = priority,
+                    deadline = deadline,
+                    isOverdue = false,
+                    estimatedDuration = null,
+                    actualDuration = null,
+                    difficulty = finalDifficulty,
+                    experienceReward = 10,
+                    tags = emptyList(),
+                    questId = null,
+                    createdAt = now,
+                    completedAt = null
+                )
+                current.add(0, newTask)
+                _uiState.value = _uiState.value.copy(tasks = current, showCreateDialog = false)
+
+                // В продакшене — выполнить запрос к API и затем обновить список
+                // loadTasks()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
@@ -119,8 +150,19 @@ class TasksViewModel : ViewModel() {
     fun toggleTask(taskId: Int) {
         viewModelScope.launch {
             try {
-                // TODO: Обновление статуса задачи на сервере
-                loadTasks()
+                val current = _uiState.value.tasks.toMutableList()
+                val idx = current.indexOfFirst { it.id == taskId }
+                if (idx >= 0) {
+                    val t = current[idx]
+                    val now = dateFormatter.format(Date())
+                    val updated = t.copy(
+                        completed = !t.completed,
+                        status = if (!t.completed) TaskStatus.COMPLETED else TaskStatus.PENDING,
+                        completedAt = if (!t.completed) now else null
+                    )
+                    current[idx] = updated
+                    _uiState.value = _uiState.value.copy(tasks = current, todaySummary = calculateTodaySummary(current))
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
@@ -130,8 +172,11 @@ class TasksViewModel : ViewModel() {
     fun deleteTask(taskId: Int) {
         viewModelScope.launch {
             try {
-                // TODO: Удаление задачи на сервере
-                loadTasks()
+                val current = _uiState.value.tasks.toMutableList()
+                val removed = current.removeAll { it.id == taskId }
+                if (removed) {
+                    _uiState.value = _uiState.value.copy(tasks = current, todaySummary = calculateTodaySummary(current))
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }

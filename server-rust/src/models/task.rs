@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
 use sqlx::FromRow;
+use serde_json::Value as JsonValue;
+use serde_json::json;
 
-#[derive(Debug, Clone, FromRow, Serialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Task {
     pub id: i32,
     pub title: String,
@@ -25,14 +26,14 @@ pub struct Task {
     pub metadata: JsonValue,
     pub created_at: DateTime<Utc>,
     pub quest_id: Option<i32>,
-    pub owner_id: Option<i32>,
+    pub owner_id: i32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct TaskCreate {
     pub title: String,
     pub description: Option<String>,
-    pub quest_id: Option<i32>,
+    pub status: Option<String>,
     pub priority: Option<String>,
     pub deadline: Option<DateTime<Utc>>,
     pub estimated_duration: Option<i32>,
@@ -44,6 +45,35 @@ pub struct TaskCreate {
     pub notes: Option<String>,
     pub attachments: Option<Vec<String>>,
     pub metadata: Option<JsonValue>,
+    pub quest_id: Option<i32>,
+}
+
+impl TaskCreate {
+    pub fn into_task(self, owner_id: i32) -> Task {
+        Task {
+            id: 0, // Will be set by database
+            title: self.title,
+            description: self.description,
+            completed: false,
+            status: self.status.unwrap_or_else(|| "pending".to_string()),
+            priority: self.priority.unwrap_or_else(|| "medium".to_string()),
+            deadline: self.deadline,
+            estimated_duration: self.estimated_duration,
+            actual_duration: None,
+            difficulty: self.difficulty.unwrap_or(1),
+            experience_reward: self.experience_reward.unwrap_or(10),
+            tags: self.tags.unwrap_or_default(),
+            location_name: self.location_name,
+            subtasks: self.subtasks.unwrap_or_else(|| json!([])),
+            notes: self.notes,
+            attachments: self.attachments.unwrap_or_default(),
+            completion_proof: None,
+            metadata: self.metadata.unwrap_or_else(|| json!({})),
+            created_at: Utc::now(),
+            quest_id: self.quest_id,
+            owner_id,
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -68,6 +98,7 @@ pub struct TaskOut {
     pub metadata: JsonValue,
     pub created_at: DateTime<Utc>,
     pub quest_id: Option<i32>,
+    pub quest_title: Option<String>,
 }
 
 impl From<Task> for TaskOut {
@@ -93,6 +124,7 @@ impl From<Task> for TaskOut {
             metadata: task.metadata,
             created_at: task.created_at,
             quest_id: task.quest_id,
+            quest_title: None,
         }
     }
 }
