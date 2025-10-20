@@ -16,6 +16,8 @@ use crate::state::AppState;
 use crate::utils_impl::ip::get_client_ip_from_headers;
 use axum::extract::ConnectInfo;
 use std::net::SocketAddr;
+use sqlx::Error as SqlxError;
+use sqlx::Row;
 
 #[derive(Deserialize)]
 pub struct RegisterRequest {
@@ -65,13 +67,27 @@ pub async fn register(
     validation::validate_username(&req.username)?;
 
     // Проверка на существующего пользователя
-    let existing_user = sqlx::query!(
+    let existing_user = match sqlx::query(
         "SELECT id FROM users WHERE email = $1 OR username = $2",
-        req.email,
-        req.username
     )
+    .bind(&req.email)
+    .bind(&req.username)
     .fetch_optional(pool)
-    .await?;
+    .await
+    {
+        Ok(opt) => opt,
+        Err(e) => {
+            // Если таблицы нет — дать понятный совет, иначе пробросить как DB ошибку
+            if let SqlxError::Database(db_err) = &e {
+                let msg = db_err.message();
+                if msg.contains("relation \"users\" does not exist") {
+                    tracing::error!("Database schema missing: users table not found. Full db error: {:?}", e);
+                    return Err(AppError::Internal("Database schema not initialized: table 'users' is missing. Run migrations or check DATABASE_URL.".to_string()));
+                }
+            }
+            return Err(AppError::Database(e));
+        }
+    };
 
     if existing_user.is_some() {
         return Err(AppError::Validation("User already exists".to_string()));
@@ -86,33 +102,49 @@ pub async fn register(
         .to_string();
 
     // Создание пользователя
-    let user = sqlx::query!(
+    let user_row = match sqlx::query(
         r#"
         INSERT INTO users (username, email, hashed_password)
         VALUES ($1, $2, $3::TEXT)
         RETURNING id, username
         "#,
-        req.username,
-        req.email,
-        password_hash,
     )
+    .bind(&req.username)
+    .bind(&req.email)
+    .bind(&password_hash)
     .fetch_one(pool)
-    .await?;
+    .await
+    {
+        Ok(row) => row,
+        Err(e) => {
+            if let SqlxError::Database(db_err) = &e {
+                let msg = db_err.message();
+                if msg.contains("relation \"users\" does not exist") {
+                    tracing::error!("Database schema missing on insert: users table not found. Full db error: {:?}", e);
+                    return Err(AppError::Internal("Database schema not initialized: table 'users' is missing. Run migrations or check DATABASE_URL.".to_string()));
+                }
+            }
+            return Err(AppError::Database(e));
+        }
+    };
+
+    let user_id: i32 = user_row.try_get("id").map_err(|e| AppError::Internal(e.to_string()))?;
+    let user_name: String = user_row.try_get("username").map_err(|e| AppError::Internal(e.to_string()))?;
 
     // Генерация JWT токена
-    let token = create_token(user.id)
+    let token = create_token(user_id)
         .map_err(|e| AppError::Auth(e.1))?;
 
     // Extract client IP from headers if present, otherwise use peer address
     let client_ip = get_client_ip_from_headers(&headers)
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| peer.ip().to_string());
-    tracing::info!("Register from IP: {} for user {}", client_ip, user.username);
+    tracing::info!("Register from IP: {} for user {}", client_ip, user_name);
 
     Ok(Json(AuthResponse {
         token,
-        user_id: user.id,
-        username: user.username,
+        user_id,
+        username: user_name,
         client_ip,
     }))
 }
@@ -144,47 +176,68 @@ pub async fn login(
     };
 
     // Fetch user by identifier
-    let user_opt = sqlx::query!(
+    let user_opt = match sqlx::query(
         r#"
         SELECT id, username, hashed_password
         FROM users
         WHERE email = $1 OR username = $1
         "#,
-        identifier
     )
+    .bind(&identifier)
     .fetch_optional(pool)
-    .await?;
+    .await
+    {
+        Ok(opt) => opt,
+        Err(e) => {
+            if let SqlxError::Database(db_err) = &e {
+                let msg = db_err.message();
+                if msg.contains("relation \"users\" does not exist") {
+                    tracing::error!("Database schema missing on login: users table not found. Full db error: {:?}", e);
+                    return Err(AppError::Internal("Database schema not initialized: table 'users' is missing. Run migrations or check DATABASE_URL.".to_string()));
+                }
+            }
+            return Err(AppError::Database(e));
+        }
+    };
 
     let user = match user_opt {
-        Some(u) => u,
+        Some(row) => {
+            let id: i32 = row.try_get("id").map_err(|e| AppError::Internal(e.to_string()))?;
+            let username: String = row.try_get("username").map_err(|e| AppError::Internal(e.to_string()))?;
+            let hashed_password: String = row.try_get("hashed_password").map_err(|e| AppError::Internal(e.to_string()))?;
+            // construct a small temp struct
+            (id, username, hashed_password)
+        }
         None => {
             tracing::warn!("[auth::login] user not found for identifier={}", identifier);
             return Err(AppError::Auth("Invalid credentials".to_string()));
         }
     };
 
+    let (user_id, user_name, user_hashed_password) = user;
+
     // Проверка пароля
-    let parsed_hash = PasswordHash::new(&user.hashed_password)
+    let parsed_hash = PasswordHash::new(&user_hashed_password)
         .map_err(|e| AppError::Internal(e.to_string()))?;
 
     if let Err(_) = Argon2::default().verify_password(req.password.as_bytes(), &parsed_hash) {
-        tracing::warn!("[auth::login] password verification failed for user_id={} identifier={}", user.id, identifier);
+        tracing::warn!("[auth::login] password verification failed for user_id={} identifier={}", user_id, identifier);
         return Err(AppError::Auth("Invalid credentials".to_string()));
     }
 
     // Генерация JWT токена
-    let token = create_token(user.id)
+    let token = create_token(user_id)
         .map_err(|e| AppError::Internal(format!("Failed to create token: {}", e.1)))?;
 
     let client_ip = get_client_ip_from_headers(&headers)
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| peer.ip().to_string());
-    tracing::info!("Login from IP: {} for user {} (identifier={})", client_ip, user.username, identifier);
+    tracing::info!("Login from IP: {} for user {} (identifier={})", client_ip, user_name, identifier);
 
     Ok(Json(AuthResponse {
         token,
-        user_id: user.id,
-        username: user.username,
+        user_id,
+        username: user_name,
         client_ip,
     }))
 }

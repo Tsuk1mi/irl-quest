@@ -5,7 +5,7 @@ use axum::{
 };
 
 use crate::{
-    handlers::{auth_handlers, quest_handlers, task_handlers, search_handlers},
+    handlers::{auth_handlers, quest_handlers, task_handlers, search_handlers, ml},
     middleware::auth::auth_middleware,
     state::AppState,
 };
@@ -17,6 +17,20 @@ pub fn app_router(state: AppState) -> Router {
         // версии с префиксом /api/v1
         .route("/api/v1/auth/register", post(auth_handlers::register))
         .route("/api/v1/auth/login", post(auth_handlers::login))
+
+        // ML public endpoints
+        .route("/api/ml/embeddings", post(ml::embeddings))
+        .route("/api/ml/infer", post(ml::infer))
+        .route("/api/ml/export_rag", get(ml::export_rag))
+        .route("/api/ml/dataset/todo_to_quest", post(ml::dataset_todo_to_quest))
+        .route("/api/ml/dataset/task_tags", post(ml::dataset_task_tags))
+        // v1 aliases
+        .route("/api/v1/ml/embeddings", post(ml::embeddings))
+        .route("/api/v1/ml/infer", post(ml::infer))
+        .route("/api/v1/ml/export_rag", get(ml::export_rag))
+        .route("/api/v1/ml/dataset/todo_to_quest", post(ml::dataset_todo_to_quest))
+        .route("/api/v1/ml/dataset/task_tags", post(ml::dataset_task_tags))
+
         .with_state(state.clone());
 
     let protected_routes = Router::new()

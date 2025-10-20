@@ -7,6 +7,7 @@ pub struct Config {
     pub port: u16,
     pub jwt_secret: String,
     pub cors_origin: String,
+    pub ml_base_url: String,
 }
 
 pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
@@ -20,5 +21,7 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
             .unwrap_or_else(|_| "your-secret-key".to_string()),
         cors_origin: env::var("CORS_ORIGIN")
             .unwrap_or_else(|_| "*".to_string()),
+        ml_base_url: env::var("ML_BASE_URL")
+            .unwrap_or_else(|_| "http://localhost:8080".to_string()),
     })
 }

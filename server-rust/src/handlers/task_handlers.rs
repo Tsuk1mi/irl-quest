@@ -14,15 +14,15 @@ pub async fn create_task(
 ) -> Result<Json<Task>, AppError> {
     // Проверяем доступ к квесту, если он указан
     if let Some(quest_id) = task_data.quest_id {
-        let quest_exists = sqlx::query!(
+        let quest_exists_row = sqlx::query(
             "SELECT id FROM quests WHERE id = $1 AND owner_id = $2",
-            quest_id,
-            user_id
         )
+        .bind(quest_id)
+        .bind(user_id)
         .fetch_optional(&state.db)
         .await?;
 
-        if quest_exists.is_none() {
+        if quest_exists_row.is_none() {
             return Err(AppError::NotFound("Quest not found or access denied".into()));
         }
     }

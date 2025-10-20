@@ -11,6 +11,7 @@ use crate::state::AppState;
 use tracing::{info, warn};
 use axum::body::Body as AxumBody;
 use serde_json::json;
+use sqlx::Row;
 
 fn json_error_response(status: StatusCode, message: &str) -> Response {
     let body = json!({ "error": message }).to_string();
@@ -74,27 +75,35 @@ pub async fn auth_middleware(
     };
 
     // Проверяем существование пользователя
-    let user = match sqlx::query!(
+    let user_row_opt = match sqlx::query(
         "SELECT id FROM users WHERE id = $1",
-        token_data.claims.sub
     )
+    .bind(token_data.claims.sub)
     .fetch_optional(&state.db)
     .await
     {
-        Ok(opt) => match opt {
-            Some(u) => u,
-            None => {
-                warn!("[auth::middleware] No user found with id={} (from token)", token_data.claims.sub);
-                return Ok(json_error_response(StatusCode::UNAUTHORIZED, "User from token not found"));
-            }
-        },
+        Ok(opt) => opt,
         Err(e) => {
             warn!("[auth::middleware] DB error when fetching user: {:?}", e);
             return Ok(json_error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error while verifying token"));
         }
     };
 
-    req.extensions_mut().insert(user.id);
+    let user_id = match user_row_opt {
+        Some(row) => match row.try_get::<i32, &str>("id") {
+            Ok(id) => id,
+            Err(e) => {
+                warn!("[auth::middleware] Failed to read user id from row: {:?}", e);
+                return Ok(json_error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error while verifying token"));
+            }
+        },
+        None => {
+            warn!("[auth::middleware] No user found with id={} (from token)", token_data.claims.sub);
+            return Ok(json_error_response(StatusCode::UNAUTHORIZED, "User from token not found"));
+        }
+    };
+
+    req.extensions_mut().insert(user_id);
 
     Ok(next.run(req).await)
 }

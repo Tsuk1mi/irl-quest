@@ -5,13 +5,15 @@ use axum::{
     Json as ExtractJson,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 use crate::{
     rag::templates::{auto_difficulty_for_text, auto_tags_for_text, is_boss_marker},
     rag::templates::QuestTemplates,
     AppState,
 };
+
+use crate::models::RagKnowledgeOut;
+use sqlx::query_as;
 
 #[derive(Debug, Deserialize)]
 pub struct DatasetTodos {
@@ -39,8 +41,29 @@ pub struct TagRecord {
     pub is_boss: bool,
 }
 
+// New structs for ML endpoints
+#[derive(Debug, Deserialize)]
+pub struct EmbeddingsRequest {
+    pub texts: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EmbeddingsResponse {
+    pub embeddings: Vec<Vec<f32>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct InferRequest {
+    pub prompt: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct InferResponse {
+    pub result: String,
+}
+
 pub async fn dataset_todo_to_quest(
-    State(_state): State<Arc<AppState>>,
+    State(_state): State<AppState>,
     ExtractJson(req): ExtractJson<DatasetTodos>,
 ) -> Result<Json<Vec<TodoQuestPair>>, StatusCode> {
     let mut pairs = Vec::with_capacity(req.todos.len());
@@ -58,7 +81,7 @@ pub async fn dataset_todo_to_quest(
 }
 
 pub async fn dataset_task_tags(
-    State(_state): State<Arc<AppState>>,
+    State(_state): State<AppState>,
     ExtractJson(req): ExtractJson<TagDatasetRequest>,
 ) -> Result<Json<Vec<TagRecord>>, StatusCode> {
     let mut records = Vec::with_capacity(req.tasks.len());
@@ -69,4 +92,46 @@ pub async fn dataset_task_tags(
         records.push(TagRecord { task_text: task, tags, estimated_difficulty: diff, is_boss });
     }
     Ok(Json(records))
+}
+
+pub async fn embeddings(
+    State(state): State<AppState>,
+    ExtractJson(req): ExtractJson<EmbeddingsRequest>,
+) -> Result<Json<EmbeddingsResponse>, StatusCode> {
+    match state.ml_client.embed_texts(req.texts).await {
+        Ok(emb) => Ok(Json(EmbeddingsResponse { embeddings: emb })),
+        Err(e) => {
+            tracing::error!("Embedding error: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+pub async fn infer(
+    State(state): State<AppState>,
+    ExtractJson(req): ExtractJson<InferRequest>,
+) -> Result<Json<InferResponse>, StatusCode> {
+    match state.ml_client.infer(req.prompt).await {
+        Ok(res) => Ok(Json(InferResponse { result: res })),
+        Err(e) => {
+            tracing::error!("Infer error: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+pub async fn export_rag(
+    State(state): State<AppState>,
+) -> Result<Json<Vec<RagKnowledgeOut>>, StatusCode> {
+    let records: Vec<crate::models::RagKnowledge> = query_as(
+        "SELECT id, content, content_type, tags, embedding, metadata, created_at FROM rag_knowledge",
+    )
+    .fetch_all(&state.db)
+    .await
+    .map_err(|e| {
+        tracing::error!("DB export_rag error: {:?}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    Ok(Json(records.into_iter().map(RagKnowledgeOut::from).collect()))
 }

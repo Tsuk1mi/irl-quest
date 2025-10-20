@@ -17,6 +17,7 @@ mod validation;
 mod state;
 mod rag;
 mod utils_impl;
+mod ml;
 
 use state::AppState;
 
@@ -56,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Создание состояния приложения
-    let state = AppState::new(pool);
+    let state = AppState::new(pool, config.ml_base_url.clone());
 
     // Создание роутера с настроенными маршрутами
     let app = routes::app_router(state)
