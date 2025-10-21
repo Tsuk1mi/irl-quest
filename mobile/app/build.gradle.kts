@@ -16,7 +16,7 @@ android {
     versionName = "0.1"
     // Configurable base URL for API. For local development on emulator use 10.0.2.2 -> host's localhost
     // If you run on a physical device, replace with your machine IP (e.g. http://192.168.43.52:8003/)
-    buildConfigField("String", "API_BASE_URL", "\"http://192.168.43.52:8003/api/v1/\"")
+    buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.67:8003/api/v1/\"")
   }
 
   buildTypes {

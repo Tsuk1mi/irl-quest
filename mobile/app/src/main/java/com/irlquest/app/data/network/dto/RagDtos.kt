@@ -4,6 +4,31 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class RagStudyRequest(
+    @SerialName("input_text") val inputText: String,
+    val context: String? = null,
+    @SerialName("user_level") val userLevel: Int? = null
+)
+
+@Serializable
+data class RagStudyResponse(
+    val summary: String,
+    val highlights: List<String> = emptyList()
+)
+
+@Serializable
+data class RagGenerateRequest(
+    @SerialName("input_text") val inputText: String,
+    val context: String? = null,
+    @SerialName("num_results") val numResults: Int = 1
+)
+
+@Serializable
+data class RagGenerateResponse(
+    val results: List<String> = emptyList()
+)
+
+@Serializable
 data class RagQuestGenerationRequest(
     @SerialName("todo_text") val todoText: String,
     val context: String? = null,
@@ -32,7 +57,8 @@ data class RagQuestGenerationResponse(
     val tags: List<String> = emptyList(),
     @SerialName("quest_type") val questType: String = "personal",
     val tasks: List<RagGeneratedTask> = emptyList(),
-    @SerialName("story_context") val storyContext: String? = null
+    @SerialName("story_context") val storyContext: String? = null,
+    @SerialName("estimated_time") val estimatedTime: Int? = null
 )
 
 @Serializable
@@ -65,4 +91,3 @@ data class RagEnhanceResponse(
     @SerialName("story_context") val storyContext: String? = null,
     @SerialName("suggested_tags") val suggestedTags: List<String> = emptyList()
 )
-

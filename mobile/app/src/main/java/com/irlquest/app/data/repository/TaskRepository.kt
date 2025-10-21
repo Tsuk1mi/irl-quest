@@ -84,7 +84,8 @@ class TaskRepository {
             title = gen.title,
             description = gen.description,
             experienceReward = gen.rewardExperience,
-            estimatedTime = gen.estimatedTime,
+            // CreateQuestRequest требует non-null Int. Если estimatedTime отсутствует — вычисляем сумму estimatedDuration задач
+            estimatedTime = gen.estimatedTime ?: gen.tasks.sumOf { it.estimatedDuration ?: 30 },
             difficulty = gen.difficulty,
             priority = 2,
             theme = gen.tags.firstOrNull() ?: "",

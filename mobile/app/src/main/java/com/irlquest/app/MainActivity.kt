@@ -23,7 +23,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.irlquest.app.feature.auth.AuthScreen
 import com.irlquest.app.ui.viewmodel.AuthViewModel
-import com.irlquest.app.ui.screens.QuestGeneratorScreen
+import com.irlquest.app.ui.screens.TasksScreen
 import com.irlquest.app.ui.theme.IRLQuestTheme
 import java.io.File
 import java.io.PrintWriter
@@ -112,7 +112,7 @@ fun IRLQuestApp() {
                 
                 val items = listOf(
                     Triple("home", "Home", Icons.Default.Home),
-                    Triple("generator", "Generator", Icons.Default.AutoFixHigh),
+                    Triple("tasks", "Tasks", Icons.Default.AutoFixHigh),
                     Triple("profile", "Profile", Icons.Default.Person)
                 )
                 
@@ -137,7 +137,7 @@ fun IRLQuestApp() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = "generator",
+            startDestination = "tasks",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -146,15 +146,16 @@ fun IRLQuestApp() {
                 HomeScreen()
             }
             
-            composable("generator") {
-                QuestGeneratorScreen()
+            composable("tasks") {
+                // передаём навигатор для кнопки "Quests" внутри TasksScreen — сейчас она ведёт на Home
+                TasksScreen(onNavigateToQuests = { navController.navigate("home") }, onLogout = { navController.navigate("home") })
             }
-            
+
             composable("profile") {
                 ProfileScreen()
             }
-        }
-    }
+         }
+     }
 }
 
 @Composable

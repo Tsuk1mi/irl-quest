@@ -2,18 +2,36 @@ package com.irlquest.app.data.repository
 
 import com.irlquest.app.TokenStorage
 import com.irlquest.app.data.network.RetrofitClient
+import com.irlquest.app.BuildConfig
 import com.irlquest.app.data.network.dto.LoginRequest
 import com.irlquest.app.data.network.dto.RegisterRequest
 import com.irlquest.app.data.network.dto.UserDto
 import com.irlquest.app.data.network.dto.LoginResponse
 import java.time.Instant
 import timber.log.Timber
+import java.net.SocketTimeoutException
+import java.io.IOException
+import java.io.InterruptedIOException
 
 class AuthRepository {
     private val api = RetrofitClient.apiService
 
     suspend fun login(username: String, password: String): UserDto {
-        val resp = api.login(LoginRequest(username = username, password = password))
+        val resp = try {
+            api.login(LoginRequest(username = username, password = password))
+        } catch (e: InterruptedIOException) {
+            Timber.e(e, "AuthRepository.login: network timeout/interrupt when connecting to API")
+            throw Exception("Network timeout: failed to connect to server at ${BuildConfig.API_BASE_URL}.\n" +
+                    "Verify the backend is running, bound to 0.0.0.0 (or the host IP), and that your device can reach ${BuildConfig.API_BASE_URL}. For emulator use 10.0.2.2.")
+        } catch (e: SocketTimeoutException) {
+            Timber.e(e, "AuthRepository.login: socket timeout when connecting to API")
+            throw Exception("Network socket timeout: failed to connect to server at ${BuildConfig.API_BASE_URL}.\n" +
+                    "Make sure backend is running and reachable from the device.")
+        } catch (e: IOException) {
+            Timber.e(e, "AuthRepository.login: IO/network error when connecting to API")
+            throw Exception("Network error: ${e.message}. Ensure your device is on the same network as the backend and that the backend is bound to a reachable address (0.0.0.0) and port is open.")
+        }
+
         if (!resp.isSuccessful) {
             val err = try { resp.errorBody()?.string() } catch (_: Exception) { null }
             throw Exception(err ?: "Login failed: ${resp.code()}")
@@ -35,21 +53,33 @@ class AuthRepository {
         }
 
         // Если пользователь не вернулся в теле логина, запрашиваем профиль через /auth/me
-        val meResp = api.getMe()
-        if (meResp.isSuccessful) {
-            val me = meResp.body()
-            if (me != null) return me
-            else {
-                Timber.w("AuthRepository: /auth/me returned empty body despite success")
-                // fallthrough to fallback below
-            }
-        } else {
-            // Если /auth/me вернул 404 — возможно API не реализует этот маршрут; не считаем это фатальной ошибкой
-            if (meResp.code() == 404) {
-                Timber.w("AuthRepository: /auth/me returned 404 Not Found, will use fallback from login response if available")
+        val meResp = try {
+            api.getMe()
+        } catch (e: SocketTimeoutException) {
+            Timber.e(e, "AuthRepository.getMe: socket timeout when calling /auth/me")
+            // Не считаем это фатальной ошибкой — используем fallback
+            null
+        } catch (e: IOException) {
+            Timber.e(e, "AuthRepository.getMe: IO/network error when calling /auth/me")
+            null
+        }
+
+        if (meResp != null) {
+            if (meResp.isSuccessful) {
+                val me = meResp.body()
+                if (me != null) return me
+                else {
+                    Timber.w("AuthRepository: /auth/me returned empty body despite success")
+                    // fallthrough to fallback below
+                }
             } else {
-                val err = try { meResp.errorBody()?.string() } catch (_: Exception) { null }
-                throw Exception(err ?: "Login succeeded but failed to fetch profile: ${meResp.code()}")
+                // Если /auth/me вернул 404 — возможно API не реализует этот маршрут; не считаем это фатальной ошибкой
+                if (meResp.code() == 404) {
+                    Timber.w("AuthRepository: /auth/me returned 404 Not Found, will use fallback from login response if available")
+                } else {
+                    val err = try { meResp.errorBody()?.string() } catch (_: Exception) { null }
+                    throw Exception(err ?: "Login succeeded but failed to fetch profile: ${meResp.code()}")
+                }
             }
         }
 
@@ -100,7 +130,16 @@ class AuthRepository {
     }
 
     suspend fun getMe(): UserDto? {
-        val resp = api.getMe()
+        val resp = try {
+            api.getMe()
+        } catch (e: SocketTimeoutException) {
+            Timber.e(e, "AuthRepository.getMe: socket timeout when connecting to API")
+            throw Exception("Network timeout while fetching profile. Please check the backend and network connectivity.")
+        } catch (e: IOException) {
+            Timber.e(e, "AuthRepository.getMe: IO/network error when connecting to API")
+            throw Exception("Network error while fetching profile: ${e.message}")
+        }
+
         if (resp.isSuccessful) {
             return resp.body()
         } else {

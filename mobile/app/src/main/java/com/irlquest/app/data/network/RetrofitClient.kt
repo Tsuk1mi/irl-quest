@@ -17,10 +17,14 @@ object RetrofitClient {
     }
 
     private val client = OkHttpClient.Builder()
+        .addInterceptor(RetryInterceptor())
         .addInterceptor(TokenInterceptor)
         .addInterceptor(logging)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .callTimeout(120, TimeUnit.SECONDS)
         .build()
 
     // Use base URL from BuildConfig so it can be overridden in Gradle

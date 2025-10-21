@@ -85,6 +85,23 @@ function Find-JavaHome {
     return $null
 }
 
+function Get-JavaMajorVersion {
+    param([string]$javaExe)
+    try {
+        $out = & "$javaExe" -XshowSettings:properties -version 2>&1
+        # Попробуем найти строку вида 'java version "25' или 'openjdk version "25'
+        foreach ($line in $out) {
+            if ($line -match 'version "([0-9]+)') { return [int]$Matches[1] }
+        }
+        # fallback: запустить java -version стандартно
+        $out2 = & "$javaExe" -version 2>&1
+        foreach ($line in $out2) {
+            if ($line -match 'version "([0-9]+)') { return [int]$Matches[1] }
+        }
+    } catch { }
+    return $null
+}
+
 # основная логика
 Write-Host "Запуск: mobile\gradlew.bat с аргументами: $($GradleArgs -join ' ')" -ForegroundColor Cyan
 
@@ -126,6 +143,33 @@ if (-not (Test-Path $javaExe)) {
     } else {
         Write-Host "В каталоге $javaHome не найден java.exe. Проверьте установку JDK/JRE." -ForegroundColor Yellow
         # Продолжим, но дальнейшие шаги, скорее всего, завершатся неудачей
+    }
+}
+
+# Проверим major-версию Java и если она слишком новая (например 22+), попытаемся найти альтернативную JDK 17/11 в типичных папках
+$major = $null
+if (Test-Path $javaExe) { $major = Get-JavaMajorVersion -javaExe $javaExe }
+if ($major -ne $null) {
+    Write-Host "Найдена Java major version: $major" -ForegroundColor Cyan
+    if ($major -ge 22) {
+        Write-Host "ВНИМАНИЕ: обнаружена очень новая версия Java ($major). Kotlin/Gradle в этой конфигурации может некорректно работать." -ForegroundColor Yellow
+        # Попытаемся найти JDK 17 или 11
+        $preferred = $null
+        foreach ($base in @('C:\Program Files\Java','C:\Program Files (x86)\Java')) {
+            if (Test-Path $base) {
+                $dirs = Get-ChildItem -Path $base -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '17|11|jdk-17|jdk-11|temurin-17|temurin-11|corretto-17|corretto-11' }
+                if ($dirs -and $dirs.Count -gt 0) { $preferred = $dirs[0].FullName; break }
+            }
+        }
+        if ($preferred) {
+            Write-Host "Найдена подходящая JDK: $preferred — временно переключаю на неё для запуска Gradle." -ForegroundColor Green
+            $javaHome = $preferred
+            $javaBin = Join-Path $javaHome 'bin'
+            $javaExe = Join-Path $javaBin 'java.exe'
+        } else {
+            Write-Host "Подходящая JDK (11/17) не найдена в стандартных местах. Пожалуйста, установите JDK 11/17 и задайте JAVA_HOME." -ForegroundColor Yellow
+            Write-Host "Можно временно указать JDK для Gradle в mobile/gradle.properties: org.gradle.java.home=C:/Path/To/jdk-17" -ForegroundColor Yellow
+        }
     }
 }
 

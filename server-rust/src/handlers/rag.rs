@@ -17,6 +17,8 @@ use crate::{
 use crate::middleware::auth::CurrentUser;
 use serde::{Deserialize, Serialize};
 
+const DEFAULT_USER_LEVEL: i32 = 1; // уровень по умолчанию для анонимных запросов
+
 #[derive(Debug, Deserialize)]
 pub struct ClassifyRequest {
     pub task_text: String,
@@ -33,12 +35,16 @@ pub struct ClassifyResponse {
 
 pub async fn generate_quest(
     State(state): State<AppState>,
-    Extension(CurrentUser(user)): Extension<CurrentUser>,
+    Extension(maybe_user): Extension<Option<CurrentUser>>,
     ExtractJson(mut request): ExtractJson<QuestGenerationRequest>,
 ) -> Result<Json<QuestGenerationResponse>, StatusCode> {
-    // Add user level to request
-    request.user_level = Some(user.level);
-    
+    // Add user level to request (fallback to default for anonymous)
+    let user_level = match maybe_user {
+        Some(CurrentUser(user)) => user.level,
+        None => DEFAULT_USER_LEVEL,
+    };
+    request.user_level = Some(user_level);
+
     let rag_service = RagService::new(state.db.clone(), state.ml_client.clone());
 
     match rag_service.generate_quest_from_todo(request).await {
@@ -49,12 +55,16 @@ pub async fn generate_quest(
 
 pub async fn enhance_task(
     State(state): State<AppState>,
-    Extension(CurrentUser(user)): Extension<CurrentUser>,
+    Extension(maybe_user): Extension<Option<CurrentUser>>,
     ExtractJson(mut request): ExtractJson<TaskEnhancementRequest>,
 ) -> Result<Json<TaskEnhancementResponse>, StatusCode> {
-    // Add user level to request
-    request.user_level = Some(user.level);
-    
+    // Add user level to request (fallback to default for anonymous)
+    let user_level = match maybe_user {
+        Some(CurrentUser(user)) => user.level,
+        None => DEFAULT_USER_LEVEL,
+    };
+    request.user_level = Some(user_level);
+
     let rag_service = RagService::new(state.db.clone(), state.ml_client.clone());
 
     match rag_service.enhance_task(request).await {
@@ -65,11 +75,15 @@ pub async fn enhance_task(
 
 pub async fn classify_task(
     State(state): State<AppState>,
-    Extension(CurrentUser(user)): Extension<CurrentUser>,
+    Extension(maybe_user): Extension<Option<CurrentUser>>,
     ExtractJson(req): ExtractJson<ClassifyRequest>,
 ) -> Result<Json<ClassifyResponse>, StatusCode> {
-    let user_level = req.user_level.unwrap_or(user.level);
-    let rag_service = RagService::new(state.db.clone(), state.ml_client.clone());
+    let fallback_level = match maybe_user {
+        Some(CurrentUser(user)) => user.level,
+        None => DEFAULT_USER_LEVEL,
+    };
+    let user_level = req.user_level.unwrap_or(fallback_level);
+     let rag_service = RagService::new(state.db.clone(), state.ml_client.clone());
 
     match rag_service.classify_task_and_generate_exam(&req.task_text, req.context.as_deref(), user_level).await {
         Ok((tags, difficulty, exam_tasks)) => Ok(Json(ClassifyResponse { tags, estimated_difficulty: difficulty, exam_tasks })),

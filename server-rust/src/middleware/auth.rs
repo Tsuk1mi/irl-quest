@@ -48,12 +48,16 @@ pub async fn auth_middleware(
             Ok(s) => s.to_string(),
             Err(_) => {
                 warn!("[auth::middleware] Authorization header present but invalid utf8");
-                return Ok(json_error_response(StatusCode::UNAUTHORIZED, "Authorization header invalid"));
+                // Treat as anonymous: insert None and continue
+                req.extensions_mut().insert::<Option<CurrentUser>>(None);
+                return Ok(next.run(req).await);
             }
         },
         None => {
             warn!("[auth::middleware] Authorization header missing");
-            return Ok(json_error_response(StatusCode::UNAUTHORIZED, "Authorization header missing"));
+            // Treat as anonymous: insert None and continue
+            req.extensions_mut().insert::<Option<CurrentUser>>(None);
+            return Ok(next.run(req).await);
         }
     };
 
@@ -62,7 +66,9 @@ pub async fn auth_middleware(
         t
     } else {
         warn!("[auth::middleware] Authorization header does not contain Bearer token");
-        return Ok(json_error_response(StatusCode::UNAUTHORIZED, "Authorization header missing Bearer token"));
+        // Treat as anonymous: insert None and continue
+        req.extensions_mut().insert::<Option<CurrentUser>>(None);
+        return Ok(next.run(req).await);
     };
 
     let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "your-secret-key".to_string());
@@ -102,8 +108,8 @@ pub async fn auth_middleware(
         }
     };
 
-    // Insert CurrentUser into extensions so handlers can extract it
-    req.extensions_mut().insert(CurrentUser(current_user));
+    // Insert CurrentUser (wrapped in Some) into extensions so handlers can extract Option<CurrentUser>
+    req.extensions_mut().insert::<Option<CurrentUser>>(Some(CurrentUser(current_user)));
 
     Ok(next.run(req).await)
 }

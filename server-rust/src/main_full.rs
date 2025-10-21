@@ -78,6 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let make_svc = app.into_make_service_with_connect_info::<SocketAddr>();
 
     // Запуск сервера
+    // Bind to 0.0.0.0 so the server listens on all interfaces (localhost, LAN, docker, etc.)
     let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
     tracing::info!("Starting server on {}", addr);
     let listener = TcpListener::bind(addr).await?;

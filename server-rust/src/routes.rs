@@ -1,4 +1,5 @@
 use axum::{
+    http::StatusCode,
     middleware,
     routing::{get, post},
     Router,
@@ -14,6 +15,8 @@ pub fn app_router(state: AppState) -> Router {
     let public_routes = Router::new()
         .route("/api/auth/register", post(auth_handlers::register))
         .route("/api/auth/login", post(auth_handlers::login))
+        // Simple health check for network/debugging
+        .route("/health", get(|| async { StatusCode::OK }))
         // версии с префиксом /api/v1
         .route("/api/v1/auth/register", post(auth_handlers::register))
         .route("/api/v1/auth/login", post(auth_handlers::login))
