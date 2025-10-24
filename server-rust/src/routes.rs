@@ -37,6 +37,10 @@ pub fn app_router(state: AppState) -> Router {
         .with_state(state.clone());
 
     let protected_routes = Router::new()
+        // Auth endpoints
+        .route("/api/auth/me", get(auth_handlers::me))
+        .route("/api/v1/auth/me", get(auth_handlers::me))
+        
         // Квесты
         .route("/api/quests", post(quest_handlers::create_quest))
         .route("/api/quests", get(quest_handlers::list_quests))

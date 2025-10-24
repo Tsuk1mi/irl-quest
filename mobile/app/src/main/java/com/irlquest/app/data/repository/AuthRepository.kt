@@ -106,6 +106,7 @@ class AuthRepository {
             isActive = true,
             level = 0,
             experience = 0,
+            gold = 0,
             avatarUrl = null,
             bio = null,
             timezone = "UTC",

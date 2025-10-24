@@ -78,11 +78,20 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
             is_active BOOLEAN NOT NULL DEFAULT TRUE,
             level INTEGER DEFAULT 1,
             experience INTEGER DEFAULT 0,
+            gold INTEGER DEFAULT 100,
             avatar_url TEXT,
             bio TEXT,
             timezone VARCHAR(50) DEFAULT 'UTC',
             last_login TIMESTAMPTZ,
             settings JSONB DEFAULT '{}'::jsonb,
+            strength INTEGER DEFAULT 10,
+            intelligence INTEGER DEFAULT 10,
+            charisma INTEGER DEFAULT 10,
+            dexterity INTEGER DEFAULT 10,
+            constitution INTEGER DEFAULT 10,
+            wisdom INTEGER DEFAULT 10,
+            character_class VARCHAR(50) DEFAULT 'warrior',
+            character_race VARCHAR(50) DEFAULT 'human',
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
         "#,
@@ -158,6 +167,18 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
     )
     .execute(pool)
     .await?;
+    
+    // Update users table to add new D&D columns if they don't exist
+    // PostgreSQL doesn't support multiple ADD COLUMN IF NOT EXISTS in one statement
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS gold INTEGER DEFAULT 100").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS strength INTEGER DEFAULT 10").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS intelligence INTEGER DEFAULT 10").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS charisma INTEGER DEFAULT 10").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS dexterity INTEGER DEFAULT 10").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS constitution INTEGER DEFAULT 10").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS wisdom INTEGER DEFAULT 10").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS character_class VARCHAR(50) DEFAULT 'warrior'").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS character_race VARCHAR(50) DEFAULT 'human'").execute(pool).await;
 
     // User achievements table
     sqlx::query(
@@ -253,16 +274,27 @@ pub async fn seed_test_user(pool: &PgPool) -> Result<()> {
     // Insert test user
     sqlx::query(
         r#"
-        INSERT INTO users (username, email, hashed_password, is_active, level, experience, timezone, settings, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO users (username, email, hashed_password, is_active, level, experience, gold, 
+                          strength, intelligence, charisma, dexterity, constitution, wisdom,
+                          character_class, character_race, timezone, settings, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         "#,
     )
     .bind("testuser")
     .bind("testuser@example.com")
     .bind(password_hash)
     .bind(true)
-    .bind(1)
-    .bind(0)
+    .bind(1)  // level
+    .bind(0)  // experience
+    .bind(100)  // gold
+    .bind(12)  // strength
+    .bind(10)  // intelligence
+    .bind(8)   // charisma
+    .bind(10)  // dexterity
+    .bind(10)  // constitution
+    .bind(10)  // wisdom
+    .bind("warrior")  // character_class
+    .bind("human")    // character_race
     .bind("UTC")
     .bind(serde_json::json!({}))
     .bind(chrono::Utc::now())

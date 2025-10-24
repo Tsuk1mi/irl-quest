@@ -3,7 +3,7 @@ package com.irlquest.app.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,42 +27,41 @@ fun QuestsScreen(viewModel: QuestViewModel = QuestViewModel()) {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Quests", style = MaterialTheme.typography.h5)
+            Text(text = "Quests", style = MaterialTheme.typography.headlineSmall)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         if (error != null) {
-            Text(text = error ?: "", color = MaterialTheme.colors.error)
+            Text(text = error ?: "", color = MaterialTheme.colorScheme.error)
         }
 
-        if (loading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            return@Column
-        }
-
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(quests) { q ->
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(text = q.title, style = MaterialTheme.typography.subtitle1)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "Difficulty: ${q.difficulty}", style = MaterialTheme.typography.caption)
-                        if (!q.description.isNullOrEmpty()) {
+        if (!loading) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(quests) { q ->
+                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(text = q.title, style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = q.description!!, style = MaterialTheme.typography.body2)
+                            Text(text = "Difficulty: ${q.difficulty}", style = MaterialTheme.typography.bodySmall)
+                            if (!q.description.isNullOrEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = q.description!!, style = MaterialTheme.typography.bodyMedium)
+                            }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FloatingActionButton(onClick = { showDialog = true }, modifier = Modifier.align(Alignment.End)) {
-            Text(text = "+")
+            FloatingActionButton(onClick = { showDialog = true }, modifier = Modifier.align(Alignment.End)) {
+                Text(text = "+")
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
     }
 

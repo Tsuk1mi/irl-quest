@@ -81,12 +81,15 @@ fun MainEntry() {
 
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    if (currentUser == null) {
-        // Показываем экран логина/регистрации
-        // Передаём тот же экземпляр viewModel, чтобы AuthScreen и MainEntry разделяли состояние
-        AuthScreen(onLoginSuccess = { authViewModel.fetchMe() }, viewModel = authViewModel)
-    } else {
-        IRLQuestApp()
+    // Используем Box для обеспечения единой структуры композиции
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (currentUser == null) {
+            // Показываем экран логина/регистрации
+            // Передаём тот же экземпляр viewModel, чтобы AuthScreen и MainEntry разделяли состояние
+            AuthScreen(onLoginSuccess = { authViewModel.fetchMe() }, viewModel = authViewModel)
+        } else {
+            IRLQuestApp()
+        }
     }
 }
 
@@ -182,14 +185,8 @@ fun ProfileScreen() {
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            return@Surface
-        }
-
-        Column(
+        if (!isLoading) {
+            Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
@@ -249,6 +246,11 @@ fun ProfileScreen() {
                 }
             } ?: run {
                 Text(text = error ?: "Профиль не загружен", style = MaterialTheme.typography.bodyLarge)
+            }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
         }
     }

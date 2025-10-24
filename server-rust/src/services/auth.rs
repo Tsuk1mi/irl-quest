@@ -47,9 +47,12 @@ impl AuthService {
             r#"
             INSERT INTO users (
                 email, username, hashed_password, is_active, 
-                level, experience, timezone, settings, created_at
+                level, experience, gold, 
+                strength, intelligence, charisma, dexterity, constitution, wisdom,
+                character_class, character_race,
+                timezone, settings, created_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
             RETURNING *
             "#,
         )
@@ -59,6 +62,15 @@ impl AuthService {
         .bind(true)
         .bind(1) // level
         .bind(0) // experience
+        .bind(100) // gold
+        .bind(10) // strength
+        .bind(10) // intelligence
+        .bind(10) // charisma
+        .bind(10) // dexterity
+        .bind(10) // constitution
+        .bind(10) // wisdom
+        .bind("warrior") // character_class
+        .bind("human") // character_race
         .bind(user_create.timezone.as_deref().unwrap_or("UTC"))
         .bind(serde_json::json!({}))
         .bind(Utc::now())

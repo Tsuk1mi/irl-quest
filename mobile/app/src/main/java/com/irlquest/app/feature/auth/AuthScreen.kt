@@ -1,15 +1,28 @@
 package com.irlquest.app.feature.auth
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.BuildConfig
 import com.irlquest.app.ui.viewmodel.AuthViewModel
+import com.irlquest.app.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,14 +53,12 @@ fun AuthScreen(
         }
     }
 
-    if (showRegister) {
-        RegisterScreen(onRegistered = {
-            showRegister = false
-        }, viewModel = viewModel)
-        return
-    }
-
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+        if (showRegister) {
+            RegisterScreen(onRegistered = {
+                showRegister = false
+            }, viewModel = viewModel)
+        } else {
         Surface(modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)) {
@@ -104,6 +115,7 @@ fun AuthScreen(
                     Text(text = "Регистрация")
                 }
             }
+        }
         }
     }
 }

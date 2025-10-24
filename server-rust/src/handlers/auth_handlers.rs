@@ -18,6 +18,8 @@ use axum::extract::ConnectInfo;
 use std::net::SocketAddr;
 use sqlx::Error as SqlxError;
 use sqlx::Row;
+use crate::middleware::auth::CurrentUser;
+use axum::Extension;
 
 #[derive(Deserialize)]
 pub struct RegisterRequest {
@@ -258,4 +260,14 @@ fn create_token(user_id: i32) -> Result<String, (StatusCode, String)> {
         &EncodingKey::from_secret(std::env::var("JWT_SECRET").unwrap_or_else(|_| "your-secret-key".to_string()).as_bytes()),
     )
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to create token: {}", e)))
+}
+
+/// Get current user information
+pub async fn me(
+    Extension(current_user): Extension<Option<CurrentUser>>,
+) -> Result<Json<crate::models::User>, AppError> {
+    match current_user {
+        Some(CurrentUser(user)) => Ok(Json(user)),
+        None => Err(AppError::Auth("Authentication required".to_string())),
+    }
 }

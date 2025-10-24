@@ -10,11 +10,13 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+// Светлая тема - стиль светлой таверны
 private val LightColors = lightColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -31,35 +33,43 @@ private val LightColors = lightColorScheme(
     error = Error,
     onError = OnError,
     errorContainer = ErrorContainer,
-    onErrorContainer = OnErrorContainer
+    onErrorContainer = OnErrorContainer,
+    tertiary = TavernWood,
+    onTertiary = OnSecondary
 )
 
+// Темная тема - стиль темной таверны при свечах
 private val DarkColors = darkColorScheme(
     primary = PrimaryDark,
-    onPrimary = OnPrimary,
-    primaryContainer = Primary,
-    onPrimaryContainer = OnPrimary,
-    secondary = SecondaryDark,
-    onSecondary = OnSecondary,
-    secondaryContainer = Secondary,
-    onSecondaryContainer = OnSecondary,
-    background = OnBackground,
+    onPrimary = Background,
+    primaryContainer = TavernWood,
+    onPrimaryContainer = PrimaryLight,
+    secondary = SecondaryLight,
+    onSecondary = OnBackground,
+    secondaryContainer = SecondaryDark,
+    onSecondaryContainer = SecondaryLight,
+    background = DarkBackground, // Темное дерево
     onBackground = Background,
-    surface = OnBackground,
+    surface = DarkSurface, // Темный пергамент
     onSurface = Background,
     error = Error,
     onError = OnError,
     errorContainer = ErrorContainer,
-    onErrorContainer = OnErrorContainer
+    onErrorContainer = OnErrorContainer,
+    tertiary = CandleLight,
+    onTertiary = OnBackground,
+    outline = TavernWoodLight,
+    surfaceVariant = DarkTavernWood
 )
 
 @Composable
 fun IRLQuestTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Отключаем dynamic color для сохранения фэнтези-темы
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        // Предпочитаем нашу фэнтези-тему вместо dynamic colors
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -71,8 +81,9 @@ fun IRLQuestTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            // Используем цвет таверны для статус-бара
+            window.statusBarColor = if (darkTheme) DarkTavernWood.toArgb() else TavernWood.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

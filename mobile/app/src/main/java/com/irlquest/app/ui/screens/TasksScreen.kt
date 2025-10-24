@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,9 +43,9 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
         // Header row
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
-                Text(text = "Tasks", style = MaterialTheme.typography.h5)
+                Text(text = "Tasks", style = MaterialTheme.typography.headlineSmall)
                 if (currentUser != null) {
-                    Text(text = "${currentUser!!.username} · ${currentUser!!.email}", style = MaterialTheme.typography.caption)
+                    Text(text = "${currentUser!!.username} · ${currentUser!!.email}", style = MaterialTheme.typography.bodySmall)
                 }
             }
             Row {
@@ -60,7 +60,7 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
         // Quest Master
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(text = "Quest Master", style = MaterialTheme.typography.h6)
+                Text(text = "Quest Master", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = masterTitle, onValueChange = { masterTitle = it }, label = { Text("Task title") }, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
@@ -112,17 +112,11 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
         }
 
         if (error != null) {
-            Text(text = error ?: "", color = MaterialTheme.colors.error)
+            Text(text = error ?: "", color = MaterialTheme.colorScheme.error)
         }
 
-        if (loading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            return@Column
-        }
-
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        if (!loading) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(tasks) { t ->
                 // TaskDto не имеет поля `completed`; определим флаг завершения по status/completedAt
                 val isCompleted = (t.completedAt != null) || t.status.equals("completed", ignoreCase = true)
@@ -131,10 +125,10 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(text = t.title, style = MaterialTheme.typography.subtitle1)
+                                Text(text = t.title, style = MaterialTheme.typography.titleMedium)
                                 if (!t.description.isNullOrEmpty()) {
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(text = t.description!!, style = MaterialTheme.typography.body2)
+                                    Text(text = t.description!!, style = MaterialTheme.typography.bodyMedium)
                                 }
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -177,12 +171,17 @@ fun TasksScreen(onNavigateToQuests: () -> Unit, onLogout: () -> Unit = {}, viewM
                     }
                 }
             }
-        }
+            }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FloatingActionButton(onClick = { showDialog = true }, modifier = Modifier.align(Alignment.End)) {
-            Text(text = "+")
+            FloatingActionButton(onClick = { showDialog = true }, modifier = Modifier.align(Alignment.End)) {
+                Text(text = "+")
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
     }
 
@@ -217,9 +216,10 @@ private fun DropdownMenuWithOptions(selected: String, options: List<String>, onS
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { opt ->
-                DropdownMenuItem(onClick = { onSelect(opt); expanded = false }) {
-                    Text(opt)
-                }
+                DropdownMenuItem(
+                    text = { Text(opt) },
+                    onClick = { onSelect(opt); expanded = false }
+                )
             }
         }
     }
@@ -229,9 +229,9 @@ private fun DropdownMenuWithOptions(selected: String, options: List<String>, onS
 private fun GeneratedQuestCard(g: RagQuestGenerationResponse, onSave: () -> Unit, onClose: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = g.title, style = MaterialTheme.typography.h6)
+            Text(text = g.title, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = g.description, style = MaterialTheme.typography.body1)
+            Text(text = g.description, style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Tasks:")
             g.tasks.forEach { task ->

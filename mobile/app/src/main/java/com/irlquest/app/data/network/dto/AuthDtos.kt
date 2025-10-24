@@ -40,18 +40,29 @@ data class TokenResponse(
 
 @Serializable
 data class UserDto(
-    val id: Int,
-    val email: String,
-    val username: String,
-    @SerialName("is_active") val isActive: Boolean,
-    val level: Int,
-    val experience: Int,
+    val id: Int = 0,
+    val email: String = "",
+    val username: String = "",
+    @SerialName("is_active") val isActive: Boolean = true,
+    val level: Int = 1,
+    val experience: Int = 0,
+    val gold: Int = 100,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val bio: String? = null,
-    val timezone: String,
+    val timezone: String = "UTC",
     @SerialName("last_login") val lastLogin: String? = null,
     val settings: Map<String, String> = emptyMap(),
-    @SerialName("created_at") val createdAt: String
+    // D&D характеристики
+    val strength: Int = 10,
+    val intelligence: Int = 10,
+    val charisma: Int = 10,
+    val dexterity: Int = 10,
+    val constitution: Int = 10,
+    val wisdom: Int = 10,
+    // Класс и раса персонажа
+    @SerialName("character_class") val characterClass: String = "warrior",
+    @SerialName("character_race") val characterRace: String = "human",
+    @SerialName("created_at") val createdAt: String = ""
 )
 
 @Serializable
@@ -62,11 +73,22 @@ data class UserOutResponse(
     @SerialName("is_active") val isActive: Boolean,
     val level: Int,
     val experience: Int,
+    val gold: Int,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val bio: String? = null,
     val timezone: String,
     @SerialName("last_login") val lastLogin: String? = null,
     val settings: Map<String, String> = emptyMap(),
+    // D&D характеристики
+    val strength: Int = 10,
+    val intelligence: Int = 10,
+    val charisma: Int = 10,
+    val dexterity: Int = 10,
+    val constitution: Int = 10,
+    val wisdom: Int = 10,
+    // Класс и раса персонажа
+    @SerialName("character_class") val characterClass: String = "warrior",
+    @SerialName("character_race") val characterRace: String = "human",
     @SerialName("created_at") val createdAt: String
 )
 

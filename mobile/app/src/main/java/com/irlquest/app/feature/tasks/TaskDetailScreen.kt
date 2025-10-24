@@ -23,22 +23,20 @@ fun TaskDetailScreen(
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        when {
+            uiState.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-            return@Surface
-        }
-
-        val task = uiState.task
-        if (task == null) {
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text(text = uiState.error ?: "Задача не найдена")
+            uiState.task == null -> {
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text(text = uiState.error ?: "Задача не найдена")
+                }
             }
-            return@Surface
-        }
-
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            else -> {
+                val task = uiState.task!!
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(text = task.title, style = MaterialTheme.typography.headlineSmall)
             if (task.description.isNotBlank()) Text(text = task.description, style = MaterialTheme.typography.bodyMedium)
 
@@ -64,6 +62,8 @@ fun TaskDetailScreen(
 
             uiState.error?.let { err ->
                 Text(text = err, color = MaterialTheme.colorScheme.error)
+            }
+                }
             }
         }
     }

@@ -12,11 +12,22 @@ pub struct User {
     pub is_active: bool,
     pub level: i32,
     pub experience: i32,
+    pub gold: i32,
     pub avatar_url: Option<String>,
     pub bio: Option<String>,
     pub timezone: String,
     pub last_login: Option<DateTime<Utc>>,
     pub settings: JsonValue,
+    // D&D характеристики
+    pub strength: i32,
+    pub intelligence: i32,
+    pub charisma: i32,
+    pub dexterity: i32,
+    pub constitution: i32,
+    pub wisdom: i32,
+    // Класс и раса персонажа
+    pub character_class: String,
+    pub character_race: String,
     pub created_at: DateTime<Utc>,
 }
 
@@ -40,11 +51,22 @@ pub struct UserOut {
     pub is_active: bool,
     pub level: i32,
     pub experience: i32,
+    pub gold: i32,
     pub avatar_url: Option<String>,
     pub bio: Option<String>,
     pub timezone: String,
     pub last_login: Option<DateTime<Utc>>,
     pub settings: JsonValue,
+    // D&D характеристики
+    pub strength: i32,
+    pub intelligence: i32,
+    pub charisma: i32,
+    pub dexterity: i32,
+    pub constitution: i32,
+    pub wisdom: i32,
+    // Класс и раса персонажа
+    pub character_class: String,
+    pub character_race: String,
     pub created_at: DateTime<Utc>,
 }
 
@@ -68,11 +90,20 @@ impl From<User> for UserOut {
             is_active: user.is_active,
             level: user.level,
             experience: user.experience,
+            gold: user.gold,
             avatar_url: user.avatar_url,
             bio: user.bio,
             timezone: user.timezone,
             last_login: user.last_login,
             settings: user.settings,
+            strength: user.strength,
+            intelligence: user.intelligence,
+            charisma: user.charisma,
+            dexterity: user.dexterity,
+            constitution: user.constitution,
+            wisdom: user.wisdom,
+            character_class: user.character_class,
+            character_race: user.character_race,
             created_at: user.created_at,
         }
     }

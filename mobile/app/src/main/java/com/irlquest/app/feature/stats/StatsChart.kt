@@ -23,48 +23,48 @@ fun StatsChart(
             .fillMaxWidth()
             .height(200.dp)
     ) {
-        if (data.isEmpty()) return@Canvas
+        if (data.isNotEmpty()) {
+            val maxValue = data.maxOf { it.value }
+            if (maxValue > 0) {
+                val width = size.width
+                val height = size.height
+                val stepWidth = width / (data.size - 1)
 
-        val maxValue = data.maxOf { it.value }
-        if (maxValue <= 0) return@Canvas
+                // Рисуем линию графика
+                val path = Path()
+                data.forEachIndexed { index, dayData ->
+                    val x = index * stepWidth
+                    val y = height - (dayData.value / maxValue * height)
 
-        val width = size.width
-        val height = size.height
-        val stepWidth = width / (data.size - 1)
+                    if (index == 0) {
+                        path.moveTo(x, y)
+                    } else {
+                        path.lineTo(x, y)
+                    }
+                }
 
-        // Рисуем линию графика
-        val path = Path()
-        data.forEachIndexed { index, dayData ->
-            val x = index * stepWidth
-            val y = height - (dayData.value / maxValue * height)
+                // Рисуем линию
+                drawPath(
+                    path = path,
+                    color = lineColor,
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
+                )
 
-            if (index == 0) {
-                path.moveTo(x, y)
-            } else {
-                path.lineTo(x, y)
+                // Рисуем точки
+                data.forEachIndexed { index, dayData ->
+                    val x = index * stepWidth
+                    val y = height - (dayData.value / maxValue * height)
+
+                    drawCircle(
+                        color = lineColor,
+                        radius = 4.dp.toPx(),
+                        center = Offset(x, y)
+                    )
+                }
             }
-        }
-
-        // Рисуем линию
-        drawPath(
-            path = path,
-            color = lineColor,
-            style = Stroke(
-                width = 2.dp.toPx(),
-                cap = StrokeCap.Round
-            )
-        )
-
-        // Рисуем точки
-        data.forEachIndexed { index, dayData ->
-            val x = index * stepWidth
-            val y = height - (dayData.value / maxValue * height)
-
-            drawCircle(
-                color = lineColor,
-                radius = 4.dp.toPx(),
-                center = Offset(x, y)
-            )
         }
     }
 }

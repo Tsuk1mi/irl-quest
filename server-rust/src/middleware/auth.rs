@@ -87,7 +87,11 @@ pub async fn auth_middleware(
 
     // Проверяем существование пользователя и загружаем полную запись
     let user_row_opt = match sqlx::query_as::<_, User>(
-        "SELECT id, email, username, hashed_password, is_active, level, experience, avatar_url, bio, timezone, last_login, settings, created_at FROM users WHERE id = $1",
+        "SELECT id, email, username, hashed_password, is_active, level, experience, gold, \
+         avatar_url, bio, timezone, last_login, settings, \
+         strength, intelligence, charisma, dexterity, constitution, wisdom, \
+         character_class, character_race, created_at \
+         FROM users WHERE id = $1",
     )
     .bind(token_data.claims.sub)
     .fetch_optional(&state.db)

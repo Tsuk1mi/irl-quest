@@ -1,7 +1,7 @@
 package com.irlquest.app.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +25,7 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onBack: () -> Unit = {}, viewM
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Register", style = MaterialTheme.typography.h4)
+        Text(text = "Register", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
@@ -36,12 +36,12 @@ fun RegisterScreen(onRegisterSuccess: () -> Unit, onBack: () -> Unit = {}, viewM
         Spacer(modifier = Modifier.height(16.dp))
 
         if (error != null) {
-            Text(text = error ?: "", color = MaterialTheme.colors.error)
+            Text(text = error ?: "", color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.height(8.dp))
         }
 
         Button(onClick = { viewModel.register(email.trim(), username.trim(), password) }, enabled = !isLoading, modifier = Modifier.fillMaxWidth()) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colors.onPrimary) else Text("Register")
+            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary) else Text("Register")
         }
 
         Spacer(modifier = Modifier.height(8.dp))

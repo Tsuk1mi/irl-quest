@@ -1,7 +1,7 @@
 package com.irlquest.app.ui.navigation
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -22,6 +22,8 @@ import com.irlquest.app.feature.quests.QuestDetailScreen
 import com.irlquest.app.feature.stats.StatsScreen
 import com.irlquest.app.feature.tasks.TasksScreen
 import com.irlquest.app.feature.tasks.TaskDetailScreen
+import com.irlquest.app.feature.hero.HeroProfileScreen
+import com.irlquest.app.feature.worldmap.WorldMapScreen
 import com.irlquest.app.ui.theme.Orange
 
 sealed class BottomNavItem(
@@ -29,11 +31,10 @@ sealed class BottomNavItem(
     val title: String,
     val icon: ImageVector
 ) {
-    object Home : BottomNavItem("home", "Главная", Icons.Default.Home)
-    // AutoMirrored иногда отсутствует в подключённых версиях — используем стабильный Filled
-    object Tasks : BottomNavItem("tasks", "Задачи", Icons.Filled.Assignment)
+    object Home : BottomNavItem("home", "Таверна", Icons.Default.Home)
     object Quests : BottomNavItem("quests", "Квесты", Icons.Default.EmojiEvents)
-    object Focus : BottomNavItem("focus", "Фокус", Icons.Default.Timer)
+    object WorldMap : BottomNavItem("worldmap", "Карта", Icons.Default.Map)
+    object Hero : BottomNavItem("hero", "Герой", Icons.Default.Person)
     object Stats : BottomNavItem("stats", "Статистика", Icons.Default.Analytics)
 }
 
@@ -43,23 +44,23 @@ fun MainScreen() {
 
     Scaffold(
         bottomBar = {
-            BottomNavigation(
-                backgroundColor = MaterialTheme.colors.surface,
-                contentColor = MaterialTheme.colors.primary
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
                 val items = listOf(
                     BottomNavItem.Home,
-                    BottomNavItem.Tasks,
                     BottomNavItem.Quests,
-                    BottomNavItem.Focus,
+                    BottomNavItem.WorldMap,
+                    BottomNavItem.Hero,
                     BottomNavItem.Stats
                 )
 
                 items.forEach { item ->
-                    BottomNavigationItem(
+                    NavigationBarItem(
                         icon = {
                             Icon(
                                 item.icon,
@@ -106,12 +107,6 @@ fun MainNavHost(
             )
         }
 
-        composable(BottomNavItem.Tasks.route) {
-            TasksScreen(onNavigateToTaskDetail = { taskId ->
-                navController.navigate("tasks/$taskId")
-            })
-        }
-
         composable(BottomNavItem.Quests.route) {
             QuestsScreen(
                 onNavigateToQuestDetail = { questId ->
@@ -140,9 +135,14 @@ fun MainNavHost(
             TaskDetailScreen(taskId = taskId, onDeleted = { navController.popBackStack() })
         }
 
-        composable(BottomNavItem.Focus.route) {
-            FocusSessionScreen()
+        composable(BottomNavItem.WorldMap.route) {
+            WorldMapScreen()
         }
+        
+        composable(BottomNavItem.Hero.route) {
+            HeroProfileScreen()
+        }
+        
         composable(BottomNavItem.Stats.route) {
             StatsScreen()
         }

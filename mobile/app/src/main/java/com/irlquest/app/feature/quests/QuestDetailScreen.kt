@@ -26,22 +26,20 @@ fun QuestDetailScreen(
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        when {
+            uiState.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-            return@Surface
-        }
-
-        val quest = uiState.quest
-        if (quest == null) {
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text(text = uiState.error ?: "Квест не найден")
+            uiState.quest == null -> {
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text(text = uiState.error ?: "Квест не найден")
+                }
             }
-            return@Surface
-        }
-
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            else -> {
+                val quest = uiState.quest!!
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Text(text = quest.title, style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.height(8.dp))
             quest.description?.let { desc ->
@@ -68,6 +66,8 @@ fun QuestDetailScreen(
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 items(quest.tasks) { task ->
                     TaskRow(task = task, onToggle = { viewModel.toggleTaskCompletion(task.id) }, onClick = { onTaskClick(task.id) })
+                }
+            }
                 }
             }
         }

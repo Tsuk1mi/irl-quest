@@ -2,25 +2,87 @@ package com.irlquest.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Orange = Color(0xFFFF9800)
+// 🎨 ФЭНТЕЗИ ПАЛИТРА IRL QUEST - Тёплая таверна с магической атмосферой
 
-// Основные цвета приложения
-val Primary = Color(0xFF6750A4)
-val OnPrimary = Color(0xFFFFFFFF)
-val PrimaryLight = Color(0xFFEADDFF)
-val PrimaryDark = Color(0xFF381E72)
+// ═══════════════════════════════════════════════════════════════
+// 🏆 ОСНОВНЫЕ ЦВЕТА - Золото и Древесина
+// ═══════════════════════════════════════════════════════════════
+val Primary = Color(0xFFD4AF37)       // 🌟 Королевское золото
+val OnPrimary = Color(0xFF1A0F08)     // 📜 Чернила на золоте
+val PrimaryLight = Color(0xFFE8D4A0)  // ✨ Светлое золото (блики)
+val PrimaryDark = Color(0xFF8B6914)   // 🔱 Старое золото (тени)
 
-val Secondary = Color(0xFF386FA4)
-val OnSecondary = Color(0xFFFFFFFF)
-val SecondaryLight = Color(0xFFCEE5FF)
-val SecondaryDark = Color(0xFF063251)
+// ═══════════════════════════════════════════════════════════════
+// 🌿 ИЗУМРУД - Акценты успеха и природной магии
+// ═══════════════════════════════════════════════════════════════
+val Secondary = Color(0xFF2E7D32)     // 💎 Изумруд
+val OnSecondary = Color(0xFFFFFFFF)   // ⚪ Белый на изумруде
+val SecondaryLight = Color(0xFF66BB6A) // 🍃 Светлый изумруд
+val SecondaryDark = Color(0xFF1B5E20) // 🌲 Темный лес
 
-val Background = Color(0xFFF6F6F6)
-val OnBackground = Color(0xFF1C1B1F)
-val Surface = Color(0xFFFFFFFF)
-val OnSurface = Color(0xFF1C1B1F)
+// ═══════════════════════════════════════════════════════════════
+// 📜 ФОН - Пергамент и древние свитки
+// ═══════════════════════════════════════════════════════════════
+val Background = Color(0xFFF5EFE7)    // 📃 Старый пергамент
+val OnBackground = Color(0xFF2B1810)  // 🖋️ Чернила
+val Surface = Color(0xFFFFFBF5)       // 📄 Светлый пергамент
+val OnSurface = Color(0xFF3E2723)     // 🪶 Коричневые чернила
 
-val Error = Color(0xFFB3261E)
-val OnError = Color(0xFFFFFFFF)
-val ErrorContainer = Color(0xFFF9DEDC)
-val OnErrorContainer = Color(0xFF410E0B)
+// ═══════════════════════════════════════════════════════════════
+// 🔥 ОШИБКИ И ОПАСНОСТЬ - Бордовый огонь
+// ═══════════════════════════════════════════════════════════════
+val Error = Color(0xFF8B0000)         // 🩸 Темно-красный
+val OnError = Color(0xFFFFFFFF)       // ⚪ Белый на красном
+val ErrorContainer = Color(0xFFFFD4CC) // 🌹 Светло-розовый
+val OnErrorContainer = Color(0xFF410002) // 🔴 Темно-бордовый
+
+// ═══════════════════════════════════════════════════════════════
+// 🏰 АТМОСФЕРА ТАВЕРНЫ - Дерево, свечи и магия
+// ═══════════════════════════════════════════════════════════════
+val TavernWood = Color(0xFF5D4037)    // 🪵 Темное дерево
+val TavernWoodLight = Color(0xFF8D6E63) // 🌰 Светлое дерево
+val CandleLight = Color(0xFFFFB74D)   // 🕯️ Теплый свет свечей
+val MagicPurple = Color(0xFF7B1FA2)   // 🔮 Магический фиолетовый
+val MysticBlue = Color(0xFF1976D2)    // 💠 Мистический синий
+
+// ═══════════════════════════════════════════════════════════════
+// 🎖️ НАГРАДЫ И КВЕСТЫ - Металлы и драгоценности
+// ═══════════════════════════════════════════════════════════════
+val QuestBronze = Color(0xFFCD7F32)   // 🥉 Бронза (обычный квест)
+val QuestSilver = Color(0xFFC0C0C0)   // 🥈 Серебро (средний квест)
+val QuestGold = Color(0xFFFFD700)     // 🥇 Золото (сложный квест)
+val QuestLegendary = Color(0xFFFF6F00) // ⚡ Легендарный (оранж-красный)
+
+// ═══════════════════════════════════════════════════════════════
+// 📊 СТАТУСЫ И ПРОГРЕСС - Семантические цвета
+// ═══════════════════════════════════════════════════════════════
+val Success = Color(0xFF4CAF50)       // ✅ Успех/завершено
+val Warning = Color(0xFFFF9800)       // ⚠️ Предупреждение/дедлайн
+val Info = Color(0xFF2196F3)          // ℹ️ Информация
+val Neutral = Color(0xFF9E9E9E)       // ⚪ Нейтральный
+
+// ═══════════════════════════════════════════════════════════════
+// 🌙 ТЕМНАЯ ТЕМА - Ночная таверна при свечах
+// ═══════════════════════════════════════════════════════════════
+val DarkBackground = Color(0xFF1A1410) // 🌑 Темное дерево
+val DarkSurface = Color(0xFF2B1F1A)   // 🌚 Темный пергамент
+val DarkTavernWood = Color(0xFF3E2723) // 🌲 Почти черное дерево
+
+// ═══════════════════════════════════════════════════════════════
+// 🎭 КЛАССЫ ПЕРСОНАЖЕЙ - Цветовое кодирование
+// ═══════════════════════════════════════════════════════════════
+val WarriorRed = Color(0xFFD32F2F)    // ⚔️ Воин
+val MageBlue = Color(0xFF1976D2)      // 🔮 Маг
+val RogueGreen = Color(0xFF388E3C)    // 🗡️ Плут
+val ClericYellow = Color(0xFFFBC02D) // ✨ Жрец
+
+// ═══════════════════════════════════════════════════════════════
+// 💫 ЭФФЕКТЫ И АНИМАЦИИ
+// ═══════════════════════════════════════════════════════════════
+val GlowGold = Color(0xFFFFD54F)      // ✨ Золотое свечение
+val ShadowDark = Color(0x55000000)    // 🌫️ Тень (прозрачность 33%)
+val OverlayLight = Color(0x22FFFFFF)  // ☁️ Светлый оверлей
+
+// Устаревшие цвета (для обратной совместимости)
+@Deprecated("Используйте Warning вместо Orange")
+val Orange = Warning
