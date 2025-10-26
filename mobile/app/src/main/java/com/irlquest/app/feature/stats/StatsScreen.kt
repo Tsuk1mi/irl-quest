@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.irlquest.app.ui.theme.Orange
+import com.irlquest.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,9 +40,10 @@ fun StatsScreen(
     ) {
         item {
             Text(
-                text = "Статистика",
+                text = "📊 Статистика Героя",
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = com.irlquest.app.ui.theme.TavernWood
             )
         }
 
@@ -254,7 +255,7 @@ fun TodayStatsCard(todayStats: TodayStats) {
                     icon = Icons.Default.Star,
                     value = "${todayStats.experienceGained}",
                     label = "Опыта",
-                    color = Orange
+                    color = MysticBlue
                 )
                 StatItem(
                     icon = Icons.Default.Favorite,

@@ -3,7 +3,7 @@ package com.irlquest.app.feature.stats
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.irlquest.app.ui.theme.Orange
+import com.irlquest.app.ui.theme.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,9 +74,9 @@ class StatsViewModel : ViewModel() {
     val uiState: StateFlow<StatsUiState> = _uiState.asStateFlow()
 
     private val achievementColors = listOf(
-        Color(0xFF6200EE), // Primary
-        Orange,
-        Color(0xFF03DAC6), // Secondary
+        Primary,      // Золото
+        MysticBlue,   // Синий мистический
+        Success,      // Зелёный
         Color(0xFF018786), // Secondary variant
         Color(0xFFB00020)  // Error
     )

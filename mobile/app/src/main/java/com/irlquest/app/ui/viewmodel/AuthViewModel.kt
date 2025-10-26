@@ -78,4 +78,59 @@ class AuthViewModel(private val repo: AuthRepository = AuthRepository()) : ViewM
         _currentUser.value = null
         Timber.d("AuthViewModel: logout")
     }
+    
+    /**
+     * 🎁 Добавить опыт и золото (локально, пока без сервера)
+     */
+    fun addExperienceAndGold(xp: Int, gold: Int) {
+        val current = _currentUser.value ?: return
+        
+        val newXp = current.experience + xp
+        val newGold = current.gold + gold
+        
+        // Проверка повышения уровня
+        val xpForNextLevel = calculateXpForLevel(current.level + 1)
+        val levelUp = newXp >= xpForNextLevel
+        val newLevel = if (levelUp) current.level + 1 else current.level
+        val finalXp = if (levelUp) newXp - xpForNextLevel else newXp
+        
+        _currentUser.value = current.copy(
+            experience = finalXp,
+            gold = newGold,
+            level = newLevel
+        )
+        
+        Timber.d("AuthViewModel: added XP=$xp, Gold=$gold, LevelUp=$levelUp, NewLevel=$newLevel")
+        
+        // TODO: Отправить на сервер обновление
+        viewModelScope.launch {
+            try {
+                // repo.updateUserProgress(xp, gold)
+                // fetchMe() // Обновить с сервера
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to sync progress with server")
+            }
+        }
+    }
+    
+    /**
+     * Расчёт опыта для следующего уровня
+     */
+    private fun calculateXpForLevel(level: Int): Int {
+        return level * 100 // Простая формула: каждый уровень требует level * 100 XP
+    }
+    
+    /**
+     * Проверить, достаточно ли XP для повышения уровня
+     */
+    fun checkLevelUp(addedXp: Int): Pair<Boolean, Int?> {
+        val current = _currentUser.value ?: return Pair(false, null)
+        val newTotalXp = current.experience + addedXp
+        val xpForNext = calculateXpForLevel(current.level + 1)
+        return if (newTotalXp >= xpForNext) {
+            Pair(true, current.level + 1)
+        } else {
+            Pair(false, null)
+        }
+    }
 }

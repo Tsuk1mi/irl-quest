@@ -26,30 +26,32 @@ data class QuestGenerationResponse(
 data class QuestDto(
     val id: Int,
     val title: String,
-    val description: String,
-    @SerialName("experience_reward") val experienceReward: Int,
-    @SerialName("estimated_time") val estimatedTime: Int,
-    @SerialName("completion_percentage") val completionPercentage: Int,
-    val difficulty: Int,
-    val priority: Int,
-    val status: String,
-    val theme: String,
-    @SerialName("quest_type") val questType: String,
+    val description: String?,
+    @SerialName("reward_experience") val rewardExperience: Int?,
+    @SerialName("completion_percentage") val completionPercentage: Int?,
+    val difficulty: Int?,
+    val priority: String?,  // ✅ String, как на сервере!
+    val status: String?,
+    @SerialName("quest_type") val questType: String?,
     @SerialName("completed_at") val completedAt: String?,
-    @SerialName("created_at") val createdAt: String,
-    val tasks: List<TaskDto>
+    @SerialName("created_at") val createdAt: String?,
+    val tasks: List<TaskDto> = emptyList()
 )
 
 @Serializable
 data class CreateQuestRequest(
     val title: String,
-    val description: String,
-    @SerialName("experience_reward") val experienceReward: Int,
-    @SerialName("estimated_time") val estimatedTime: Int,
-    val difficulty: Int,
-    val priority: Int,
-    val theme: String,
-    val tasks: List<CreateTaskRequest>
+    val description: String? = null,
+    val difficulty: Int? = null,
+    val status: String? = null,
+    val priority: String? = null,
+    val deadline: String? = null,
+    @SerialName("reward_experience") val rewardExperience: Int? = null,
+    @SerialName("reward_description") val rewardDescription: String? = null,
+    val tags: List<String>? = null,
+    @SerialName("is_public") val isPublic: Boolean? = null,
+    @SerialName("location_name") val locationName: String? = null,
+    @SerialName("quest_type") val questType: String? = null
 )
 
 @Serializable

@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.irlquest.app.ui.viewmodel.AuthViewModel
+import com.irlquest.app.data.repository.TaskRepository
+import com.irlquest.app.data.network.dto.TaskDto
+import timber.log.Timber
 
 enum class TaskStatus {
     PENDING, IN_PROGRESS, COMPLETED, CANCELLED
@@ -47,7 +51,11 @@ data class TaskUi(
     val tags: List<String>,
     val questId: Int?,
     val createdAt: String,
-    val completedAt: String?
+    val completedAt: String?,
+    // ML-генерированное приключение
+    val fantasyTitle: String? = null,
+    val fantasyDescription: String? = null,
+    val showFantasyVersion: Boolean = true // По умолчанию показываем фэнтези
 )
 
 data class TaskSummary(
@@ -60,18 +68,26 @@ data class TasksUiState(
     val tasks: List<TaskUi> = emptyList(),
     val isLoading: Boolean = false,
     val showCreateDialog: Boolean = false,
+    val showRewardDialog: Boolean = false,
+    val lastCompletedTask: TaskUi? = null,
+    val leveledUp: Boolean = false,
+    val newLevel: Int? = null,
     val selectedFilter: TaskFilter = TaskFilter.ALL,
     val todaySummary: TaskSummary = TaskSummary(0, 0, 0),
     val error: String? = null
 )
 
 
-class TasksViewModel : ViewModel() {
+class TasksViewModel(
+    private val authViewModel: AuthViewModel? = null,
+    private val repo: TaskRepository = TaskRepository()
+) : ViewModel() {
     
     private val _uiState = MutableStateFlow(TasksUiState())
     val uiState: StateFlow<TasksUiState> = _uiState.asStateFlow()
     
     private val dateFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+    private val api = com.irlquest.app.data.network.RetrofitClient.apiService
     
     init {
         loadTasks()
@@ -90,95 +106,325 @@ class TasksViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                // TODO: Загрузка задач с сервера
-                // Для разработки используем mock-список
-                val tasks = createMockTasks()
+                // Загрузка задач с сервера
+                val tasksDto = repo.listTasks()
+                val tasks = tasksDto.map { dtoToUi(it) }
+                
+                Timber.d("TasksViewModel: Loaded ${tasks.size} tasks from server")
+                
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     tasks = tasks,
                     todaySummary = calculateTodaySummary(tasks)
                 )
             } catch (e: Exception) {
+                Timber.e(e, "TasksViewModel: Failed to load tasks")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
+                    tasks = emptyList(),
                     error = e.message
                 )
             }
         }
     }
     
+    /**
+     * Конвертация TaskDto в TaskUi
+     */
+    private fun dtoToUi(dto: TaskDto): TaskUi {
+        val priority = when (dto.priority?.lowercase()) {
+            "critical" -> TaskPriority.CRITICAL
+            "high" -> TaskPriority.HIGH
+            "medium" -> TaskPriority.MEDIUM
+            "low" -> TaskPriority.LOW
+            else -> TaskPriority.MEDIUM
+        }
+        
+        val status = when (dto.status?.lowercase()) {
+            "completed" -> TaskStatus.COMPLETED
+            "in_progress" -> TaskStatus.IN_PROGRESS
+            "cancelled" -> TaskStatus.CANCELLED
+            else -> TaskStatus.PENDING
+        }
+        
+        // ML-генерация фэнтези версии
+        val (fantasyTitle, fantasyDesc) = generateFantasyQuest(
+            dto.title, 
+            dto.description ?: "", 
+            dto.difficulty ?: 1
+        )
+        
+        return TaskUi(
+            id = dto.id,
+            title = dto.title,
+            description = dto.description ?: "",
+            completed = dto.completed ?: false,
+            status = status,
+            priority = priority,
+            deadline = dto.deadline,
+            isOverdue = false, // TODO: вычислить
+            estimatedDuration = dto.estimatedDuration,
+            actualDuration = null,
+            difficulty = dto.difficulty ?: 1,
+            experienceReward = dto.experienceReward ?: 10,
+            tags = dto.tags ?: emptyList(),
+            questId = dto.questId,
+            createdAt = dto.createdAt ?: "",
+            completedAt = dto.completedAt,
+            fantasyTitle = fantasyTitle,
+            fantasyDescription = fantasyDesc,
+            showFantasyVersion = true
+        )
+    }
+    
     fun createTask(title: String, description: String, priority: TaskPriority, difficulty: Int = 3, deadline: String? = null, aiPick: Boolean = false) {
         viewModelScope.launch {
             try {
-                // Если пользователь попросил AI выбрать сложность — подставляем среднее значение (потом заменить вызовом AI)
-                val finalDifficulty = if (aiPick) 3 else difficulty
+                // Если пользователь попросил AI - используем умную систему расчёта
+                val finalDifficulty = if (aiPick) {
+                    calculateAIDifficulty(title, description)
+                } else {
+                    difficulty
+                }
 
-                // TODO: Создание задачи на сервере
-                // Сейчас добавляем в локальный список (mock)
-                val current = _uiState.value.tasks.toMutableList()
-                val newId = (current.maxOfOrNull { it.id } ?: 0) + 1
-                val now = dateFormatter.format(Date())
-                val newTask = TaskUi(
-                    id = newId,
+                // Расчёт наград на основе сложности и приоритета
+                val xpReward = finalDifficulty * 10 + when (priority) {
+                    TaskPriority.CRITICAL -> 20
+                    TaskPriority.HIGH -> 10
+                    TaskPriority.MEDIUM -> 5
+                    TaskPriority.LOW -> 0
+                }
+                
+                val priorityStr = when (priority) {
+                    TaskPriority.CRITICAL -> "critical"
+                    TaskPriority.HIGH -> "high"
+                    TaskPriority.MEDIUM -> "medium"
+                    TaskPriority.LOW -> "low"
+                }
+                
+                val tags = extractTags(title, description)
+
+                // 🌐 Создание задачи на сервере через API
+                val request = com.irlquest.app.data.network.dto.CreateTaskRequest(
                     title = title,
                     description = description,
-                    completed = false,
-                    status = TaskStatus.PENDING,
-                    priority = priority,
-                    deadline = deadline,
-                    isOverdue = false,
+                    priority = priorityStr,
+                    experienceReward = xpReward,
                     estimatedDuration = null,
-                    actualDuration = null,
                     difficulty = finalDifficulty,
-                    experienceReward = 10,
-                    tags = emptyList(),
                     questId = null,
-                    createdAt = now,
-                    completedAt = null
+                    deadline = deadline,
+                    tags = tags
                 )
-                current.add(0, newTask)
-                _uiState.value = _uiState.value.copy(tasks = current, showCreateDialog = false)
-
-                // В продакшене — выполнить запрос к API и затем обновить список
-                // loadTasks()
+                
+                val createdDto = api.createTask(request).body()
+                
+                if (createdDto != null) {
+                    // Конвертируем и добавляем в список
+                    val newTask = dtoToUi(createdDto)
+                    
+                    Timber.d("TasksViewModel: Task created successfully, id=${newTask.id}")
+                    
+                    // Обновляем список
+                    loadTasks()
+                    
+                    _uiState.value = _uiState.value.copy(
+                        showCreateDialog = false
+                    )
+                } else {
+                    throw Exception("Сервер вернул пустой ответ")
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
+                Timber.e(e, "TasksViewModel: Failed to create task")
+                _uiState.value = _uiState.value.copy(
+                    error = "Ошибка создания задачи: ${e.message}",
+                    showCreateDialog = false
+                )
             }
+        }
+    }
+    
+    /**
+     * 🤖 ИИ-определение сложности задачи
+     */
+    private fun calculateAIDifficulty(title: String, description: String): Int {
+        val text = "$title $description".lowercase()
+        var difficulty = 2
+        
+        // Ключевые слова сложности (русский + английский)
+        val complexKeywords = listOf(
+            "сложн", "трудн", "тяжёл", "тяжел", "продвинут", "эксперт",
+            "complex", "difficult", "challenging", "hard", "advanced"
+        )
+        val simpleKeywords = listOf(
+            "прост", "лёгк", "легк", "быстр", "базов",
+            "simple", "easy", "quick", "basic"
+        )
+        
+        // Анализ
+        if (complexKeywords.any { text.contains(it) }) difficulty += 2
+        if (simpleKeywords.any { text.contains(it) }) difficulty -= 1
+        if (text.split(" ").size > 15) difficulty += 1
+        if (text.contains("презентация") || text.contains("экзамен") || text.contains("защита")) difficulty += 2
+        
+        return difficulty.coerceIn(1, 5)
+    }
+    
+    /**
+     * 🏷️ Извлечение тегов из текста
+     */
+    private fun extractTags(title: String, description: String): List<String> {
+        val text = "$title $description".lowercase()
+        val tags = mutableListOf<String>()
+        
+        if (text.contains("работ") || text.contains("проект") || text.contains("work") || text.contains("job")) {
+            tags.add("работа")
+        }
+        if (text.contains("учи") || text.contains("изучи") || text.contains("курс") || text.contains("study")) {
+            tags.add("обучение")
+        }
+        if (text.contains("спорт") || text.contains("трениро") || text.contains("здоров") || text.contains("exercise")) {
+            tags.add("здоровье")
+        }
+        if (text.contains("магазин") || text.contains("купи") || text.contains("shop") || text.contains("buy")) {
+            tags.add("покупки")
+        }
+        if (text.contains("убор") || text.contains("чист") || text.contains("дом") || text.contains("clean")) {
+            tags.add("дом")
+        }
+        
+        return tags
+    }
+    
+    /**
+     * 🎭 ML-генерация фэнтези квеста из обычной задачи
+     */
+    private fun generateFantasyQuest(title: String, description: String, difficulty: Int): Pair<String, String> {
+        // Шаблоны названий квестов
+        val titleTemplates = listOf(
+            "⚔️ Священная миссия: {}",
+            "🏆 Поиски артефакта: {}",
+            "📜 Хроники: {}",
+            "⭐ Легенда о герое: {}",
+            "✨ Пророчество: {}"
+        )
+        
+        // Извлекаем суть (первые 3 слова)
+        val essence = title.split(" ").take(3).joinToString(" ")
+        val templateIndex = (title.hashCode() % titleTemplates.size).let { if (it < 0) it + titleTemplates.size else it }
+        val fantasyTitle = titleTemplates[templateIndex].replace("{}", essence)
+        
+        // Генерация описания
+        val difficultyName = when (difficulty) {
+            1 -> "простой"
+            2 -> "лёгкий"
+            3 -> "средний"
+            4 -> "сложный"
+            5 -> "легендарный"
+            else -> "неизвестный"
+        }
+        
+        val fantasyDescription = """
+            В мистическом царстве продуктивности ждёт великое испытание. 
+            Древние свитки гласят о «${title.lowercase()}». 
+            
+            Только герой твоего калибра может взяться за этот $difficultyName квест. 
+            Королевство зависит от твоего успеха, отважный искатель приключений!
+            
+            ${if (description.isNotBlank()) "📜 Детали: $description" else ""}
+        """.trimIndent()
+        
+        return Pair(fantasyTitle, fantasyDescription)
+    }
+    
+    /**
+     * 🔄 Переключение между фэнтези и оригинальной версией
+     */
+    fun toggleFantasyVersion(taskId: Int) {
+        val current = _uiState.value.tasks.toMutableList()
+        val idx = current.indexOfFirst { it.id == taskId }
+        if (idx != -1) {
+            val task = current[idx]
+            current[idx] = task.copy(showFantasyVersion = !task.showFantasyVersion)
+            _uiState.value = _uiState.value.copy(tasks = current)
         }
     }
     
     fun toggleTask(taskId: Int) {
         viewModelScope.launch {
             try {
-                val current = _uiState.value.tasks.toMutableList()
-                val idx = current.indexOfFirst { it.id == taskId }
-                if (idx >= 0) {
-                    val t = current[idx]
-                    val now = dateFormatter.format(Date())
-                    val updated = t.copy(
-                        completed = !t.completed,
-                        status = if (!t.completed) TaskStatus.COMPLETED else TaskStatus.PENDING,
-                        completedAt = if (!t.completed) now else null
-                    )
-                    current[idx] = updated
-                    _uiState.value = _uiState.value.copy(tasks = current, todaySummary = calculateTodaySummary(current))
+                val current = _uiState.value.tasks
+                val task = current.find { it.id == taskId } ?: return@launch
+                val wasCompleted = task.completed
+                val newCompletedStatus = !task.completed
+                
+                // 🌐 Обновляем на сервере
+                val updateRequest = com.irlquest.app.data.network.dto.UpdateTaskRequest(
+                    completed = newCompletedStatus,
+                    status = if (newCompletedStatus) "completed" else "pending"
+                )
+                
+                val updatedDto = api.updateTask(taskId, updateRequest).body()
+                
+                if (updatedDto != null) {
+                    Timber.d("TasksViewModel: Task $taskId toggled, completed=${updatedDto.completed}")
+                    
+                    // Если задача только что завершена - показываем награды
+                    if (!wasCompleted && newCompletedStatus) {
+                        val xp = task.experienceReward
+                        val gold = task.difficulty * 10
+                        
+                        // Обновляем опыт и золото пользователя
+                        authViewModel?.addExperienceAndGold(xp, gold)
+                        
+                        // Проверяем повышение уровня
+                        val (levelUp, newLevel) = authViewModel?.checkLevelUp(xp) ?: Pair(false, null)
+                        
+                        // Обновляем список и показываем диалог
+                        loadTasks()
+                        
+                        _uiState.value = _uiState.value.copy(
+                            showRewardDialog = true,
+                            lastCompletedTask = task,
+                            leveledUp = levelUp,
+                            newLevel = newLevel
+                        )
+                    } else {
+                        // Просто обновляем список
+                        loadTasks()
+                    }
+                } else {
+                    throw Exception("Сервер вернул пустой ответ")
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
+                Timber.e(e, "TasksViewModel: Failed to toggle task")
+                _uiState.value = _uiState.value.copy(error = "Ошибка обновления: ${e.message}")
             }
         }
+    }
+    
+    fun dismissRewardDialog() {
+        _uiState.value = _uiState.value.copy(
+            showRewardDialog = false, 
+            lastCompletedTask = null,
+            leveledUp = false,
+            newLevel = null
+        )
     }
     
     fun deleteTask(taskId: Int) {
         viewModelScope.launch {
             try {
-                val current = _uiState.value.tasks.toMutableList()
-                val removed = current.removeAll { it.id == taskId }
-                if (removed) {
-                    _uiState.value = _uiState.value.copy(tasks = current, todaySummary = calculateTodaySummary(current))
-                }
+                // 🌐 Удаляем на сервере
+                api.deleteTask(taskId)
+                
+                Timber.d("TasksViewModel: Task $taskId deleted from server")
+                
+                // Обновляем список
+                loadTasks()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
+                Timber.e(e, "TasksViewModel: Failed to delete task")
+                _uiState.value = _uiState.value.copy(error = "Ошибка удаления: ${e.message}")
             }
         }
     }
@@ -215,6 +461,7 @@ class TasksViewModel : ViewModel() {
         )
     }
     
+    // createMockTasks удалён - используем реальные данные с сервера
     private fun createMockTasks(): List<TaskUi> {
         val today = dateFormatter.format(Date())
         val tomorrow = dateFormatter.format(Date(System.currentTimeMillis() + 86400000))

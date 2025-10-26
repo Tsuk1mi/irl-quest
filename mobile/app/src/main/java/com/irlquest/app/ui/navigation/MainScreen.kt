@@ -1,12 +1,16 @@
 package com.irlquest.app.ui.navigation
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -24,29 +28,31 @@ import com.irlquest.app.feature.tasks.TasksScreen
 import com.irlquest.app.feature.tasks.TaskDetailScreen
 import com.irlquest.app.feature.hero.HeroProfileScreen
 import com.irlquest.app.feature.worldmap.WorldMapScreen
-import com.irlquest.app.ui.theme.Orange
 
 sealed class BottomNavItem(
     val route: String,
     val title: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val emoji: String = ""
 ) {
-    object Home : BottomNavItem("home", "Таверна", Icons.Default.Home)
-    object Quests : BottomNavItem("quests", "Квесты", Icons.Default.EmojiEvents)
-    object WorldMap : BottomNavItem("worldmap", "Карта", Icons.Default.Map)
-    object Hero : BottomNavItem("hero", "Герой", Icons.Default.Person)
-    object Stats : BottomNavItem("stats", "Статистика", Icons.Default.Analytics)
+    object Home : BottomNavItem("home", "Таверна", Icons.Default.Home, "🏰")
+    object Quests : BottomNavItem("quests", "Квесты", Icons.Default.EmojiEvents, "📜")
+    object Hero : BottomNavItem("hero", "Герой", Icons.Default.Person, "⚔️")
+    object WorldMap : BottomNavItem("worldmap", "Карта", Icons.Default.Map, "🗺️")
+    object Stats : BottomNavItem("stats", "Статистика", Icons.Default.Analytics, "📊")
 }
 
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    // Создаём общий authViewModel для всех экранов
+    val authViewModel: com.irlquest.app.ui.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary
+                containerColor = com.irlquest.app.ui.theme.TavernWood,
+                contentColor = com.irlquest.app.ui.theme.PrimaryLight
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
@@ -54,21 +60,37 @@ fun MainScreen() {
                 val items = listOf(
                     BottomNavItem.Home,
                     BottomNavItem.Quests,
-                    BottomNavItem.WorldMap,
                     BottomNavItem.Hero,
+                    BottomNavItem.WorldMap,
                     BottomNavItem.Stats
                 )
 
                 items.forEach { item ->
                     NavigationBarItem(
                         icon = {
-                            Icon(
-                                item.icon,
-                                contentDescription = item.title
+                            Text(
+                                text = item.emoji,
+                                fontSize = 24.sp
                             )
                         },
-                        label = { Text(item.title) },
+                        label = { 
+                            Text(
+                                item.title,
+                                fontSize = 11.sp,
+                                fontWeight = if (currentDestination?.hierarchy?.any { it.route == item.route } == true) 
+                                    FontWeight.Bold 
+                                else 
+                                    FontWeight.Normal
+                            ) 
+                        },
                         selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = com.irlquest.app.ui.theme.Primary,
+                            selectedTextColor = com.irlquest.app.ui.theme.Primary,
+                            unselectedIconColor = com.irlquest.app.ui.theme.CandleLight,
+                            unselectedTextColor = com.irlquest.app.ui.theme.CandleLight.copy(alpha = 0.7f),
+                            indicatorColor = com.irlquest.app.ui.theme.Primary.copy(alpha = 0.2f)
+                        ),
                         onClick = {
                             navController.navigate(item.route) {
                                 popUpTo(navController.graph.startDestinationId) {
@@ -85,6 +107,7 @@ fun MainScreen() {
     ) { innerPadding ->
         MainNavHost(
             navController = navController,
+            authViewModel = authViewModel,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -93,6 +116,7 @@ fun MainScreen() {
 @Composable
 fun MainNavHost(
     navController: NavHostController,
+    authViewModel: com.irlquest.app.ui.viewmodel.AuthViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -103,7 +127,8 @@ fun MainNavHost(
         composable(BottomNavItem.Home.route) {
             HomeScreen(
                 onNavigateToQuest = { questId -> navController.navigate("quests/$questId") },
-                onNavigateToTask = { taskId -> navController.navigate("tasks/$taskId") }
+                onNavigateToTask = { taskId -> navController.navigate("tasks/$taskId") },
+                authViewModel = authViewModel
             )
         }
 

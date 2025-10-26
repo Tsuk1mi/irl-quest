@@ -1,19 +1,25 @@
 use axum::{
     extract::{Path, State, Extension},
     Json,
+    http::StatusCode,
 };
 use crate::{
     models::quest::*,
     state::AppState,
     error::AppError,
+    middleware::auth::CurrentUser,
 };
 
 pub async fn create_quest(
     State(state): State<AppState>,
-    Extension(user_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
     Json(quest_data): Json<QuestCreate>,
 ) -> Result<Json<Quest>, AppError> {
-    let quest = quest_data.into_quest(user_id);
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let quest = quest_data.into_quest(user.0.id);
 
     let result = sqlx::query_as::<_, Quest>(
         r#"
@@ -52,9 +58,14 @@ pub async fn create_quest(
 
 pub async fn get_quest(
     State(state): State<AppState>,
-    Extension(user_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
     Path(quest_id): Path<i32>,
 ) -> Result<Json<Quest>, AppError> {
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let user_id = user.0.id;
     let quest = sqlx::query_as::<_, Quest>(
         r#"
         SELECT * FROM quests
@@ -72,8 +83,13 @@ pub async fn get_quest(
 
 pub async fn list_quests(
     State(state): State<AppState>,
-    Extension(user_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
 ) -> Result<Json<Vec<Quest>>, AppError> {
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let user_id = user.0.id;
     let quests = sqlx::query_as::<_, Quest>(
         r#"
         SELECT * FROM quests
@@ -90,10 +106,16 @@ pub async fn list_quests(
 
 pub async fn update_quest(
     State(state): State<AppState>,
-    Extension(user_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
     Path(quest_id): Path<i32>,
     Json(update): Json<QuestUpdate>,
 ) -> Result<Json<Quest>, AppError> {
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let user_id = user.0.id;
+    
     let mut quest = sqlx::query_as::<_, Quest>(
         r#"
         SELECT * FROM quests

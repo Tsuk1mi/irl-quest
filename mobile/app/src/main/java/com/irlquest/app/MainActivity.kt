@@ -25,6 +25,7 @@ import com.irlquest.app.feature.auth.AuthScreen
 import com.irlquest.app.ui.viewmodel.AuthViewModel
 import com.irlquest.app.ui.screens.TasksScreen
 import com.irlquest.app.ui.theme.IRLQuestTheme
+import com.irlquest.app.ui.navigation.MainScreen
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -88,7 +89,8 @@ fun MainEntry() {
             // Передаём тот же экземпляр viewModel, чтобы AuthScreen и MainEntry разделяли состояние
             AuthScreen(onLoginSuccess = { authViewModel.fetchMe() }, viewModel = authViewModel)
         } else {
-            IRLQuestApp()
+            // Используем НОВУЮ навигацию с фэнтези-дизайном!
+            MainScreen()
         }
     }
 }

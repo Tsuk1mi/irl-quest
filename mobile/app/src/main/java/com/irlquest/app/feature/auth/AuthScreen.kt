@@ -59,63 +59,201 @@ fun AuthScreen(
                 showRegister = false
             }, viewModel = viewModel)
         } else {
-        Surface(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)) {
-            Column(
+            // 🏰 ФЭНТЕЗИ ЭКРАН ЛОГИНА - ВХОД В ТАВЕРНУ
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                TavernWood.copy(alpha = 0.3f),
+                                Background,
+                                Background
+                            )
+                        )
+                    )
+                    .padding(innerPadding)
             ) {
-                Text(text = "Вход", style = MaterialTheme.typography.headlineSmall)
-                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 🏰 Заголовок таверны
+                    Text(
+                        text = "🏰",
+                        fontSize = 72.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = "IRL QUEST",
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Text(
+                        text = "⚔️ Таверна Героев ⚔️",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TavernWood,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(bottom = 32.dp)
+                    )
 
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Имя пользователя") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    // Карточка входа в стиле пергамента
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(12.dp, RoundedCornerShape(16.dp))
+                            .border(
+                                width = 2.dp,
+                                color = Primary.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(16.dp)
+                            ),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Surface
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "📜 Вход в Гильдию",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = TavernWood
+                            )
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                            // Поле имени с иконкой
+                            OutlinedTextField(
+                                value = username,
+                                onValueChange = { username = it },
+                                label = { Text("⚔️ Имя героя") },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = Primary)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Primary,
+                                    focusedLabelColor = Primary,
+                                    cursorColor = Primary
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            )
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Пароль") },
-                    modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = PasswordVisualTransformation()
-                )
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
+                            // Поле пароля с иконкой
+                            OutlinedTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                label = { Text("🔐 Секретное слово") },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Lock, contentDescription = null, tint = Primary)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                visualTransformation = PasswordVisualTransformation(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Primary,
+                                    focusedLabelColor = Primary,
+                                    cursorColor = Primary
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            )
 
-                Button(onClick = { viewModel.login(username.trim(), password) }, enabled = !isLoading && username.isNotBlank() && password.isNotBlank()) {
-                    if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                    else Text(text = "Войти")
-                }
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                // Dev convenience: quick login for local testing
-                if (BuildConfig.DEBUG) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextButton(onClick = {
-                        // Sample dev credentials — change if your local server uses different ones
-                        username = "testuser"
-                        password = "password"
-                        viewModel.login(username, password)
-                    }) {
-                        Text(text = "Dev: quick login")
+                            // Кнопка входа в фэнтези-стиле
+                            Button(
+                                onClick = { viewModel.login(username.trim(), password) },
+                                enabled = !isLoading && username.isNotBlank() && password.isNotBlank(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Primary,
+                                    contentColor = OnPrimary
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = OnPrimary
+                                    )
+                                } else {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "⚔️ Войти в таверну",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Dev кнопка быстрого входа
+                            if (BuildConfig.DEBUG) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                OutlinedButton(
+                                    onClick = {
+                                        username = "testuser"
+                                        password = "password"
+                                        viewModel.login(username, password)
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Secondary
+                                    )
+                                ) {
+                                    Text(text = "🧙 DEV: Быстрый вход")
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Divider(color = TavernWood.copy(alpha = 0.3f))
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Кнопка регистрации
+                            TextButton(
+                                onClick = { showRegister = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "📝 Зарегистрировать нового героя",
+                                    color = Secondary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                TextButton(onClick = { showRegister = true }) {
-                    Text(text = "Регистрация")
+                    // Мотивационная цитата NPC
+                    Text(
+                        text = "\"Каждый великий герой начинал с малого\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        color = TavernWood.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
                 }
             }
-        }
         }
     }
 }

@@ -29,20 +29,31 @@ class QuestsViewModel(
 
     private val dateFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
+    init {
+        loadQuests()
+    }
+
     fun loadQuests() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
+                // Загружаем с сервера
                 val questsDto = repo.listQuests()
                 val uiList = questsDto.map { dto -> dtoToUi(dto) }
+                
+                timber.log.Timber.d("QuestsViewModel: Loaded ${uiList.size} quests from server")
+                
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     quests = uiList,
                     filteredQuests = filterQuests(uiList, _uiState.value.selectedFilter)
                 )
             } catch (e: Exception) {
+                timber.log.Timber.e(e, "QuestsViewModel: Failed to load quests")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
+                    quests = emptyList(),
+                    filteredQuests = emptyList(),
                     error = e.message ?: "Ошибка загрузки квестов"
                 )
             }
@@ -60,16 +71,18 @@ class QuestsViewModel(
     fun createQuest(title: String, description: String, difficulty: Int) {
         viewModelScope.launch {
             try {
+                // 🌐 Создаём на сервере
                 val newDto = repo.createQuest(title, description, difficulty)
                 val newQuest = dtoToUi(newDto)
-                val updatedQuests = listOf(newQuest) + _uiState.value.quests
-                _uiState.value = _uiState.value.copy(
-                    quests = updatedQuests,
-                    filteredQuests = filterQuests(updatedQuests, _uiState.value.selectedFilter)
-                )
+                
+                timber.log.Timber.d("QuestsViewModel: Quest created successfully, id=${newQuest.id}")
+                
+                // Обновляем список квестов
+                loadQuests()
             } catch (e: Exception) {
+                timber.log.Timber.e(e, "QuestsViewModel: Failed to create quest")
                 _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Ошибка создания квеста"
+                    error = "Ошибка создания квеста: ${e.message}"
                 )
             }
         }
@@ -78,22 +91,26 @@ class QuestsViewModel(
     private fun dtoToUi(dto: com.irlquest.app.data.network.dto.QuestDto): QuestUi {
         val tasks = dto.tasks
         val total = tasks.size
-        val completed = tasks.count { it.completed }
-        val status = when (dto.status.lowercase(Locale.getDefault())) {
+        val completed = tasks.count { it.completed ?: false }
+        
+        val status = when (dto.status?.lowercase(Locale.getDefault())) {
             "active" -> QuestStatus.ACTIVE
             "completed" -> QuestStatus.COMPLETED
             "paused" -> QuestStatus.PAUSED
             "archived" -> QuestStatus.ARCHIVED
             else -> QuestStatus.ACTIVE
         }
-        val priority = when (dto.priority) {
-            1 -> QuestPriority.LOW
-            2 -> QuestPriority.MEDIUM
-            3 -> QuestPriority.HIGH
-            4 -> QuestPriority.CRITICAL
+        
+        val priority = when (dto.priority?.lowercase()) {
+            "critical" -> QuestPriority.CRITICAL
+            "high" -> QuestPriority.HIGH
+            "medium" -> QuestPriority.MEDIUM
+            "low" -> QuestPriority.LOW
             else -> QuestPriority.MEDIUM
         }
-        val createdAt = dto.createdAt
+        
+        val createdAt = dto.createdAt ?: ""
+        
         return QuestUi(
             id = dto.id,
             title = dto.title,

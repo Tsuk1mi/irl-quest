@@ -26,6 +26,8 @@ import com.irlquest.app.feature.tasks.TaskPriority
 import com.irlquest.app.ui.viewmodel.AuthViewModel
 import com.irlquest.app.ui.theme.*
 import com.irlquest.app.ui.utils.toQuestTitle
+import com.irlquest.app.ui.components.RewardDialog
+import androidx.compose.runtime.remember
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +36,7 @@ fun HomeScreen(
     onNavigateToTask: (Int) -> Unit = {},
     authViewModel: AuthViewModel = viewModel(),
     questsViewModel: QuestsViewModel = viewModel(),
-    tasksViewModel: TasksViewModel = viewModel()
+    tasksViewModel: TasksViewModel = remember { TasksViewModel(authViewModel) }
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val questsState by questsViewModel.uiState.collectAsState()
@@ -110,6 +112,19 @@ fun HomeScreen(
                 onDeleteTask = { taskId -> tasksViewModel.deleteTask(taskId) }
             )
         }
+    }
+    
+    // Показываем награды при завершении задачи
+    if (tasksState.showRewardDialog && tasksState.lastCompletedTask != null) {
+        val task = tasksState.lastCompletedTask!!
+        RewardDialog(
+            questTitle = task.title,
+            xpGained = task.experienceReward,
+            goldGained = task.difficulty * 10,
+            levelUp = tasksState.leveledUp,
+            newLevel = tasksState.newLevel,
+            onDismiss = { tasksViewModel.dismissRewardDialog() }
+        )
     }
 }
 
@@ -324,6 +339,12 @@ private fun TaskRow(t: TaskUi, onClick: () -> Unit, onToggle: () -> Unit, onDele
         TaskPriority.MEDIUM -> "📌"
         TaskPriority.LOW -> "🔵"
     }
+    
+    // 🎭 Выбираем что показывать: фэнтези-версию или оригинал
+    val displayTitle = if (t.showFantasyVersion && t.fantasyTitle != null) t.fantasyTitle else t.title
+    val displayDesc = if (t.showFantasyVersion && t.fantasyDescription != null) {
+        t.fantasyDescription.take(150) + if (t.fantasyDescription.length > 150) "..." else ""
+    } else t.description
 
     Card(
         modifier = Modifier
@@ -357,7 +378,7 @@ private fun TaskRow(t: TaskUi, onClick: () -> Unit, onToggle: () -> Unit, onDele
                     )
                     
                     Text(
-                        text = t.title,
+                        text = displayTitle,
                         fontWeight = FontWeight.Bold,
                         style = if (t.completed) 
                             MaterialTheme.typography.bodyLarge.copy(
@@ -369,12 +390,13 @@ private fun TaskRow(t: TaskUi, onClick: () -> Unit, onToggle: () -> Unit, onDele
                     )
                 }
                 
-                if (t.description.isNotEmpty()) {
+                if (displayDesc.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = t.description, 
+                        text = displayDesc, 
                         style = MaterialTheme.typography.bodySmall,
-                        color = OnSurface.copy(alpha = 0.7f)
+                        color = OnSurface.copy(alpha = 0.7f),
+                        maxLines = 3
                     )
                 }
                 

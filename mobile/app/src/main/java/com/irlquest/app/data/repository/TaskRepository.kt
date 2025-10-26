@@ -83,13 +83,14 @@ class TaskRepository {
         val request = CreateQuestRequest(
             title = gen.title,
             description = gen.description,
-            experienceReward = gen.rewardExperience,
-            // CreateQuestRequest требует non-null Int. Если estimatedTime отсутствует — вычисляем сумму estimatedDuration задач
-            estimatedTime = gen.estimatedTime ?: gen.tasks.sumOf { it.estimatedDuration ?: 30 },
             difficulty = gen.difficulty,
-            priority = 2,
-            theme = gen.tags.firstOrNull() ?: "",
-            tasks = createTasks
+            status = "active",
+            priority = "medium",
+            rewardExperience = gen.rewardExperience,
+            rewardDescription = "Заверши этот сгенерированный квест!",
+            questType = "generated",
+            tags = gen.tags,
+            isPublic = false
         )
 
         return api.createQuest(request).body()!!

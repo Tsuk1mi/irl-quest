@@ -9,15 +9,10 @@ impl QuestTemplates {
         difficulty: i32,
         user_level: i32,
     ) -> QuestGenerationResponse {
-        // Авто-детекция темы по содержимому TODO
-        let theme = detect_theme(todo_text);
-        let (title, description, story_context) = match theme.as_str() {
-            "fantasy" => generate_fantasy_quest(todo_text, difficulty, user_level),
-            "sci-fi" => generate_scifi_quest(todo_text, difficulty, user_level),
-            "modern" => generate_modern_quest(todo_text, difficulty, user_level),
-            "medieval" => generate_medieval_quest(todo_text, difficulty, user_level),
-            _ => generate_modern_quest(todo_text, difficulty, user_level),
-        };
+        // Всегда используем фэнтези тему
+        let theme = "fantasy".to_string();
+        // Всегда используем средневековое фэнтези
+        let (title, description, story_context) = generate_fantasy_quest(todo_text, difficulty, user_level);
 
 
         let base_exp = calculate_base_experience(difficulty, user_level);
@@ -30,8 +25,7 @@ impl QuestTemplates {
             description,
             difficulty,
             reward_experience: base_exp * 3,
-            reward_description: format!("Complete this {} adventure to earn {} experience points and unlock new abilities!", 
-                theme, base_exp * 3),
+            reward_description: format!("Заверши это фэнтези приключение, чтобы заработать {} опыта и открыть новые способности!", base_exp * 3),
             tags,
             quest_type: "generated".to_string(),
             tasks,
@@ -65,100 +59,46 @@ impl QuestTemplates {
 
 fn generate_fantasy_quest(todo_text: &str, difficulty: i32, user_level: i32) -> (String, String, String) {
     let quest_titles = [
-        "The Sacred Mission of {}",
-        "Quest for the {} Artifact", 
-        "The {} Chronicle",
-        "Legend of the {} Hero",
-        "The {} Prophecy"
+        "⚔️ Священная миссия: {}",
+        "🏆 Поиски артефакта: {}", 
+        "📜 Хроники: {}",
+        "⭐ Легенда о герое: {}",
+        "✨ Пророчество: {}"
     ];
     
     let task_essence = extract_task_essence(todo_text);
     let title_template = quest_titles[hash_string(todo_text) % quest_titles.len()];
     let title = title_template.replace("{}", &task_essence);
     
+    let difficulty_name = match difficulty {
+        1 => "простой",
+        2 => "лёгкий", 
+        3 => "средний",
+        4 => "сложный",
+        5 => "легендарный",
+        _ => "неизвестный"
+    };
+    
     let description = format!(
-        "In the mystical realm of productivity, a great challenge awaits. The ancient scrolls speak of {}. \
-        Only a hero of your caliber (Level {}) can undertake this {} difficulty quest. \
-        The kingdom depends on your success, brave adventurer!",
+        "В мистическом царстве продуктивности ждёт великое испытание. Древние свитки гласят о «{}». \
+        Только герой твоего калибра (Уровень {}) может взяться за этот {} квест. \
+        Королевство зависит от твоего успеха, отважный искатель приключений!",
         todo_text.to_lowercase(),
         user_level,
-        match difficulty {
-            1 => "trivial",
-            2 => "easy", 
-            3 => "moderate",
-            4 => "hard",
-            5 => "legendary",
-            _ => "unknown"
-        }
+        difficulty_name
     );
 
     let story_context = format!(
-        "The Council of Elders has bestowed upon you this sacred mission. Your actions will echo through the halls of history. \
-        Complete this quest to gain favor with the magical forces and unlock new powers in your journey of self-improvement."
+        "Совет Старейшин возложил на тебя эту священную миссию. Твои деяния отзовутся эхом в залах истории. \
+        Заверши этот квест, чтобы снискать расположение магических сил и открыть новые способности в путешествии к самосовершенствованию."
     );
 
     (title, description, story_context)
 }
 
-fn generate_scifi_quest(todo_text: &str, difficulty: i32, user_level: i32) -> (String, String, String) {
-    let quest_titles = [
-        "Mission: {}",
-        "Protocol {}", 
-        "Operation {}",
-        "The {} Directive",
-        "Project: {}"
-    ];
-    
-    let task_essence = extract_task_essence(todo_text);
-    let title_template = quest_titles[hash_string(todo_text) % quest_titles.len()];
-    let title = title_template.replace("{}", &task_essence);
-    
-    let description = format!(
-        "Stardate 2024.{}: Commander, your mission parameters are clear. The task '{}' is classified as Priority Level {}. \
-        Your current rank (Level {}) qualifies you for this operation. The future of the galaxy may depend on its completion.",
-        hash_string(todo_text) % 365 + 1,
-        todo_text,
-        difficulty,
-        user_level
-    );
+// Удалено - используется только фэнтези тема
 
-    let story_context = format!(
-        "The Galactic Council has transmitted this critical mission to your personal datapad. \
-        Success will advance your standing in the Space Fleet and unlock advanced technologies for future missions."
-    );
-
-    (title, description, story_context)
-}
-
-fn generate_modern_quest(todo_text: &str, difficulty: i32, user_level: i32) -> (String, String, String) {
-    let quest_titles = [
-        "The {} Challenge",
-        "Project: {}", 
-        "{} Goals",
-        "The {} Initiative",
-        "Mission: {}"
-    ];
-    
-    let task_essence = extract_task_essence(todo_text);
-    let title_template = quest_titles[hash_string(todo_text) % quest_titles.len()];
-    let title = title_template.replace("{}", &task_essence);
-    
-    let description = format!(
-        "Welcome to your personal development journey! Today's challenge: '{}'. \
-        This is a Level {} difficulty task, perfect for someone at your current stage (Level {}). \
-        Complete this to boost your productivity score and unlock new achievements!",
-        todo_text,
-        difficulty,
-        user_level
-    );
-
-    let story_context = format!(
-        "You're part of an elite group of productivity ninjas. Each completed task brings you closer to \
-        mastering the art of getting things done and achieving your life goals."
-    );
-
-    (title, description, story_context)
-}
+// Удалено - используется только фэнтези тема
 
 fn generate_medieval_quest(todo_text: &str, difficulty: i32, user_level: i32) -> (String, String, String) {
     let quest_titles = [
@@ -211,18 +151,18 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
     
     if task_count == 1 {
         tasks.push(GeneratedTask {
-            title: format!("Complete: {}", todo_text),
-            description: format!("Execute the main objective: {}", todo_text),
+            title: format!("✅ Завершить: {}", todo_text),
+            description: format!("Выполни основную цель: {}", todo_text),
             difficulty,
             experience_reward: base_exp,
             estimated_duration: Some(30 * difficulty),
             is_boss: is_boss_task(todo_text),
         });
     } else {
-        // Break down into subtasks
+        // Разбиваем на подзадачи (на русском)
         tasks.push(GeneratedTask {
-            title: "Preparation Phase".to_string(),
-            description: format!("Gather resources and prepare for: {}", todo_text),
+            title: "📋 Фаза подготовки".to_string(),
+            description: format!("Собери ресурсы и подготовься к: {}", todo_text),
             difficulty: 1,
             experience_reward: base_exp / task_count,
             estimated_duration: Some(15),
@@ -231,8 +171,8 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
 
         for i in 1..task_count-1 {
             tasks.push(GeneratedTask {
-                title: format!("Execution Phase {}", i),
-                description: format!("Progress on objective: {}", todo_text),
+                title: format!("⚔️ Фаза выполнения {}", i),
+                description: format!("Продвигайся к цели: {}", todo_text),
                 difficulty: difficulty - 1,
                 experience_reward: base_exp / task_count,
                 estimated_duration: Some(20 * difficulty),
@@ -241,8 +181,8 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
         }
 
         tasks.push(GeneratedTask {
-            title: "Completion & Review".to_string(),
-            description: format!("Finalize and verify: {}", todo_text),
+            title: "✨ Завершение и проверка".to_string(),
+            description: format!("Финализируй и проверь: {}", todo_text),
             difficulty: 2,
             experience_reward: base_exp / task_count,
             estimated_duration: Some(10),
@@ -256,37 +196,37 @@ fn generate_quest_tasks(todo_text: &str, difficulty: i32, base_exp: i32) -> Vec<
 fn enhance_task_with_story(task_text: &str, difficulty: i32, user_level: i32) -> (String, String, String) {
     let task_essence = extract_task_essence(task_text);
     
-    let enhanced_title = format!("Epic {}: {}", 
+    let enhanced_title = format!("{} {}", 
         match difficulty {
-            1 => "Errand",
-            2 => "Task", 
-            3 => "Mission",
-            4 => "Quest",
-            5 => "Legendary Feat",
-            _ => "Challenge"
+            1 => "📝 Поручение:",
+            2 => "📋 Задание:", 
+            3 => "⚔️ Миссия:",
+            4 => "🏆 Квест:",
+            5 => "⚡ Легендарный подвиг:",
+            _ => "📍 Задача:"
         },
         task_essence
     );
     
     let enhanced_description = format!(
-        "Behold, Level {} adventurer! Your mission: {}. \
-        This {} challenge will test your skills and grant you valuable experience upon completion. \
-        Prepare yourself for an epic journey of productivity!",
+        "Внимание, искатель приключений {} уровня! Твоя миссия: {}. \
+        Это {} испытание проверит твои навыки и дарует ценный опыт по завершении. \
+        Подготовься к эпическому путешествию продуктивности!",
         user_level,
         task_text,
         match difficulty {
-            1 => "simple",
-            2 => "moderate", 
-            3 => "challenging",
-            4 => "formidable",
-            5 => "legendary",
-            _ => "mysterious"
+            1 => "простое",
+            2 => "умеренное", 
+            3 => "сложное",
+            4 => "тяжёлое",
+            5 => "легендарное",
+            _ => "таинственное"
         }
     );
 
     let story_context = format!(
-        "In the grand adventure of life, every task completed brings you one step closer to mastering your destiny. \
-        This particular challenge has been crafted by the gods of productivity to help you grow stronger."
+        "В великом приключении жизни каждая выполненная задача приближает тебя на шаг к овладению своей судьбой. \
+        Это конкретное испытание создано богами продуктивности, чтобы помочь тебе стать сильнее."
     );
 
     (enhanced_title, enhanced_description, story_context)
@@ -316,8 +256,14 @@ fn calculate_task_difficulty(task_text: &str, user_level: i32) -> i32 {
     
     // Simple heuristics based on text analysis
     let words = task_text.split_whitespace().count();
-    let complexity_keywords = ["complex", "difficult", "challenging", "hard", "advanced", "expert"];
-    let simple_keywords = ["simple", "easy", "quick", "basic", "straightforward"];
+    let complexity_keywords = [
+        "complex", "difficult", "challenging", "hard", "advanced", "expert",
+        "сложн", "трудн", "тяжёл", "тяжел", "продвинут", "эксперт"
+    ];
+    let simple_keywords = [
+        "simple", "easy", "quick", "basic", "straightforward",
+        "прост", "лёгк", "легк", "быстр", "базов"
+    ];
     
     if words < 3 {
         difficulty = 1;
@@ -352,25 +298,36 @@ fn generate_tags_for_quest(todo_text: &str, theme: &str) -> Vec<String> {
     
     let text_lower = todo_text.to_lowercase();
     
-    if text_lower.contains("work") || text_lower.contains("job") || text_lower.contains("office") {
-        tags.push("work".to_string());
+    // Поддержка русского и английского
+    if text_lower.contains("work") || text_lower.contains("job") || text_lower.contains("office") 
+        || text_lower.contains("работ") || text_lower.contains("проект") || text_lower.contains("офис") {
+        tags.push("работа".to_string());
     }
-    if text_lower.contains("study") || text_lower.contains("learn") || text_lower.contains("read") {
-        tags.push("learning".to_string());
+    if text_lower.contains("study") || text_lower.contains("learn") || text_lower.contains("read") 
+        || text_lower.contains("учи") || text_lower.contains("изучи") || text_lower.contains("прочита") || text_lower.contains("курс") {
+        tags.push("обучение".to_string());
     }
-    if text_lower.contains("exercise") || text_lower.contains("gym") || text_lower.contains("health") {
-        tags.push("health".to_string());
+    if text_lower.contains("exercise") || text_lower.contains("gym") || text_lower.contains("health") 
+        || text_lower.contains("трениро") || text_lower.contains("спорт") || text_lower.contains("здоров") {
+        tags.push("здоровье".to_string());
     }
-    if text_lower.contains("clean") || text_lower.contains("organize") || text_lower.contains("tidy") {
-        tags.push("home".to_string());
+    if text_lower.contains("clean") || text_lower.contains("organize") || text_lower.contains("tidy") 
+        || text_lower.contains("убор") || text_lower.contains("чист") || text_lower.contains("дом") {
+        tags.push("дом".to_string());
+    }
+    if text_lower.contains("магазин") || text_lower.contains("купи") || text_lower.contains("shop") || text_lower.contains("buy") {
+        tags.push("покупки".to_string());
+    }
+    if text_lower.contains("готов") || text_lower.contains("пригото") || text_lower.contains("cook") {
+        tags.push("готовка".to_string());
     }
     
     // ML-тренировочные метки
     if is_boss_task(todo_text) {
-        tags.push("boss".to_string());
+        tags.push("босс".to_string());
     }
     let est_diff = calculate_task_difficulty(todo_text, 1);
-    tags.push(format!("difficulty:{}", est_diff));
+    tags.push(format!("сложность:{}", est_diff));
 
     tags
 }

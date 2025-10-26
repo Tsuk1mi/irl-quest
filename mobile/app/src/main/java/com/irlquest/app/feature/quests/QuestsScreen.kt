@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.irlquest.app.ui.theme.Orange
+import com.irlquest.app.ui.theme.*
 
 @Composable
 fun QuestsScreen(
@@ -43,26 +43,13 @@ fun QuestsScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Заголовок и фильтры
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Квесты",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                
-                IconButton(onClick = { showCreateDialog = true }) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Создать квест",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            // Заголовок
+            Text(
+                text = "📜 Доска Квестов",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = com.irlquest.app.ui.theme.TavernWood
+            )
             
             // Фильтры
             QuestFilters(
@@ -91,6 +78,18 @@ fun QuestsScreen(
                     }
                 }
             }
+        }
+        
+        // FAB внизу справа (правильное расположение)
+        FloatingActionButton(
+            onClick = { showCreateDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = com.irlquest.app.ui.theme.Primary,
+            contentColor = com.irlquest.app.ui.theme.OnPrimary
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Создать квест")
         }
         
         if (showCreateDialog) {
@@ -233,7 +232,7 @@ fun QuestCard(
                             Icon(
                                 Icons.Default.Star,
                                 contentDescription = null,
-                                tint = Orange,
+                                tint = MysticBlue,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -328,10 +327,10 @@ fun QuestCard(
 @Composable
 fun QuestStatusBadge(status: QuestStatus) {
     val (backgroundColor, textColor, text) = when (status) {
-        QuestStatus.ACTIVE -> Triple(Color.Green.copy(alpha = 0.1f), Color.Green, "Активен")
-        QuestStatus.COMPLETED -> Triple(Color.Blue.copy(alpha = 0.1f), Color.Blue, "Завершен")
-        QuestStatus.PAUSED -> Triple(Orange.copy(alpha = 0.1f), Orange, "Приостановлен")
-        QuestStatus.ARCHIVED -> Triple(Color.Gray.copy(alpha = 0.1f), Color.Gray, "Архив")
+        QuestStatus.ACTIVE -> Triple(Success.copy(alpha = 0.1f), Success, "Активен")
+        QuestStatus.COMPLETED -> Triple(MysticBlue.copy(alpha = 0.1f), MysticBlue, "Завершен")
+        QuestStatus.PAUSED -> Triple(Warning.copy(alpha = 0.1f), Warning, "Приостановлен")
+        QuestStatus.ARCHIVED -> Triple(Neutral.copy(alpha = 0.1f), Neutral, "Архив")
     }
     
     Box(
@@ -351,10 +350,10 @@ fun QuestStatusBadge(status: QuestStatus) {
 @Composable
 fun PriorityIndicator(priority: QuestPriority) {
     val color = when (priority) {
-        QuestPriority.LOW -> Color.Green
-        QuestPriority.MEDIUM -> Orange
-        QuestPriority.HIGH -> Color.Red
-        QuestPriority.CRITICAL -> Color.Red
+        QuestPriority.LOW -> Neutral
+        QuestPriority.MEDIUM -> Warning
+        QuestPriority.HIGH -> Error
+        QuestPriority.CRITICAL -> QuestLegendary
     }
     
     Box(
@@ -373,37 +372,98 @@ fun CreateQuestDialog(
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var difficulty by remember { mutableStateOf(1) }
+    var difficulty by remember { mutableStateOf(3) }
     
+    // Фэнтези-стиль диалога
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Создать квест") },
+        containerColor = com.irlquest.app.ui.theme.Surface,
+        title = { 
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("📜", fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
+                Text(
+                    "Новый Квест",
+                    fontWeight = FontWeight.Bold,
+                    color = com.irlquest.app.ui.theme.TavernWood
+                )
+            }
+        },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TextField(
+                OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Название квеста") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = { Text("⚔️ Название приключения") },
+                    placeholder = { Text("Например: Изучить Kotlin") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = com.irlquest.app.ui.theme.Primary,
+                        focusedLabelColor = com.irlquest.app.ui.theme.Primary,
+                        cursorColor = com.irlquest.app.ui.theme.Primary
+                    )
                 )
                 
-                TextField(
+                OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Описание") },
+                    label = { Text("📖 Легенда квеста") },
+                    placeholder = { Text("Опциально: расскажите подробнее") },
                     modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
+                    maxLines = 3,
+                    minLines = 2,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = com.irlquest.app.ui.theme.Primary,
+                        focusedLabelColor = com.irlquest.app.ui.theme.Primary,
+                        cursorColor = com.irlquest.app.ui.theme.Primary
+                    )
                 )
                 
                 Column {
-                    Text("Сложность: $difficulty")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "🎯 Сложность:",
+                            fontWeight = FontWeight.Medium,
+                            color = com.irlquest.app.ui.theme.TavernWood
+                        )
+                        Text(
+                            when (difficulty) {
+                                1 -> "🥉 Легкий"
+                                2 -> "🥈 Средний"
+                                3, 4 -> "🥇 Сложный"
+                                else -> "⚡ Легендарный"
+                            },
+                            fontWeight = FontWeight.Bold,
+                            color = when (difficulty) {
+                                1 -> com.irlquest.app.ui.theme.QuestBronze
+                                2 -> com.irlquest.app.ui.theme.QuestSilver
+                                3, 4 -> com.irlquest.app.ui.theme.QuestGold
+                                else -> com.irlquest.app.ui.theme.QuestLegendary
+                            }
+                        )
+                    }
                     Slider(
                         value = difficulty.toFloat(),
                         onValueChange = { difficulty = it.toInt() },
                         valueRange = 1f..5f,
-                        steps = 3
+                        steps = 3,
+                        colors = SliderDefaults.colors(
+                            thumbColor = com.irlquest.app.ui.theme.Primary,
+                            activeTrackColor = com.irlquest.app.ui.theme.Primary
+                        )
+                    )
+                    
+                    // Подсказка по наградам
+                    Text(
+                        text = "💰 Награда: +${difficulty * 20} золота, ⭐ +${difficulty * 50} XP",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = com.irlquest.app.ui.theme.OnSurface.copy(alpha = 0.6f),
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                     )
                 }
             }
@@ -412,17 +472,22 @@ fun CreateQuestDialog(
             Button(
                 onClick = { 
                     if (title.isNotBlank()) {
-                        onCreateQuest(title, description, difficulty)
+                        onCreateQuest(title.trim(), description.trim(), difficulty)
                     }
                 },
-                enabled = title.isNotBlank()
+                enabled = title.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = com.irlquest.app.ui.theme.Primary,
+                    contentColor = com.irlquest.app.ui.theme.OnPrimary
+                )
             ) {
-                Text("Создать")
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.padding(end = 4.dp))
+                Text("🎉 Принять квест")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text("Отмена", color = com.irlquest.app.ui.theme.TavernWood)
             }
         }
     )
@@ -430,8 +495,8 @@ fun CreateQuestDialog(
 
 private fun getProgressColor(percentage: Int): Color {
     return when {
-        percentage < 30 -> Color.Red
-        percentage < 70 -> Orange
-        else -> Color.Green
+        percentage < 30 -> Error
+        percentage < 70 -> Warning
+        else -> Success
     }
 }

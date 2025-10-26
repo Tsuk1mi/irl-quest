@@ -5,13 +5,20 @@ use crate::{
     models::task::*,
     state::AppState,
     error::AppError,
+    middleware::auth::CurrentUser,
 };
 
 pub async fn create_task(
     State(state): State<AppState>,
-    Extension(user_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
     Json(task_data): Json<TaskCreate>,
 ) -> Result<Json<Task>, AppError> {
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let user_id = user.0.id;
+    
     // Проверяем доступ к квесту, если он указан
     if let Some(quest_id) = task_data.quest_id {
         let quest_exists_row = sqlx::query(
@@ -71,8 +78,13 @@ pub async fn create_task(
 
 pub async fn list_tasks(
     State(state): State<AppState>,
-    Extension(owner_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
 ) -> Result<Json<Vec<Task>>, AppError> {
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let owner_id = user.0.id;
     let tasks = sqlx::query_as::<_, Task>(
         r#"
         SELECT * FROM tasks
@@ -89,9 +101,14 @@ pub async fn list_tasks(
 
 pub async fn complete_task(
     State(state): State<AppState>,
-    Extension(owner_id): Extension<i32>,
+    Extension(current_user): Extension<Option<CurrentUser>>,
     Path(task_id): Path<i32>,
 ) -> Result<Json<Task>, AppError> {
+    let user = match current_user {
+        Some(u) => u,
+        None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
+    };
+    let owner_id = user.0.id;
     let task = sqlx::query_as::<_, Task>(
         r#"
         UPDATE tasks
