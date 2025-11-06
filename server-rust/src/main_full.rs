@@ -1,4 +1,5 @@
-use std::net::SocketAddr;
+﻿use std::net::SocketAddr;
+use std::path::PathBuf;
 use axum::serve;
 use tokio::net::TcpListener;
 use dotenv::dotenv;
@@ -15,9 +16,10 @@ mod routes;
 mod services;
 mod validation;
 mod state;
-mod rag;
+mod rag; // RAG service stubs
 mod utils_impl;
 mod ml;
+mod utils;
 
 use state::AppState;
 
@@ -33,15 +35,66 @@ pub fn setup_logging() {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Загрузка переменных окружения
-    dotenv().ok();
-
-    // Настройка логирования
+    // Настройка логирования сначала
     setup_logging();
+
+    // Загрузка переменных окружения из корня проекта
+    // Проверяем несколько возможных путей
+    let loaded = if let Ok(current) = std::env::current_dir() {
+        // Путь 1: ../.env (если запуск из server-rust/)
+        let parent_env = current.join("../.env");
+        if parent_env.exists() {
+            dotenv::from_path(&parent_env).ok();
+            tracing::info!("Loaded .env from: {}", parent_env.display());
+            true
+        } 
+        // Путь 2: .env (если запуск из корня проекта)
+        else if current.join(".env").exists() {
+            dotenv().ok();
+            tracing::info!("Loaded .env from current directory");
+            true
+        }
+        // Путь 3: server-rust/.env (локальный)
+        else if current.join("server-rust/.env").exists() {
+            dotenv::from_path(current.join("server-rust/.env")).ok();
+            tracing::info!("Loaded .env from server-rust/");
+            true
+        }
+        else {
+            false
+        }
+    } else {
+        false
+    };
+
+    if !loaded {
+        tracing::warn!("No .env file found, using environment variables and defaults");
+        dotenv().ok(); // Попытка загрузить из текущей директории
+    }
 
     // Загрузка конфигурации
     let config = config::load_config()?;
     tracing::info!("Loaded configuration");
+    
+    // Логируем информацию об IP адресах
+    if let Some(public_ip) = &config.public_ip {
+        tracing::info!("🌐 Public IP detected: {}", public_ip);
+        tracing::info!("📱 Mobile clients should use: http://{}:{}", public_ip, config.port);
+    }
+    if let Some(local_ip) = &config.local_ip {
+        tracing::info!("🏠 Local IP detected: {}", local_ip);
+    }
+    
+    // Логируем включенные фичи
+    tracing::info!("🔐 Security features:");
+    tracing::info!("  - Rate limiting: {}/min (burst: {})", 
+        config.rate_limit_per_minute, config.rate_limit_burst);
+    tracing::info!("  - MFA: {}", if config.enable_mfa { "enabled" } else { "disabled" });
+    tracing::info!("🎮 Gameplay features:");
+    tracing::info!("  - OAuth: {}", if config.enable_oauth { "enabled" } else { "disabled" });
+    tracing::info!("  - AR: {}", if config.enable_ar { "enabled" } else { "disabled" });
+    tracing::info!("  - Multiplayer: {}", if config.enable_multiplayer { "enabled" } else { "disabled" });
+    tracing::info!("  - Image processing: {}", if config.enable_image_processing { "enabled" } else { "disabled" });
 
     // Подключение к базе данных
     tracing::info!("Connecting to database at {}", config.database_url);
@@ -56,14 +109,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => tracing::warn!("Failed to seed test user: {:?}", e),
     }
 
-    // Создание состояния приложения
-    let state = AppState::new(
-        pool,
-        config.ml_base_url.clone(),
-        config.ml_model_path.clone(),
-        config.ml_infer_cmd.clone(),
-        config.ml_embed_cmd.clone(),
-    );
+    // Создание состояния приложения с конфигурацией
+    let state = AppState::new_with_config(pool, config.clone());
+
+    // Запустить фоновую задачу для очистки rate limiter, blacklist и WebSocket
+    {
+        let rate_limiter = state.rate_limiter.clone();
+        let ip_blacklist = state.ip_blacklist.clone();
+        let ws_manager = state.ws_manager.clone();
+        
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(300)); // 5 минут
+            loop {
+                interval.tick().await;
+                tracing::debug!("Running background cleanup tasks");
+                rate_limiter.cleanup().await;
+                ip_blacklist.cleanup().await;
+                ws_manager.cleanup_empty_rooms().await;
+                
+                let rooms_count = ws_manager.active_rooms_count().await;
+                tracing::info!("WebSocket active rooms: {}", rooms_count);
+            }
+        });
+    }
 
     // Создание роутера с настроенными маршрутами
     let app = routes::app_router(state)

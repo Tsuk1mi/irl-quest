@@ -88,7 +88,7 @@ class QuestDetailViewModel(
     }
 
     private fun questDtoToUi(dto: QuestDto): QuestUi {
-        val status = when (dto.status.lowercase(Locale.getDefault())) {
+        val status = when (dto.status?.lowercase(Locale.getDefault())) {
             "active" -> QuestStatus.ACTIVE
             "completed" -> QuestStatus.COMPLETED
             "paused" -> QuestStatus.PAUSED
@@ -96,29 +96,28 @@ class QuestDetailViewModel(
             else -> QuestStatus.ACTIVE
         }
         val priority = when (dto.priority) {
-            1 -> QuestPriority.LOW
-            2 -> QuestPriority.MEDIUM
-            3 -> QuestPriority.HIGH
-            4 -> QuestPriority.CRITICAL
+            "low", "1" -> QuestPriority.LOW
+            "high", "3" -> QuestPriority.HIGH
+            "critical", "4" -> QuestPriority.CRITICAL
             else -> QuestPriority.MEDIUM
         }
         val deadline = dto.tasks.firstOrNull()?.deadline
         val isOverdue = false
         return QuestUi(
             id = dto.id,
-            title = dto.title,
-            description = dto.description,
+            title = dto.title ?: "",
+            description = dto.description ?: "",
             status = status,
             priority = priority,
-            difficulty = dto.difficulty,
-            completionPercentage = dto.completionPercentage,
+            difficulty = dto.difficulty ?: 1,
+            completionPercentage = dto.completionPercentage ?: 0,
             totalTasks = dto.tasks.size,
             completedTasks = dto.tasks.count { it.completed },
-            experienceReward = dto.experienceReward,
+            experienceReward = dto.rewardExperience ?: 0,
             deadline = deadline,
             isOverdue = isOverdue,
-            createdAt = dto.createdAt,
-            questType = dto.questType,
+            createdAt = dto.createdAt ?: "",
+            questType = dto.questType ?: "personal",
             tasks = dto.tasks
         )
     }

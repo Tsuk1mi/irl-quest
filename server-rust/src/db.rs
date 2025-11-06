@@ -1,4 +1,4 @@
-use anyhow::Result;
+﻿use anyhow::Result;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use sqlx::Row;
@@ -249,9 +249,8 @@ pub async fn check_health(pool: &PgPool) -> Result<()> {
 /// Seed a test user if it doesn't exist. Uses Argon2 hashing to be compatible with handlers.
 pub async fn seed_test_user(pool: &PgPool) -> Result<()> {
     // Local imports so we don't change global file imports
-    use argon2::{Argon2};
-    use argon2::password_hash::{SaltString, PasswordHasher};
-    use argon2::password_hash::rand_core::OsRng;
+    use argon2::{Argon2, PasswordHasher};
+    use password_hash::{SaltString, rand_core::OsRng};
 
     // Check if test user exists
     let existing: Option<(i32,)> = sqlx::query_as("SELECT id FROM users WHERE username = $1")
@@ -266,7 +265,7 @@ pub async fn seed_test_user(pool: &PgPool) -> Result<()> {
 
     // Create password hash for password = "password"
     let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default()
+    let hashed_password = Argon2::default()
         .hash_password("password".as_bytes(), &salt)
         .map_err(|e| anyhow::anyhow!("Failed to hash seed password: {}", e))?
         .to_string();
@@ -282,7 +281,7 @@ pub async fn seed_test_user(pool: &PgPool) -> Result<()> {
     )
     .bind("testuser")
     .bind("testuser@example.com")
-    .bind(password_hash)
+    .bind(hashed_password)
     .bind(true)
     .bind(1)  // level
     .bind(0)  // experience

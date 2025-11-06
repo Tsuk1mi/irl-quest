@@ -41,4 +41,4 @@ CREATE INDEX IF NOT EXISTS idx_quests_title ON quests(title);
 CREATE INDEX IF NOT EXISTS idx_quests_owner_id ON quests(owner_id);
 
 -- Enable pgvector extension (if needed)
-CREATE EXTENSION IF NOT EXISTS vector;
+-- CREATE EXTENSION IF NOT EXISTS vector;

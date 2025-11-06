@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.irlquest.app.ui.viewmodel.AuthViewModel
+import com.irlquest.app.feature.auth.AuthViewModel
 import com.irlquest.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)

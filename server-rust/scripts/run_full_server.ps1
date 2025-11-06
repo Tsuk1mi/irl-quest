@@ -8,7 +8,7 @@ Write-Host "IRL Quest - Building full Rust server (release)..."
 # Ensure Rust toolchain is installed on the Windows Server
 # choco install rust -y  # Uncomment if Chocolatey is available
 
-$env:DATABASE_URL = if ($DatabaseUrl) { $DatabaseUrl } else { "postgresql://postgres:password@localhost:5432/irl_quest" }
+$env:DATABASE_URL = if ($DatabaseUrl) { $DatabaseUrl } else { "postgresql://postgres:tsukimi@localhost:5432/irl_quest" }
 $env:SERVER_HOST = $Host
 $env:SERVER_PORT = $Port
 $env:SECRET_KEY = if ($env:SECRET_KEY) { $env:SECRET_KEY } else { "rust-secret-key-for-irl-quest-dev" }

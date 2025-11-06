@@ -1,4 +1,4 @@
-use axum::{
+﻿use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
     Json,
@@ -15,7 +15,11 @@ pub enum AppError {
     Validation(String),
     Auth(String),
     Database(SqlxError),
+    DatabaseError(String),
     Internal(String),
+    InternalServerError(String),
+    ExternalServiceError(String),
+    NotImplemented(String),
 }
 
 impl From<SqlxError> for AppError {
@@ -40,9 +44,24 @@ impl IntoResponse for AppError {
                     "An internal database error occurred".to_string(),
                 )
             }
+            AppError::DatabaseError(msg) => {
+                tracing::error!("Database error: {}", msg);
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
+            }
             AppError::Internal(msg) => {
                 tracing::error!("Internal error: {}", msg);
                 (StatusCode::INTERNAL_SERVER_ERROR, msg)
+            }
+            AppError::InternalServerError(msg) => {
+                tracing::error!("Internal server error: {}", msg);
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
+            }
+            AppError::ExternalServiceError(msg) => {
+                tracing::error!("External service error: {}", msg);
+                (StatusCode::BAD_GATEWAY, msg)
+            }
+            AppError::NotImplemented(msg) => {
+                (StatusCode::NOT_IMPLEMENTED, msg)
             }
         };
 

@@ -64,4 +64,4 @@ INSERT INTO quests (title, description, difficulty, owner_id) VALUES
 ('Мастер мобильной разработки', 'Освоить Android разработку', 4, 1);
 
 -- Включаем расширение для векторов (для будущего использования)
-CREATE EXTENSION IF NOT EXISTS vector;
+-- CREATE EXTENSION IF NOT EXISTS vector;

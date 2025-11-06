@@ -1,12 +1,10 @@
-use axum::{
+﻿use axum::{
     extract::State,
     http::{StatusCode, HeaderMap},
     Json,
 };
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, PasswordHash, PasswordVerifier, SaltString},
-    Argon2,
-};
+use argon2::{Argon2, PasswordHasher, PasswordVerifier};
+use password_hash::{PasswordHash, SaltString, rand_core::OsRng};
 use crate::{error::AppError, validation};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
@@ -98,7 +96,7 @@ pub async fn register(
     // Хеширование пароля
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
-    let password_hash = argon2
+    let hashed_password = argon2
         .hash_password(req.password.as_bytes(), &salt)
         .map_err(|e| AppError::Internal(e.to_string()))?
         .to_string();
@@ -113,7 +111,7 @@ pub async fn register(
     )
     .bind(&req.username)
     .bind(&req.email)
-    .bind(&password_hash)
+    .bind(&hashed_password)
     .fetch_one(pool)
     .await
     {

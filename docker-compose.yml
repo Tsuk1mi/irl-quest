@@ -1,19 +1,159 @@
 version: '3.8'
+
 services:
+  # PostgreSQL - Основная база данных
   postgres:
-    image: postgres:latest
+    image: postgres:15-alpine
+    container_name: irl-quest-postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: irl_quest_db
-      LANG: en_US.utf8
-      LC_COLLATE: en_US.utf8
-      LC_CTYPE: en_US.utf8
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tsukimi}
+      POSTGRES_DB: irl_quest
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=ru_RU.UTF-8"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    command: postgres -c lc_messages='en_US.utf8'
+      - ./server-rust/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - irl-quest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Кэширование и rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: irl-quest-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - irl-quest-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # MinIO - S3-compatible хранилище для изображений
+  minio:
+    image: minio/minio:latest
+    container_name: irl-quest-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    volumes:
+      - minio_data:/data
+    networks:
+      - irl-quest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Rust Server
+  server:
+    build:
+      context: ./server-rust
+      dockerfile: Dockerfile
+    container_name: irl-quest-server
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-secure_password_change_me}@postgres:5432/irl_quest
+      PORT: 8003
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRATION_HOURS: 24
+      REFRESH_TOKEN_EXPIRATION_DAYS: 30
+      CORS_ORIGIN: "*"
+      ML_BASE_URL: http://ollama:11434
+      RATE_LIMIT_PER_MINUTE: 60
+      RATE_LIMIT_BURST: 10
+      ENABLE_MFA: ${ENABLE_MFA:-false}
+      ENABLE_OAUTH: ${ENABLE_OAUTH:-false}
+      ENABLE_MULTIPLAYER: true
+      ENABLE_IMAGE_PROCESSING: true
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+      S3_BUCKET: irl-quest-images
+      RUST_LOG: info,tower_http=debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - irl-quest-network
+    restart: unless-stopped
+
+  # Ollama - ML модели (опционально)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: irl-quest-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - irl-quest-network
+    restart: unless-stopped
+
+  # Prometheus - Мониторинг метрик
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: irl-quest-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - irl-quest-network
+    restart: unless-stopped
+
+  # Grafana - Визуализация метрик
+  grafana:
+    image: grafana/grafana:latest
+    container_name: irl-quest-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - irl-quest-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  redis_data:
+  minio_data:
+  ollama_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  irl-quest-network:
+    driver: bridge

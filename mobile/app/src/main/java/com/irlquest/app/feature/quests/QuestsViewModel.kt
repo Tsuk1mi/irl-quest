@@ -117,15 +117,15 @@ class QuestsViewModel(
             description = dto.description ?: "",
             status = status,
             priority = priority,
-            difficulty = dto.difficulty,
-            completionPercentage = dto.completionPercentage,
+            difficulty = dto.difficulty ?: 1,
+            completionPercentage = dto.completionPercentage ?: 0,
             totalTasks = total,
             completedTasks = completed,
-            experienceReward = dto.experienceReward,
+            experienceReward = dto.rewardExperience ?: 0,
             deadline = null,
             isOverdue = false,
-            createdAt = createdAt,
-            questType = dto.questType,
+            createdAt = createdAt ?: "",
+            questType = dto.questType ?: "personal",
             tasks = dto.tasks
         )
     }

@@ -1,298 +1,378 @@
-# 🏰 IRL Quest - Превратите жизнь в приключение!
+#  IRL Quest - Превратите жизнь в приключение!
 
 > **RPG task-менеджер с системой наград, уровнями и квестами**
 
-Мобильное приложение, которое превращает скучные задачи в эпические приключения в стиле Dungeons & Dragons. Каждое выполненное дело приносит опыт, золото и приближает вас к новому уровню героя!
+Мобильное приложение, которое превращает скучные задачи в эпические приключения в стиле Dungeons & Dragons.
+
+**Версия**: 2.1.0  
+**Статус**: Production Ready  
+**БД**: PostgreSQL 15+
 
 ---
 
-## ✨ Особенности
+##  Особенности
 
-- ⚔️ **Система прогрессии**: Выполняйте задачи → получайте опыт → повышайте уровень
-- 💰 **Награды**: Каждая задача приносит XP и золото
-- 📜 **Квесты**: Группируйте связанные задачи в эпические квесты
-- 🎭 **ML-генерация приключений**: Обычные задачи превращаются в D&D квесты!
-  - "Купить продукты" → "🏆 Поиски артефакта: Купить Продукты"
-  - Автоматическое создание эпических описаний
-  - Сохранение оригинальной формулировки
-- 🤖 **ИИ**: Автоматическое определение сложности и тегов
-- 🗺️ **Карта мира**: Визуализация жизненных сфер как игровые зоны
-- 🎨 **Фэнтези-дизайн**: Погружение в атмосферу средневековой таверны
-- 🌍 **Русский язык**: Полная поддержка, включая ML-генерацию
+-  **Система прогрессии**: Выполняйте задачи → получайте опыт → повышайте уровень
+-  **Награды**: XP и золото за каждую задачу
+-  **Квесты**: Группировка задач в эпические приключения
+-  **ML-генерация**: Превращение обычных дел в D&D квесты
+-  **ИИ**: Автоопределение сложности и тегов
+-  **RPG система**: 4 класса, 4 расы, D&D характеристики
+-  **Система кубиков**: D4-D20 броски
+- ️ **Геолокация**: AR маркеры и геозоны
+-  **Мультиплеер**: WebSocket кооператив
+-  **На русском**: Полная локализация
 
 ---
 
-## 🛠️ Технологический стек
+##  Технологический стек
 
-### Мобильное приложение:
+### Backend (Rust)
+- **Web**: Axum 0.7 (async)
+- **БД**: PostgreSQL 15+ (SQLx)
+- **Auth**: JWT + Refresh tokens, OAuth2, MFA
+- **ML**: Ollama интеграция
+- **Cache**: Redis (опционально)
+- **Endpoints**: 70+
+
+### Mobile (Android)
 - **Язык**: Kotlin
 - **UI**: Jetpack Compose (Material 3)
 - **Архитектура**: MVVM + Repository
-- **State**: StateFlow + ViewModel
-- **Сеть**: Retrofit + OkHttp
-- **Минимум Android**: API 24 (Android 7.0)
-
-### Backend:
-- **Язык**: Rust
-- **Фреймворк**: Axum (async web)
-- **БД**: SQLite + SQLx
-- **Auth**: JWT токены
-- **ML**: Ollama для генерации квестов
+- **Min SDK**: Android 7.0 (API 24)
 
 ---
 
-## 🚀 Быстрый старт
+##  Быстрый старт
 
-### 📱 Установка приложения
-
-#### Вариант 1: Из готового APK
-1. Скачайте APK: `mobile/app/build/outputs/apk/debug/app-debug.apk`
-2. Скопируйте на Android устройство
-3. Установите (разрешите установку из неизвестных источников)
-4. Запустите и зарегистрируйтесь!
-
-#### Вариант 2: Сборка из исходников
+### 1️⃣ Настройка конфигурации
 
 ```bash
-# 1. Клонируйте репозиторий
-git clone <repo-url>
-cd irl-quest
+# Скопируйте .env.example в .env
+cp .env.example .env
 
-# 2. Соберите APK
+# Отредактируйте .env (настройте DATABASE_URL и JWT_SECRET)
+```
+
+**Важно**: Весь проект использует **один** `.env` файл в корне!
+
+### 2️⃣ Запуск через Docker (Рекомендуется)
+
+```bash
+# Запустить весь стек (PostgreSQL + Redis + Server + Ollama + Monitoring)
+docker-compose up -d
+
+# Проверка
+curl http://localhost:8003/health
+```
+
+**Доступно**:
+-  API Server: http://localhost:8003
+-  PostgreSQL: localhost:5432
+-  Redis: localhost:6379
+-  Ollama: http://localhost:11434
+-  Prometheus: http://localhost:9090
+-  Grafana: http://localhost:3000
+
+### 3️⃣ Локальный запуск сервера
+
+```powershell
+# 1. Создать базу PostgreSQL
+psql -U postgres -c "CREATE DATABASE irl_quest;"
+
+# 2. Запустить сервер
+cd server-rust
+cargo run --release
+
+# Сервер на http://localhost:8003
+```
+
+При запуске автоматически:
+- 🔌 Подключится к PostgreSQL
+- 📦 Применит все миграции
+- 🌱 Создаст тестового пользователя (testuser / password)
+- 🚀 Запустится на порту 8003
+
+### 4️⃣ Мобильное приложение
+
+```bash
+# Сборка APK
 cd mobile
 ./gradlew assembleDebug
 
-# 3. APK готов!
-# Файл: app/build/outputs/apk/debug/app-debug.apk
-```
-
-### 🖥️ Запуск сервера (опционально)
-
-```bash
-cd server-rust
-
-# Установка Rust (если нет)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Сборка
-cargo build --release
-
-# Запуск
-cargo run --release
-
-# Сервер доступен на http://localhost:8080
+# APK: mobile/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ---
 
 ## 📚 Документация
 
-### Для пользователей:
-- **[Руководство пользователя](docs/USER_GUIDE.md)** - подробная инструкция по использованию
-- **[Быстрый старт](docs/QUICK_START.md)** - начало работы за 5 минут
+### 🎯 Быстрые ссылки
+- **[Конфигурация сервера](server-rust/CONFIG.md)** - все параметры .env
+- **[Техническая документация](docs/TECHNICAL_DOCS.md)** - API и архитектура
+- **[Резюме реализации](РЕЗЮМЕ_РЕАЛИЗАЦИИ.md)** - текущий статус (85%)
 
-### Для разработчиков:
-- **[Техническая документация](docs/TECHNICAL_DOCS.md)** - архитектура и API
-- **[Бизнес-процессы](docs/BUSINESS_PROCESSES.md)** - логика и алгоритмы
-- **[ML-генерация](docs/ML_GENERATION.md)** - алгоритмы превращения задач в квесты
-- **[Дизайн-система](docs/DESIGN_SYSTEM.md)** - визуальный стиль и компоненты
-- **[Архитектура](docs/architecture.md)** - общая структура проекта
-- **[Changelog](CHANGELOG.md)** - история изменений
+### Для пользователей
+- [Руководство пользователя](docs/USER_GUIDE.md)
+- [Политика конфиденциальности](docs/PRIVACY_POLICY_RU.md)
+- [Пользовательское соглашение](docs/USER_AGREEMENT_RU.md)
+
+### Для разработчиков
+- [ML Endpoints](ML_ENDPOINTS.md) - описание ML API
+- [Финальная реализация](ФИНАЛЬНАЯ_РЕАЛИЗАЦИЯ.md) - детальный отчет
 
 ---
 
-## 🎯 Основные возможности
+## 🎯 API Endpoints (70+)
 
-### 1. Создание и выполнение задач
-- Добавляйте задачи одним нажатием
-- Выбирайте приоритет и сложность
-- Или используйте ИИ для автоопределения
-- Получайте награды при выполнении
+### Аутентификация
+- `POST /api/auth/register` - Регистрация
+- `POST /api/auth/login` - Вход
+- `POST /api/auth/refresh` - Обновление токена
+- `POST /api/auth/oauth/login` - OAuth2 вход
+- `GET /api/auth/mfa/setup` - Настройка MFA
+- `GET /api/auth/sessions` - Активные сессии
 
-### 2. Система наград
+### Квесты
+- `GET /api/quests` - Список квестов
+- `POST /api/quests` - Создать квест
+- `GET /api/quests/:id` - Детали квеста
+- `PUT /api/quests/:id` - Обновить квест
+- `DELETE /api/quests/:id` - Удалить квест
+
+### ML Inference
+- `POST /api/ml/tags` - Определить теги
+- `POST /api/ml/difficulty` - Оценить сложность
+- `POST /api/ml/transform` - ToDo → Quest
+- `POST /api/ml/recommendations` - Персональные рекомендации
+
+### Персонаж
+- `GET /api/character/profile` - Профиль персонажа
+- `POST /api/character/select` - Выбрать класс и расу
+- `POST /api/character/level-up` - Повысить уровень
+- `GET /api/character/classes` - Доступные классы
+
+### Кубики (D&D)
+- `POST /api/dice/roll` - Бросить кубик
+- `POST /api/dice/skill-check` - Проверка навыка
+- `GET /api/dice/types` - Типы кубиков
+- `GET /api/dice/skills` - Список навыков
+
+### Геолокация & AR
+- `POST /api/geo/zones` - Создать геозону
+- `POST /api/geo/check` - Проверить локацию
+- `POST /api/ar/process-image` - Обработать AR изображение
+
+### Другие
+- `GET /health` - Проверка здоровья
+- `GET /api/config` - Конфигурация для клиента
+- `WS /ws` - WebSocket соединение
+
+**Всего**: 70+ endpoints
+
+Полный список: [docs/TECHNICAL_DOCS.md](docs/TECHNICAL_DOCS.md)
+
+---
+
+## 🔧 Конфигурация (.env)
+
+**Единый файл** `.env` в корне проекта:
+
+```env
+# База данных
+DATABASE_URL=postgres://postgres:tsukimi@localhost:5432/irl_quest
+
+# Сервер
+PORT=8003
+JWT_SECRET=your-secret-here
+
+# Функции
+ENABLE_MULTIPLAYER=true
+ENABLE_AR=false
+
+# ML
+ML_BASE_URL=http://localhost:11434
 ```
-Выполнил задачу → Получил XP и золото → Повысил уровень!
 
-Формула наград:
-XP = (сложность × 10) + бонус_приоритета
-Золото = сложность × 10
-
-Повышение уровня:
-Уровень N требует N × 100 XP
-```
-
-### 3. Квесты
-- Группируйте связанные задачи
-- ML генерирует красивые описания
-- Отслеживайте прогресс визуально
-- Получайте бонусные награды
-
-### 4. Профиль героя
-- Характеристики в стиле D&D
-- Выбор класса (Воин/Маг/Плут/Жрец)
-- Отображение уровня и прогресса
-- Накопление золота
-
-### 5. Карта мира
-- 6 зон жизни (работа, обучение, дом...)
-- Интерактивное взаимодействие
-- Статистика по зонам
-- Визуализация прогресса
+Подробнее: [server-rust/CONFIG.md](server-rust/CONFIG.md)
 
 ---
 
-## 🤖 ИИ функции
-
-### Локальный ИИ (на устройстве):
-- **Определение сложности** - анализ текста задачи
-- **Автотеги** - категоризация по ключевым словам
-- **Работает оффлайн** - не требует интернета
-
-### Серверный ИИ (Rust + Ollama):
-- **Генерация квестов** - превращение TODO в эпические квесты
-- **Создание подзадач** - разбиение на шаги
-- **Фэнтези описания** - атмосферные тексты
-- **Русский язык** - полная поддержка
-
----
-
-## 📦 Структура проекта
+## 🏗️ Структура проекта
 
 ```
 irl-quest/
-├── mobile/                   # Android приложение
-│   ├── app/src/main/java/
-│   │   └── com/irlquest/app/
-│   │       ├── data/        # Репозитории и API
-│   │       ├── feature/     # Экраны (по фичам)
-│   │       ├── ui/          # Компоненты и тема
-│   │       └── MainActivity.kt
-│   └── build.gradle.kts
+├── .env.example          # 👈 ЕДИНЫЙ конфиг для всего проекта
+├── .env                  # 👈 Создайте из .env.example
+├── docker-compose.yml    # Полный стек
+├── README.md             # Этот файл
 │
-├── server-rust/             # Backend сервер
+├── server-rust/          # Backend (Rust)
 │   ├── src/
-│   │   ├── handlers/       # HTTP обработчики
-│   │   ├── services/       # Бизнес-логика
-│   │   ├── models/         # Модели данных
-│   │   ├── rag/            # ML генерация
+│   │   ├── handlers/     # 70+ endpoints
+│   │   ├── services/     # Бизнес-логика
+│   │   ├── models/       # Модели данных
+│   │   ├── middleware/   # Auth, CORS, Rate limit
 │   │   └── main_full.rs
+│   ├── migrations/       # PostgreSQL миграции (11 файлов)
 │   └── Cargo.toml
 │
-├── docs/                    # Документация
-│   ├── USER_GUIDE.md       # Для пользователей
-│   ├── TECHNICAL_DOCS.md   # Для разработчиков
-│   └── BUSINESS_PROCESSES.md
+├── mobile/               # Android приложение
+│   └── app/src/main/
 │
-└── README.md               # Этот файл
+├── docs/                 # Документация
+│   ├── TECHNICAL_DOCS.md
+│   ├── USER_GUIDE.md
+│   └── ...
+│
+└── infra/                # Infrastructure
+    ├── kubernetes/
+    ├── prometheus/
+    └── terraform/
 ```
 
 ---
 
-## 🎨 Дизайн
+## 🎮 Реализованные системы
 
-### Цветовая палитра:
-- **Золото** (#D4AF37) - основной цвет действий
-- **Темное дерево** (#5D4037) - навигация
-- **Пергамент** (#F5EFE7) - фон
-- **Изумруд** (#2E7D32) - акценты
+### ✅ Основные (85%)
+- 🔐 JWT + Refresh + OAuth2 + MFA аутентификация
+- 📊 PostgreSQL с 11 миграциями
+- 🤖 ML Inference (теги, сложность, генерация)
+- ⚡ Rate limiting & IP-blocking
+- 💎 Reward Engine с модификаторами
+- 🎭 Система персонажей (классы, расы, статы)
+- 🎲 D&D Dice система (d4-d20)
+- 🔌 WebSocket мультиплеер
+- 🗺️ Геолокация и AR
+- 📈 Автогенерация квестов
+- 🐳 Docker + Kubernetes готовность
+- 📜 Соответствие 152-ФЗ РФ
 
-### Особенности UI:
-- Эмодзи иконки для эмоциональности
-- Анимированные награды
-- Прогресс-бары XP
-- Цветовая кодировка приоритетов
-
----
-
-## 🔧 Конфигурация
-
-### Android (build.gradle.kts):
-```kotlin
-compileSdk = 34
-minSdk = 24
-targetSdk = 34
-versionCode = 2
-versionName = "2.0"
-```
-
-### Server (.env):
-```env
-DATABASE_URL=sqlite://irlquest.db
-JWT_SECRET=your-secret-key
-SERVER_PORT=8080
-```
+### ⏳ В разработке
+- Мобильное приложение (Kotlin/Compose)
+- Полная RAG система
+- Push-уведомления
+- Achievement tracking UI
 
 ---
 
 ## 🧪 Тестирование
 
-### Мобильное приложение:
 ```bash
-cd mobile
-./gradlew test                    # Unit тесты
-./gradlew connectedAndroidTest    # UI тесты
-```
-
-### Сервер:
-```bash
+# Backend тесты
 cd server-rust
-cargo test                        # Все тесты
-cargo test --test integration     # Интеграционные
+cargo test
+
+# Проверка здоровья
+curl http://localhost:8003/health
+
+# Тестовый пользователь
+# Username: testuser
+# Password: password
 ```
 
 ---
 
-## 🐛 Известные ограничения
+## 📦 Production готовность
 
-**Текущая версия 2.0**:
-- ✅ Локальное хранилище задач (не синхронизируется с сервером)
-- ✅ Базовый ИИ (эвристика, не ML модель)
-- ⏳ Награды не сохраняются на сервере
-- ⏳ Нет push-уведомлений
-- ⏳ Нет социальных функций
+### ✅ Готово
+- Docker images
+- Kubernetes manifests
+- Prometheus метрики
+- Grafana дашборды
+- Health checks
+- Автомиграции БД
+- Rate limiting
+- CORS настраиваемый
 
-**Будет исправлено в версии 2.1+**
+### ⚠️ Перед деплоем
+1. Измените `JWT_SECRET` на безопасный
+2. Настройте `CORS_ORIGIN` для вашего домена
+3. Установите `ENABLE_MFA=true`
+4. Настройте TLS/HTTPS
+5. Настройте бэкапы PostgreSQL
+
+---
+
+## 🔄 Миграция на PostgreSQL (06.11.2025)
+
+**Завершено**: ✅ SQLite полностью удален
+
+**Что изменилось**:
+- 🗄️ БД: SQLite → PostgreSQL 15+
+- 🔧 SQL: обновлен синтаксис (? → $1, $2, ...)
+- 📦 Зависимости: убрана sqlite feature
+- 📝 Документация: полностью обновлена
+- ⚙️ Конфиг: единый .env в корне проекта
+
+**Как запустить**:
+1. Скопируйте `.env.example` → `.env`
+2. Создайте БД: `psql -U postgres -c "CREATE DATABASE irl_quest;"`
+3. Запустите: `cd server-rust && cargo run --release`
 
 ---
 
 ## 🗺️ Roadmap
 
-### Version 2.1 (Q1 2026)
-- [ ] Синхронизация с сервером
-- [ ] Push-уведомления
-- [ ] Экспорт/импорт данных
-- [ ] Темная тема
+### Version 2.1.0 (Текущая) ✅
+- [x] PostgreSQL миграция
+- [x] 70+ API endpoints
+- [x] ML Inference
+- [x] OAuth2 + MFA
+- [x] WebSocket
+- [x] Dice & Character системы
+- [x] Геолокация & AR
+- [x] Docker & Kubernetes
 
-### Version 2.2 (Q2 2026)
-- [ ] Совместные квесты
-- [ ] Босс-файты
-- [ ] Магазин предметов
+### Version 2.2 (Q1 2026)
+- [ ] Полная RAG реализация
+- [ ] TLS/HTTPS
+- [ ] Achievement UI
+- [ ] Skill tree визуализация
+- [ ] Advanced ML models
 
-### Version 3.0 (Q3 2026)
-- [ ] AR-квесты
+### Version 3.0 (Q2 2026)
 - [ ] Гильдии
-- [ ] Достижения
+- [ ] Telegram/Discord бот
+- [ ] PWA версия
+- [ ] Seasonal events
+
+---
+
+## 🤝 Вклад в проект
+
+Приветствуются pull requests! Пожалуйста:
+1. Форкните репозиторий
+2. Создайте feature ветку
+3. Коммитьте изменения
+4. Пушьте в ветку
+5. Откройте Pull Request
+
+---
+
+## 📞 Поддержка
+
+- 📖 [Документация](docs/)
+- 🐛 [Issues](issues/)
+- 💬 [Discussions](discussions/)
 
 ---
 
 ## 📄 Лицензия
 
-MIT License - см. LICENSE файл
-
-
-## 📞 Поддержка
-
-- **Документация**: `/docs/`
-- **Issues**: GitHub Issues
+MIT License
 
 ---
 
-🏰 **Превратите свою жизнь в приключение!** ⚔️
+## 🎉 Благодарности
 
-*"Каждый великий герой начинал с малого"*
+- Rust community
+- Axum framework
+- SQLx maintainers
+- Jetpack Compose team
+- Ollama project
 
 ---
 
-**Версия**: 2.0 - Фэнтези Таверна  
-**Дата**: 25.10.2025  
-**APK**: `mobile/app/build/outputs/apk/debug/app-debug.apk` (19.06 МБ)
+**Превратите жизнь в приключение! 🏰⚔️**

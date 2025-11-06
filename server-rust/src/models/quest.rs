@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+﻿use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use serde_json::Value as JsonValue;
@@ -6,23 +6,51 @@ use serde_json::json;
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Quest {
+    #[serde(default)]
     pub id: i32,
+    #[serde(default)]
     pub title: String,
     pub description: Option<String>,
+    #[serde(default)]
     pub difficulty: i32,
+    #[serde(default = "default_status")]
     pub status: String,
+    #[serde(default = "default_priority")]
     pub priority: String,
     pub deadline: Option<DateTime<Utc>>,
+    #[serde(default)]
     pub completion_percentage: i32,
     pub reward_experience: Option<i32>,
     pub reward_description: Option<String>,
+    #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
     pub is_public: bool,
     pub location_name: Option<String>,
+    #[serde(default = "default_quest_type")]
     pub quest_type: String,
+    #[serde(default = "default_json")]
     pub metadata: JsonValue,
+    #[serde(default = "chrono::Utc::now")]
     pub created_at: DateTime<Utc>,
+    #[serde(default)]
     pub owner_id: i32,
+}
+
+fn default_status() -> String {
+    "pending".to_string()
+}
+
+fn default_priority() -> String {
+    "medium".to_string()
+}
+
+fn default_quest_type() -> String {
+    "personal".to_string()
+}
+
+fn default_json() -> JsonValue {
+    json!({})
 }
 
 #[derive(Debug, Deserialize)]

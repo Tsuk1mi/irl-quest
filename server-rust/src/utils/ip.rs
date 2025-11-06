@@ -1,4 +1,4 @@
-use axum::http::HeaderMap;
+﻿use axum::http::HeaderMap;
 
 // Try to get client IP from X-Forwarded-For, X-Real-IP or from an optional `Forwarded` header.
 pub fn get_client_ip_from_headers(headers: &HeaderMap) -> Option<String> {

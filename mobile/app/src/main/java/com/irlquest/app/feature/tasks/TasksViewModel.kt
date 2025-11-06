@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import com.irlquest.app.ui.viewmodel.AuthViewModel
+import com.irlquest.app.feature.auth.AuthViewModel
 import com.irlquest.app.data.repository.TaskRepository
 import com.irlquest.app.data.network.dto.TaskDto
 import timber.log.Timber

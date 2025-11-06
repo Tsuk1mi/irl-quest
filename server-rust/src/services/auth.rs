@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+﻿use anyhow::{anyhow, Result};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
@@ -43,7 +43,8 @@ impl AuthService {
         let hashed_password = hash(&user_create.password, DEFAULT_COST)?;
 
         // Create user
-        let user: User = sqlx::query_as(
+        let user: User = sqlx::query_as!(
+            User,
             r#"
             INSERT INTO users (
                 email, username, hashed_password, is_active, 
@@ -53,27 +54,31 @@ impl AuthService {
                 timezone, settings, created_at
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-            RETURNING *
+            RETURNING id, email, username, hashed_password, is_active,
+                      level, experience, gold, avatar_url, bio,
+                      timezone, last_login, settings,
+                      strength, intelligence, charisma, dexterity, constitution, wisdom,
+                      character_class, character_race, created_at
             "#,
+            &user_create.email,
+            &user_create.username,
+            &hashed_password,
+            true,
+            1, // level
+            0, // experience
+            100, // gold
+            10, // strength
+            10, // intelligence
+            10, // charisma
+            10, // dexterity
+            10, // constitution
+            10, // wisdom
+            "warrior", // character_class
+            "human", // character_race
+            user_create.timezone.as_deref().unwrap_or("UTC"),
+            serde_json::json!({}),
+            Utc::now()
         )
-        .bind(&user_create.email)
-        .bind(&user_create.username)
-        .bind(&hashed_password)
-        .bind(true)
-        .bind(1) // level
-        .bind(0) // experience
-        .bind(100) // gold
-        .bind(10) // strength
-        .bind(10) // intelligence
-        .bind(10) // charisma
-        .bind(10) // dexterity
-        .bind(10) // constitution
-        .bind(10) // wisdom
-        .bind("warrior") // character_class
-        .bind("human") // character_race
-        .bind(user_create.timezone.as_deref().unwrap_or("UTC"))
-        .bind(serde_json::json!({}))
-        .bind(Utc::now())
         .fetch_one(pool)
         .await?;
 
@@ -87,10 +92,15 @@ impl AuthService {
         password: &str,
     ) -> Result<(String, UserOut)> {
         // Find user by email or username
-        let user: Option<User> = sqlx::query_as(
-            "SELECT * FROM users WHERE email = $1 OR username = $1"
+        let user: Option<User> = sqlx::query_as!(
+            User,
+            r#"SELECT id, email, username, hashed_password, is_active, level, experience, gold,
+                      avatar_url, bio, timezone, last_login, settings,
+                      strength, intelligence, charisma, dexterity, constitution, wisdom,
+                      character_class, character_race, created_at
+               FROM users WHERE email = $1 OR username = $1"#,
+            username_or_email
         )
-        .bind(username_or_email)
         .fetch_optional(pool)
         .await?;
 
@@ -144,8 +154,13 @@ impl AuthService {
     }
 
     pub async fn get_user_by_id(&self, pool: &PgPool, user_id: i32) -> Result<Option<User>> {
-        let user: Option<User> = sqlx::query_as("SELECT * FROM users WHERE id = $1")
-            .bind(user_id)
+        let user: Option<User> = sqlx::query_as!(User, 
+            r#"SELECT id, email, username, hashed_password, is_active, level, experience, gold,
+                      avatar_url, bio, timezone, last_login, settings,
+                      strength, intelligence, charisma, dexterity, constitution, wisdom,
+                      character_class, character_race, created_at
+               FROM users WHERE id = $1"#, 
+            user_id)
             .fetch_optional(pool)
             .await?;
 

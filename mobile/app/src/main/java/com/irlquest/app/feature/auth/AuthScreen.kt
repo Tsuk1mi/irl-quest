@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.BuildConfig
-import com.irlquest.app.ui.viewmodel.AuthViewModel
+import com.irlquest.app.feature.auth.AuthViewModel
 import com.irlquest.app.ui.theme.*
 import kotlinx.coroutines.launch
 

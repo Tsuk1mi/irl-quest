@@ -46,7 +46,7 @@ sealed class BottomNavItem(
 fun MainScreen() {
     val navController = rememberNavController()
     // Создаём общий authViewModel для всех экранов
-    val authViewModel: com.irlquest.app.ui.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val authViewModel: com.irlquest.app.feature.auth.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 
     Scaffold(
         bottomBar = {
@@ -116,7 +116,7 @@ fun MainScreen() {
 @Composable
 fun MainNavHost(
     navController: NavHostController,
-    authViewModel: com.irlquest.app.ui.viewmodel.AuthViewModel,
+    authViewModel: com.irlquest.app.feature.auth.AuthViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(

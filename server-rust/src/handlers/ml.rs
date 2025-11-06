@@ -1,4 +1,4 @@
-use axum::{
+﻿use axum::{
     extract::State,
     http::StatusCode,
     response::Json,
@@ -12,7 +12,7 @@ use crate::{
     AppState,
 };
 
-use crate::models::RagKnowledgeOut;
+use crate::models::{RagKnowledgeOut, Quest, QuestGenerationResponse};
 use sqlx::query_as;
 
 #[derive(Debug, Deserialize)]
@@ -69,13 +69,38 @@ pub async fn dataset_todo_to_quest(
     let mut pairs = Vec::with_capacity(req.todos.len());
     for todo in req.todos {
         // Use template-based generator from RAG templates (auto-detects theme)
-        let quest = QuestTemplates::generate_quest_from_todo(
+        let quest_result = QuestTemplates::generate_quest_from_todo(
             &todo,
             req.context.as_deref(),
             req.difficulty_preference.unwrap_or(3).clamp(1, 5),
             1,
-        );
-        pairs.push(TodoQuestPair { todo_text: todo, quest });
+        ).await;
+        // Wrap in QuestGenerationResponse
+        let response = match quest_result {
+            Ok(quest) => QuestGenerationResponse {
+                title: quest.title.clone(),
+                description: quest.description.clone().unwrap_or_default(),
+                difficulty: quest.difficulty,
+                reward_experience: quest.reward_experience.unwrap_or(0),
+                reward_description: quest.reward_description.clone().unwrap_or_default(),
+                tags: quest.tags.clone(),
+                quest_type: quest.quest_type.clone(),
+                tasks: vec![],
+                story_context: None,
+            },
+            Err(_) => QuestGenerationResponse {
+                title: todo.clone(),
+                description: "".to_string(),
+                difficulty: 1,
+                reward_experience: 0,
+                reward_description: "".to_string(),
+                tags: vec![],
+                quest_type: "personal".to_string(),
+                tasks: vec![],
+                story_context: None,
+            },
+        };
+        pairs.push(TodoQuestPair { todo_text: todo, quest: response });
     }
     Ok(Json(pairs))
 }

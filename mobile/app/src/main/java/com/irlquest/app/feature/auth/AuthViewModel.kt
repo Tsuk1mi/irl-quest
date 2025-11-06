@@ -70,5 +70,38 @@ class AuthViewModel(
         repo.logout()
         _currentUser.value = null
     }
+
+    fun addExperienceAndGold(xp: Int, gold: Int) {
+        viewModelScope.launch {
+            val user = _currentUser.value ?: return@launch
+            val newXp = (user.experience ?: 0) + xp
+            val newGold = (user.gold ?: 0) + gold
+            
+            _currentUser.value = user.copy(
+                experience = newXp,
+                gold = newGold
+            )
+        }
+    }
+
+    fun checkLevelUp(xp: Int): Pair<Boolean, Int?> {
+        val user = _currentUser.value ?: return Pair(false, null)
+        val currentLevel = user.level ?: 1
+        val currentXp = user.experience ?: 0
+        val xpForNext = (currentLevel + 1) * 100
+        
+        return if (currentXp >= xpForNext) {
+            val newLevel = currentLevel + 1
+            viewModelScope.launch {
+                _currentUser.value = user.copy(
+                    level = newLevel,
+                    experience = currentXp - xpForNext
+                )
+            }
+            Pair(true, newLevel)
+        } else {
+            Pair(false, null)
+        }
+    }
 }
 

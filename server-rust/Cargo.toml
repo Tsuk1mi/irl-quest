@@ -9,7 +9,7 @@ path = "src/main_full.rs"
 
 [dependencies]
 # Web
-axum = { version = "0.7", features = ["macros", "tracing"] }
+axum = { version = "0.7", features = ["macros", "tracing", "ws"] }
 tokio = { version = "1.35", features = ["full"] }
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.5", features = ["cors", "trace", "auth"] }
@@ -17,6 +17,9 @@ http = "1.0"
 http-body = "1.0"
 http-body-util = "0.1"
 hyper = { version = "0.14", features = ["server"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+futures = "0.3"
+futures-util = "0.3"
 
 # Database
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono", "json"] }
@@ -28,12 +31,18 @@ serde_json = "1.0"
 # Auth
 jsonwebtoken = "9.2"
 bcrypt = "0.15"
+totp-rs = { version = "5.4", features = ["qr", "otpauth"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+base64 = "0.21"
+image = "0.24"
+password-hash = "0.5"
 
 # Utilities  
 chrono = { version = "0.4", features = ["serde"] }
 anyhow = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rand = "0.8"
 
 # Config
 dotenv = "0.15"
@@ -46,7 +55,7 @@ rand_core = { version = "0.6", features = ["std"] }
 validator = { version = "0.16", features = ["derive"] }
 
 # HTTP client for ML inference/embeddings
-reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11", features = ["json", "rustls-tls", "blocking"] }
 
 # Local ML helpers
 sha2 = "0.10"

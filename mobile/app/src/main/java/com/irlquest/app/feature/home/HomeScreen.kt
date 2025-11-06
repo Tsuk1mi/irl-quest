@@ -23,7 +23,8 @@ import com.irlquest.app.feature.quests.QuestsViewModel
 import com.irlquest.app.feature.tasks.TaskUi
 import com.irlquest.app.feature.tasks.TasksViewModel
 import com.irlquest.app.feature.tasks.TaskPriority
-import com.irlquest.app.ui.viewmodel.AuthViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.irlquest.app.feature.auth.AuthViewModel
 import com.irlquest.app.ui.theme.*
 import com.irlquest.app.ui.utils.toQuestTitle
 import com.irlquest.app.ui.components.RewardDialog

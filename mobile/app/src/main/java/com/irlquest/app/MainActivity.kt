@@ -22,8 +22,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.irlquest.app.feature.auth.AuthScreen
-import com.irlquest.app.ui.viewmodel.AuthViewModel
-import com.irlquest.app.ui.screens.TasksScreen
+import com.irlquest.app.feature.auth.AuthViewModel
+import com.irlquest.app.feature.tasks.TasksScreen
 import com.irlquest.app.ui.theme.IRLQuestTheme
 import com.irlquest.app.ui.navigation.MainScreen
 import java.io.File
@@ -153,7 +153,7 @@ fun IRLQuestApp() {
             
             composable("tasks") {
                 // передаём навигатор для кнопки "Quests" внутри TasksScreen — сейчас она ведёт на Home
-                TasksScreen(onNavigateToQuests = { navController.navigate("home") }, onLogout = { navController.navigate("home") })
+                TasksScreen(onNavigateToTaskDetail = {})
             }
 
             composable("profile") {
@@ -178,7 +178,7 @@ fun HomeScreen() {
 
 @Composable
 fun ProfileScreen() {
-    val authViewModel: com.irlquest.app.ui.viewmodel.AuthViewModel = viewModel()
+    val authViewModel: AuthViewModel = viewModel()
     val user by authViewModel.currentUser.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
     val error by authViewModel.error.collectAsState()

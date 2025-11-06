@@ -1,6 +1,14 @@
-pub mod auth_handlers;
+﻿pub mod auth_handlers;
+pub mod auth_extended;
 pub mod quest_handlers;
+pub mod quest_suggestions;
 pub mod task_handlers;
 pub mod search_handlers;
 pub mod ml;
+pub mod ml_inference;
 pub mod rag;
+pub mod config;
+pub mod dice;
+pub mod character;
+pub mod websocket;
+pub mod geolocation;

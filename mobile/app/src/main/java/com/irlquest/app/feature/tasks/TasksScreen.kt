@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.irlquest.app.feature.auth.AuthViewModel
 import com.irlquest.app.ui.theme.*
 import com.irlquest.app.ui.components.RewardDialog
 import androidx.compose.runtime.remember
@@ -25,7 +26,7 @@ import androidx.compose.runtime.remember
 @Composable
 fun TasksScreen(
     onNavigateToTaskDetail: (Int) -> Unit = {},
-    authViewModel: com.irlquest.app.ui.viewmodel.AuthViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(),
     viewModel: TasksViewModel = remember { TasksViewModel(authViewModel) }
 ) {
     val uiState by viewModel.uiState.collectAsState()
