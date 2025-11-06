@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "irl-quest.fullname" . }}-config
+  labels:
+    {{- include "irl-quest.labels" . | nindent 4 }}
+data:
+  PORT: {{ .Values.env.PORT | quote }}
+  JWT_EXPIRATION_HOURS: {{ .Values.env.JWT_EXPIRATION_HOURS | quote }}
+  REFRESH_TOKEN_EXPIRATION_DAYS: {{ .Values.env.REFRESH_TOKEN_EXPIRATION_DAYS | quote }}
+  RATE_LIMIT_PER_MINUTE: {{ .Values.env.RATE_LIMIT_PER_MINUTE | quote }}
+  RATE_LIMIT_BURST: {{ .Values.env.RATE_LIMIT_BURST | quote }}
+  ENABLE_MFA: {{ .Values.env.ENABLE_MFA | quote }}
+  ENABLE_OAUTH: {{ .Values.env.ENABLE_OAUTH | quote }}
+  ENABLE_MULTIPLAYER: {{ .Values.env.ENABLE_MULTIPLAYER | quote }}
+  ENABLE_IMAGE_PROCESSING: {{ .Values.env.ENABLE_IMAGE_PROCESSING | quote }}
+  RUST_LOG: "info,tower_http=debug"
+  DATABASE_URL: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "irl-quest.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+  REDIS_URL: "redis://:{{ .Values.redis.auth.password }}@{{ include "irl-quest.fullname" . }}-redis:6379"
+  S3_ENDPOINT: "http://{{ include "irl-quest.fullname" . }}-minio:9000"
+

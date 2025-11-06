@@ -1,0 +1,34 @@
+apiVersion: v2
+name: irl-quest
+description: IRL Quest - RPG task manager with gamification
+type: application
+version: 2.1.0
+appVersion: "2.1.0"
+
+keywords:
+  - gamification
+  - rpg
+  - task-manager
+  - rust
+  - kotlin
+
+maintainers:
+  - name: IRL Quest Team
+    email: support@irlquest.com
+
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+
+  - name: redis
+    version: "17.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+  - name: minio
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: minio.enabled
+

@@ -1,0 +1,38 @@
+# Prometheus конфигурация для IRL Quest
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'irl-quest'
+    environment: 'production'
+
+# Правила алертов
+rule_files:
+  - 'alerts.yml'
+
+# Scrape конфигурация
+scrape_configs:
+  # Rust сервер метрики
+  - job_name: 'irl-quest-server'
+    static_configs:
+      - targets: ['server:8003']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL метрики
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # Redis метрики
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # Prometheus сам себя
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+

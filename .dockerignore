@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Build artifacts
+target/
+*.exe
+*.pdb
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+
+# Test files
+tests/
+
+# Environment
+.env
+.env.local
+
+# Mobile
+mobile/
+
+# Examples
+examples/
+study/
+

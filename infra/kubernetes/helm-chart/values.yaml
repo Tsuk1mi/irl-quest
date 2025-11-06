@@ -1,0 +1,136 @@
+# Default values for IRL Quest Helm Chart
+
+# Количество реплик сервера
+replicaCount: 3
+
+# Image конфигурация
+image:
+  repository: irlquest/server
+  pullPolicy: IfNotPresent
+  tag: "2.1.0"
+
+# Service конфигурация
+service:
+  type: LoadBalancer
+  port: 8003
+  targetPort: 8003
+
+# Ingress для внешнего доступа
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: api.irlquest.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: irlquest-tls
+      hosts:
+        - api.irlquest.com
+
+# Resources
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# PostgreSQL (Bitnami chart)
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: change-me
+    database: irl_quest
+  primary:
+    persistence:
+      size: 20Gi
+    resources:
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+
+# Redis (Bitnami chart)
+redis:
+  enabled: true
+  auth:
+    password: change-me
+  master:
+    persistence:
+      size: 5Gi
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: 500m
+
+# MinIO (Bitnami chart)
+minio:
+  enabled: true
+  auth:
+    rootUser: minioadmin
+    rootPassword: change-me
+  persistence:
+    size: 50Gi
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+# ConfigMap для переменных окружения
+env:
+  PORT: "8003"
+  JWT_EXPIRATION_HOURS: "24"
+  REFRESH_TOKEN_EXPIRATION_DAYS: "30"
+  RATE_LIMIT_PER_MINUTE: "60"
+  RATE_LIMIT_BURST: "10"
+  ENABLE_MFA: "false"
+  ENABLE_OAUTH: "false"
+  ENABLE_MULTIPLAYER: "true"
+  ENABLE_IMAGE_PROCESSING: "true"
+
+# Secrets (использовать Kubernetes Secrets)
+secrets:
+  jwtSecret: ""  # Генерируется автоматически если пусто
+  googleClientId: ""
+  googleClientSecret: ""
+  appleClientId: ""
+  appleClientSecret: ""
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8003
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8003
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Node affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
