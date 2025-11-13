@@ -1,23 +1,23 @@
-﻿use axum::{
-    extract::State,
-    http::{StatusCode, HeaderMap},
-    Json,
-};
-use argon2::{Argon2, PasswordHasher, PasswordVerifier};
-use password_hash::{PasswordHash, SaltString, rand_core::OsRng};
-use crate::{error::AppError, validation};
-use jsonwebtoken::{encode, EncodingKey, Header};
-use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
-use chrono::{Utc};
+use crate::middleware::auth::CurrentUser;
 use crate::state::AppState;
 use crate::utils_impl::ip::get_client_ip_from_headers;
+use crate::{error::AppError, validation};
+use argon2::{Argon2, PasswordHasher, PasswordVerifier};
 use axum::extract::ConnectInfo;
-use std::net::SocketAddr;
-use sqlx::Error as SqlxError;
-use sqlx::Row;
-use crate::middleware::auth::CurrentUser;
 use axum::Extension;
+use axum::{
+    extract::State,
+    http::{HeaderMap, StatusCode},
+    Json,
+};
+use chrono::Utc;
+use jsonwebtoken::{encode, EncodingKey, Header};
+use password_hash::{rand_core::OsRng, PasswordHash, SaltString};
+use serde::{Deserialize, Serialize};
+use sqlx::Error as SqlxError;
+use sqlx::PgPool;
+use sqlx::Row;
+use std::net::SocketAddr;
 
 #[derive(Deserialize)]
 pub struct RegisterRequest {
@@ -43,9 +43,9 @@ pub struct AuthResponse {
 
 #[derive(Serialize)]
 struct Claims {
-    sub: i32,  // user_id
-    exp: i64,  // expiration time
-    iat: i64,  // issued at
+    sub: i32, // user_id
+    exp: i64, // expiration time
+    iat: i64, // issued at
 }
 
 pub async fn register(
@@ -58,7 +58,12 @@ pub async fn register(
 
     // Debug logging: headers and incoming fields (mask password content)
     tracing::info!("[auth::register] headers={:?}", headers);
-    tracing::info!("[auth::register] payload username='{}' email='{}' password_len={}'", req.username, req.email, req.password.len());
+    tracing::info!(
+        "[auth::register] payload username='{}' email='{}' password_len={}'",
+        req.username,
+        req.email,
+        req.password.len()
+    );
     tracing::info!("[auth::register] peer={}", peer);
 
     // Валидация входных данных
@@ -67,13 +72,11 @@ pub async fn register(
     validation::validate_username(&req.username)?;
 
     // Проверка на существующего пользователя
-    let existing_user = match sqlx::query(
-        "SELECT id FROM users WHERE email = $1 OR username = $2",
-    )
-    .bind(&req.email)
-    .bind(&req.username)
-    .fetch_optional(pool)
-    .await
+    let existing_user = match sqlx::query("SELECT id FROM users WHERE email = $1 OR username = $2")
+        .bind(&req.email)
+        .bind(&req.username)
+        .fetch_optional(pool)
+        .await
     {
         Ok(opt) => opt,
         Err(e) => {
@@ -81,7 +84,10 @@ pub async fn register(
             if let SqlxError::Database(db_err) = &e {
                 let msg = db_err.message();
                 if msg.contains("relation \"users\" does not exist") {
-                    tracing::error!("Database schema missing: users table not found. Full db error: {:?}", e);
+                    tracing::error!(
+                        "Database schema missing: users table not found. Full db error: {:?}",
+                        e
+                    );
                     return Err(AppError::Internal("Database schema not initialized: table 'users' is missing. Run migrations or check DATABASE_URL.".to_string()));
                 }
             }
@@ -128,12 +134,15 @@ pub async fn register(
         }
     };
 
-    let user_id: i32 = user_row.try_get("id").map_err(|e| AppError::Internal(e.to_string()))?;
-    let user_name: String = user_row.try_get("username").map_err(|e| AppError::Internal(e.to_string()))?;
+    let user_id: i32 = user_row
+        .try_get("id")
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+    let user_name: String = user_row
+        .try_get("username")
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     // Генерация JWT токена
-    let token = create_token(user_id)
-        .map_err(|e| AppError::Auth(e.1))?;
+    let token = create_token(user_id).map_err(|e| AppError::Auth(e.1))?;
 
     // Extract client IP from headers if present, otherwise use peer address
     let client_ip = get_client_ip_from_headers(&headers)
@@ -159,7 +168,12 @@ pub async fn login(
 
     // Debug logging: headers and identifier
     tracing::info!("[auth::login] headers={:?}", headers);
-    tracing::info!("[auth::login] payload email={:?} username={:?} password_len={}", req.email, req.username, req.password.len());
+    tracing::info!(
+        "[auth::login] payload email={:?} username={:?} password_len={}",
+        req.email,
+        req.username,
+        req.password.len()
+    );
     tracing::info!("[auth::login] peer={}", peer);
 
     // Determine identifier: prefer email if provided, otherwise username
@@ -172,7 +186,9 @@ pub async fn login(
         validation::validate_username(u)?;
         u.clone()
     } else {
-        return Err(AppError::BadRequest("Either email or username must be provided".to_string()));
+        return Err(AppError::BadRequest(
+            "Either email or username must be provided".to_string(),
+        ));
     };
 
     // Fetch user by identifier
@@ -202,9 +218,15 @@ pub async fn login(
 
     let user = match user_opt {
         Some(row) => {
-            let id: i32 = row.try_get("id").map_err(|e| AppError::Internal(e.to_string()))?;
-            let username: String = row.try_get("username").map_err(|e| AppError::Internal(e.to_string()))?;
-            let hashed_password: String = row.try_get("hashed_password").map_err(|e| AppError::Internal(e.to_string()))?;
+            let id: i32 = row
+                .try_get("id")
+                .map_err(|e| AppError::Internal(e.to_string()))?;
+            let username: String = row
+                .try_get("username")
+                .map_err(|e| AppError::Internal(e.to_string()))?;
+            let hashed_password: String = row
+                .try_get("hashed_password")
+                .map_err(|e| AppError::Internal(e.to_string()))?;
             // construct a small temp struct
             (id, username, hashed_password)
         }
@@ -217,11 +239,15 @@ pub async fn login(
     let (user_id, user_name, user_hashed_password) = user;
 
     // Проверка пароля
-    let parsed_hash = PasswordHash::new(&user_hashed_password)
-        .map_err(|e| AppError::Internal(e.to_string()))?;
+    let parsed_hash =
+        PasswordHash::new(&user_hashed_password).map_err(|e| AppError::Internal(e.to_string()))?;
 
     if let Err(_) = Argon2::default().verify_password(req.password.as_bytes(), &parsed_hash) {
-        tracing::warn!("[auth::login] password verification failed for user_id={} identifier={}", user_id, identifier);
+        tracing::warn!(
+            "[auth::login] password verification failed for user_id={} identifier={}",
+            user_id,
+            identifier
+        );
         return Err(AppError::Auth("Invalid credentials".to_string()));
     }
 
@@ -232,7 +258,12 @@ pub async fn login(
     let client_ip = get_client_ip_from_headers(&headers)
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| peer.ip().to_string());
-    tracing::info!("Login from IP: {} for user {} (identifier={})", client_ip, user_name, identifier);
+    tracing::info!(
+        "Login from IP: {} for user {} (identifier={})",
+        client_ip,
+        user_name,
+        identifier
+    );
 
     Ok(Json(AuthResponse {
         token,
@@ -255,9 +286,18 @@ fn create_token(user_id: i32) -> Result<String, (StatusCode, String)> {
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(std::env::var("JWT_SECRET").unwrap_or_else(|_| "your-secret-key".to_string()).as_bytes()),
+        &EncodingKey::from_secret(
+            std::env::var("JWT_SECRET")
+                .unwrap_or_else(|_| "your-secret-key".to_string())
+                .as_bytes(),
+        ),
     )
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to create token: {}", e)))
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to create token: {}", e),
+        )
+    })
 }
 
 /// Get current user information

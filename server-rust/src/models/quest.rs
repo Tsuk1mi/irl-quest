@@ -1,8 +1,8 @@
-﻿use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
-use serde_json::Value as JsonValue;
 use serde_json::json;
+use serde_json::Value as JsonValue;
+use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct Quest {

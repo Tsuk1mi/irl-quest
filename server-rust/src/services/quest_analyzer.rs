@@ -1,4 +1,4 @@
-﻿use crate::models::Quest;
+use crate::models::Quest;
 use sqlx::PgPool;
 
 pub struct QuestAnalyzer;
@@ -37,4 +37,3 @@ impl QuestAnalyzer {
         Ok(vec![])
     }
 }
-

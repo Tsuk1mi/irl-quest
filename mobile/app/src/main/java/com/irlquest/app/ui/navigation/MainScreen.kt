@@ -1,7 +1,11 @@
 package com.irlquest.app.ui.navigation
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -27,7 +31,11 @@ import com.irlquest.app.feature.stats.StatsScreen
 import com.irlquest.app.feature.tasks.TasksScreen
 import com.irlquest.app.feature.tasks.TaskDetailScreen
 import com.irlquest.app.feature.hero.HeroProfileScreen
-import com.irlquest.app.feature.worldmap.WorldMapScreen
+import com.irlquest.app.feature.worldmap.PaperMapScreen
+import com.irlquest.app.feature.guilds.GuildsScreen
+import com.irlquest.app.feature.coop.CoopMissionsScreen
+import com.irlquest.app.feature.settings.SettingsScreen
+import com.irlquest.app.feature.auction.AuctionScreen
 
 sealed class BottomNavItem(
     val route: String,
@@ -35,11 +43,16 @@ sealed class BottomNavItem(
     val icon: ImageVector,
     val emoji: String = ""
 ) {
-    object Home : BottomNavItem("home", "Таверна", Icons.Default.Home, "🏰")
-    object Quests : BottomNavItem("quests", "Квесты", Icons.Default.EmojiEvents, "📜")
-    object Hero : BottomNavItem("hero", "Герой", Icons.Default.Person, "⚔️")
-    object WorldMap : BottomNavItem("worldmap", "Карта", Icons.Default.Map, "🗺️")
-    object Stats : BottomNavItem("stats", "Статистика", Icons.Default.Analytics, "📊")
+    object Home : BottomNavItem("home", "Таверна", Icons.Default.Home, "")
+    object Quests : BottomNavItem("quests", "Квесты", Icons.Default.EmojiEvents, "")
+    object Tasks : BottomNavItem("tasks", "Задания", Icons.Default.ListAlt, "")
+    object Hero : BottomNavItem("hero", "Герой", Icons.Default.Person, "")
+    object WorldMap : BottomNavItem("worldmap", "Карта", Icons.Default.Explore, "")
+    object Stats : BottomNavItem("stats", "Статистика", Icons.Default.Insights, "")
+    object Guilds : BottomNavItem("guilds", "Гильдии", Icons.Default.Groups, "")
+    object Coop : BottomNavItem("coop", "Кооп", Icons.Default.PeopleAlt, "")
+    object Auction : BottomNavItem("auction", "Аукцион", Icons.Default.ShoppingCart, "")
+    object Settings : BottomNavItem("settings", "Настройки", Icons.Default.Settings, "")
 }
 
 @Composable
@@ -57,20 +70,22 @@ fun MainScreen() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
+                // Оставляем только 5 основных вкладок для удобства навигации
+                // Остальные доступны через Home screen или напрямую
                 val items = listOf(
                     BottomNavItem.Home,
                     BottomNavItem.Quests,
                     BottomNavItem.Hero,
                     BottomNavItem.WorldMap,
-                    BottomNavItem.Stats
+                    BottomNavItem.Settings
                 )
 
                 items.forEach { item ->
                     NavigationBarItem(
                         icon = {
-                            Text(
-                                text = item.emoji,
-                                fontSize = 24.sp
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.title
                             )
                         },
                         label = { 
@@ -128,6 +143,11 @@ fun MainNavHost(
             HomeScreen(
                 onNavigateToQuest = { questId -> navController.navigate("quests/$questId") },
                 onNavigateToTask = { taskId -> navController.navigate("tasks/$taskId") },
+                onNavigateToTasks = { navController.navigate("tasks") },
+                onNavigateToGuilds = { navController.navigate(BottomNavItem.Guilds.route) },
+                onNavigateToCoop = { navController.navigate(BottomNavItem.Coop.route) },
+                onNavigateToAuction = { navController.navigate(BottomNavItem.Auction.route) },
+                onNavigateToFocus = { navController.navigate("focus") },
                 authViewModel = authViewModel
             )
         }
@@ -137,6 +157,15 @@ fun MainNavHost(
                 onNavigateToQuestDetail = { questId ->
                     navController.navigate("quests/$questId")
                 }
+            )
+        }
+
+        composable("tasks") {
+            TasksScreen(
+                onNavigateToTaskDetail = { taskId ->
+                    navController.navigate("tasks/$taskId")
+                },
+                authViewModel = authViewModel
             )
         }
 
@@ -161,7 +190,11 @@ fun MainNavHost(
         }
 
         composable(BottomNavItem.WorldMap.route) {
-            WorldMapScreen()
+            PaperMapScreen(
+                onQuestClick = { questId ->
+                    navController.navigate("quests/$questId")
+                }
+            )
         }
         
         composable(BottomNavItem.Hero.route) {
@@ -170,6 +203,42 @@ fun MainNavHost(
         
         composable(BottomNavItem.Stats.route) {
             StatsScreen()
+        }
+
+        composable(BottomNavItem.Guilds.route) {
+            GuildsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToGuildDetail = { guildId ->
+                    // TODO: добавить детальный экран гильдии
+                }
+            )
+        }
+
+        composable(BottomNavItem.Coop.route) {
+            CoopMissionsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToMissionDetail = { missionId ->
+                    // TODO: добавить детальный экран миссии
+                }
+            )
+        }
+
+        composable(BottomNavItem.Auction.route) {
+            AuctionScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(BottomNavItem.Settings.route) {
+            SettingsScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Focus session route
+        composable("focus") {
+            FocusSessionScreen()
         }
     }
 }

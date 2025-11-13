@@ -1,4 +1,4 @@
-﻿use anyhow::Result;
+use anyhow::Result;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use sqlx::Row;
@@ -53,10 +53,16 @@ pub async fn create_database_pool(database_url: &str) -> Result<PgPool> {
             }
             Err(e) => {
                 if attempt >= max_retries {
-                    warn!("Failed to connect to database after {} attempts", max_retries);
+                    warn!(
+                        "Failed to connect to database after {} attempts",
+                        max_retries
+                    );
                     return Err(e.into());
                 }
-                warn!("Failed to connect to database: {}. Retrying in {:?}...", e, retry_delay);
+                warn!(
+                    "Failed to connect to database: {}. Retrying in {:?}...",
+                    e, retry_delay
+                );
                 sleep(retry_delay).await;
             }
         }
@@ -65,7 +71,9 @@ pub async fn create_database_pool(database_url: &str) -> Result<PgPool> {
 
 async fn run_migrations(pool: &PgPool) -> Result<()> {
     // Enable extensions if available (ignore errors where not supported)
-    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS vector").execute(pool).await;
+    let _ = sqlx::query("CREATE EXTENSION IF NOT EXISTS vector")
+        .execute(pool)
+        .await;
 
     // Users table
     sqlx::query(
@@ -167,18 +175,42 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
     )
     .execute(pool)
     .await?;
-    
+
     // Update users table to add new D&D columns if they don't exist
     // PostgreSQL doesn't support multiple ADD COLUMN IF NOT EXISTS in one statement
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS gold INTEGER DEFAULT 100").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS strength INTEGER DEFAULT 10").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS intelligence INTEGER DEFAULT 10").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS charisma INTEGER DEFAULT 10").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS dexterity INTEGER DEFAULT 10").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS constitution INTEGER DEFAULT 10").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS wisdom INTEGER DEFAULT 10").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS character_class VARCHAR(50) DEFAULT 'warrior'").execute(pool).await;
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS character_race VARCHAR(50) DEFAULT 'human'").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS gold INTEGER DEFAULT 100")
+        .execute(pool)
+        .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS strength INTEGER DEFAULT 10")
+        .execute(pool)
+        .await;
+    let _ =
+        sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS intelligence INTEGER DEFAULT 10")
+            .execute(pool)
+            .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS charisma INTEGER DEFAULT 10")
+        .execute(pool)
+        .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS dexterity INTEGER DEFAULT 10")
+        .execute(pool)
+        .await;
+    let _ =
+        sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS constitution INTEGER DEFAULT 10")
+            .execute(pool)
+            .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS wisdom INTEGER DEFAULT 10")
+        .execute(pool)
+        .await;
+    let _ = sqlx::query(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS character_class VARCHAR(50) DEFAULT 'warrior'",
+    )
+    .execute(pool)
+    .await;
+    let _ = sqlx::query(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS character_race VARCHAR(50) DEFAULT 'human'",
+    )
+    .execute(pool)
+    .await;
 
     // User achievements table
     sqlx::query(
@@ -230,13 +262,193 @@ async fn run_migrations(pool: &PgPool) -> Result<()> {
         .execute(pool)
         .await?;
 
+    // MFA tables (from migration 007_auth_extensions.sql)
+    // Refresh tokens table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS refresh_tokens (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            revoked BOOLEAN NOT NULL DEFAULT FALSE,
+            device_info TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)")
+        .execute(pool)
+        .await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token)")
+        .execute(pool)
+        .await?;
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at)",
+    )
+    .execute(pool)
+    .await?;
+
+    // MFA secrets table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS mfa_secrets (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL UNIQUE,
+            secret TEXT NOT NULL,
+            enabled BOOLEAN NOT NULL DEFAULT FALSE,
+            backup_codes TEXT,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_mfa_secrets_user_id ON mfa_secrets(user_id)")
+        .execute(pool)
+        .await?;
+
+    // MFA sessions table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS mfa_sessions (
+            id SERIAL PRIMARY KEY,
+            session_id TEXT NOT NULL UNIQUE,
+            user_id INTEGER NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_mfa_sessions_session_id ON mfa_sessions(session_id)",
+    )
+    .execute(pool)
+    .await?;
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_mfa_sessions_expires_at ON mfa_sessions(expires_at)",
+    )
+    .execute(pool)
+    .await?;
+
+    // Login attempts table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS login_attempts (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER,
+            username TEXT,
+            success BOOLEAN NOT NULL,
+            ip_address TEXT,
+            user_agent TEXT,
+            failure_reason TEXT,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_login_attempts_user_id ON login_attempts(user_id)")
+        .execute(pool)
+        .await?;
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_login_attempts_created_at ON login_attempts(created_at)",
+    )
+    .execute(pool)
+    .await?;
+
+    // Add optional columns to users table for MFA
+    let _ = sqlx::query(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE",
+    )
+    .execute(pool)
+    .await;
+    let _ =
+        sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN DEFAULT FALSE")
+            .execute(pool)
+            .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP")
+        .execute(pool)
+        .await;
+    let _ = sqlx::query(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0",
+    )
+    .execute(pool)
+    .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP")
+        .execute(pool)
+        .await;
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMP")
+        .execute(pool)
+        .await;
+
+    // Add race column to users table if not exists
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN IF NOT EXISTS race TEXT DEFAULT 'human'")
+        .execute(pool)
+        .await;
+
+    // Character system tables
+    // User stat points table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS user_stat_points (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL UNIQUE,
+            available_points INTEGER NOT NULL DEFAULT 0,
+            total_earned INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_user_stat_points_user_id ON user_stat_points(user_id)",
+    )
+    .execute(pool)
+    .await?;
+
+    // Stat increase history table
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS stat_increase_history (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            stat_name TEXT NOT NULL,
+            old_value INTEGER NOT NULL,
+            new_value INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_stat_increase_history_user_id ON stat_increase_history(user_id)")
+        .execute(pool)
+        .await?;
+
     Ok(())
 }
 
 pub async fn check_health(pool: &PgPool) -> Result<()> {
-    let row = sqlx::query("SELECT 1 as result")
-        .fetch_one(pool)
-        .await?;
+    let row = sqlx::query("SELECT 1 as result").fetch_one(pool).await?;
 
     let result: i32 = row.try_get("result")?;
     if result == 1 {
@@ -250,7 +462,7 @@ pub async fn check_health(pool: &PgPool) -> Result<()> {
 pub async fn seed_test_user(pool: &PgPool) -> Result<()> {
     // Local imports so we don't change global file imports
     use argon2::{Argon2, PasswordHasher};
-    use password_hash::{SaltString, rand_core::OsRng};
+    use password_hash::{rand_core::OsRng, SaltString};
 
     // Check if test user exists
     let existing: Option<(i32,)> = sqlx::query_as("SELECT id FROM users WHERE username = $1")
@@ -283,17 +495,17 @@ pub async fn seed_test_user(pool: &PgPool) -> Result<()> {
     .bind("testuser@example.com")
     .bind(hashed_password)
     .bind(true)
-    .bind(1)  // level
-    .bind(0)  // experience
-    .bind(100)  // gold
-    .bind(12)  // strength
-    .bind(10)  // intelligence
-    .bind(8)   // charisma
-    .bind(10)  // dexterity
-    .bind(10)  // constitution
-    .bind(10)  // wisdom
-    .bind("warrior")  // character_class
-    .bind("human")    // character_race
+    .bind(1) // level
+    .bind(0) // experience
+    .bind(100) // gold
+    .bind(12) // strength
+    .bind(10) // intelligence
+    .bind(8) // charisma
+    .bind(10) // dexterity
+    .bind(10) // constitution
+    .bind(10) // wisdom
+    .bind("warrior") // character_class
+    .bind("human") // character_race
     .bind("UTC")
     .bind(serde_json::json!({}))
     .bind(chrono::Utc::now())

@@ -1,4 +1,4 @@
-﻿use crate::error::AppError;
+use crate::error::AppError;
 use regex::Regex;
 use tracing::error;
 
@@ -25,21 +25,21 @@ pub fn validate_password(password: &str) -> Result<(), AppError> {
     // Ensure minimum length
     if password.len() < 8 {
         return Err(AppError::BadRequest(
-            "Пароль должен содержать минимум 8 символов, включая буквы и цифры".to_string()
+            "Пароль должен содержать минимум 8 символов, включая буквы и цифры".to_string(),
         ));
     }
 
     // Must contain at least one ASCII letter
     if !password.chars().any(|c| c.is_ascii_alphabetic()) {
         return Err(AppError::BadRequest(
-            "Пароль должен содержать минимум одну букву".to_string()
+            "Пароль должен содержать минимум одну букву".to_string(),
         ));
     }
 
     // Must contain at least one ASCII digit
     if !password.chars().any(|c| c.is_ascii_digit()) {
         return Err(AppError::BadRequest(
-            "Пароль должен содержать минимум одну цифру".to_string()
+            "Пароль должен содержать минимум одну цифру".to_string(),
         ));
     }
 
@@ -47,7 +47,7 @@ pub fn validate_password(password: &str) -> Result<(), AppError> {
     let re = compile_regex(r"^[A-Za-z\d@$!%*#?&]+$")?;
     if !re.is_match(password) {
         return Err(AppError::BadRequest(
-            "Пароль содержит недопустимые символы".to_string()
+            "Пароль содержит недопустимые символы".to_string(),
         ));
     }
     Ok(())
@@ -65,11 +65,13 @@ pub fn validate_username(username: &str) -> Result<(), AppError> {
 
 pub fn validate_task_title(title: &str) -> Result<(), AppError> {
     if title.trim().is_empty() {
-        return Err(AppError::BadRequest("Название задачи не может быть пустым".to_string()));
+        return Err(AppError::BadRequest(
+            "Название задачи не может быть пустым".to_string(),
+        ));
     }
     if title.len() > 200 {
         return Err(AppError::BadRequest(
-            "Название задачи не может быть длиннее 200 символов".to_string()
+            "Название задачи не может быть длиннее 200 символов".to_string(),
         ));
     }
     Ok(())
@@ -77,11 +79,13 @@ pub fn validate_task_title(title: &str) -> Result<(), AppError> {
 
 pub fn validate_quest_title(title: &str) -> Result<(), AppError> {
     if title.trim().is_empty() {
-        return Err(AppError::BadRequest("Название квеста не может быть пустым".to_string()));
+        return Err(AppError::BadRequest(
+            "Название квеста не может быть пустым".to_string(),
+        ));
     }
     if title.len() > 200 {
         return Err(AppError::BadRequest(
-            "Название квеста не может быть длиннее 200 символов".to_string()
+            "Название квеста не может быть длиннее 200 символов".to_string(),
         ));
     }
     Ok(())
@@ -100,7 +104,7 @@ pub fn validate_priority(priority: &str) -> Result<(), AppError> {
     match priority {
         "low" | "medium" | "high" | "urgent" => Ok(()),
         _ => Err(AppError::BadRequest(
-            "Недопустимый приоритет. Допустимые значения: low, medium, high, urgent".to_string()
+            "Недопустимый приоритет. Допустимые значения: low, medium, high, urgent".to_string(),
         )),
     }
 }

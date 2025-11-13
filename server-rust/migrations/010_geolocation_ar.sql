@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS geo_zones (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_geo_zones_user_id ON geo_zones(user_id);
-CREATE INDEX idx_geo_zones_type ON geo_zones(zone_type);
+CREATE INDEX IF NOT EXISTS idx_geo_zones_user_id ON geo_zones(user_id);
+CREATE INDEX IF NOT EXISTS idx_geo_zones_type ON geo_zones(zone_type);
 
 -- Гео-триггеры для квестов
 CREATE TABLE IF NOT EXISTS geo_triggers (
@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS geo_triggers (
     FOREIGN KEY (zone_id) REFERENCES geo_zones(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_geo_triggers_quest_id ON geo_triggers(quest_id);
-CREATE INDEX idx_geo_triggers_zone_id ON geo_triggers(zone_id);
-CREATE INDEX idx_geo_triggers_active ON geo_triggers(is_active);
+CREATE INDEX IF NOT EXISTS idx_geo_triggers_quest_id ON geo_triggers(quest_id);
+CREATE INDEX IF NOT EXISTS idx_geo_triggers_zone_id ON geo_triggers(zone_id);
+CREATE INDEX IF NOT EXISTS idx_geo_triggers_active ON geo_triggers(is_active);
 
 -- AR маркеры на карте
 CREATE TABLE IF NOT EXISTS ar_markers (
@@ -49,9 +49,9 @@ CREATE TABLE IF NOT EXISTS ar_markers (
     FOREIGN KEY (quest_id) REFERENCES quests(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_ar_markers_location ON ar_markers(latitude, longitude);
-CREATE INDEX idx_ar_markers_quest_id ON ar_markers(quest_id);
-CREATE INDEX idx_ar_markers_collected ON ar_markers(is_collected);
+CREATE INDEX IF NOT EXISTS idx_ar_markers_location ON ar_markers(latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_ar_markers_quest_id ON ar_markers(quest_id);
+CREATE INDEX IF NOT EXISTS idx_ar_markers_collected ON ar_markers(is_collected);
 
 -- Метаданные обработки изображений (БЕЗ хранения самих изображений!)
 CREATE TABLE IF NOT EXISTS image_processing_metadata (
@@ -73,10 +73,10 @@ CREATE TABLE IF NOT EXISTS image_processing_metadata (
     FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_image_metadata_quest_id ON image_processing_metadata(quest_id);
-CREATE INDEX idx_image_metadata_user_id ON image_processing_metadata(user_id);
-CREATE INDEX idx_image_metadata_status ON image_processing_metadata(verification_status);
-CREATE INDEX idx_image_metadata_hash ON image_processing_metadata(image_hash);
+CREATE INDEX IF NOT EXISTS idx_image_metadata_quest_id ON image_processing_metadata(quest_id);
+CREATE INDEX IF NOT EXISTS idx_image_metadata_user_id ON image_processing_metadata(user_id);
+CREATE INDEX IF NOT EXISTS idx_image_metadata_status ON image_processing_metadata(verification_status);
+CREATE INDEX IF NOT EXISTS idx_image_metadata_hash ON image_processing_metadata(image_hash);
 
 -- История триггеров геолокации
 CREATE TABLE IF NOT EXISTS geo_trigger_history (
@@ -90,9 +90,9 @@ CREATE TABLE IF NOT EXISTS geo_trigger_history (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_geo_trigger_history_trigger_id ON geo_trigger_history(trigger_id);
-CREATE INDEX idx_geo_trigger_history_user_id ON geo_trigger_history(user_id);
-CREATE INDEX idx_geo_trigger_history_triggered_at ON geo_trigger_history(triggered_at);
+CREATE INDEX IF NOT EXISTS idx_geo_trigger_history_trigger_id ON geo_trigger_history(trigger_id);
+CREATE INDEX IF NOT EXISTS idx_geo_trigger_history_user_id ON geo_trigger_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_geo_trigger_history_triggered_at ON geo_trigger_history(triggered_at);
 
 -- Согласие пользователя на обработку изображений
 CREATE TABLE IF NOT EXISTS user_consents (
@@ -107,5 +107,5 @@ CREATE TABLE IF NOT EXISTS user_consents (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_consents_user_id ON user_consents(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_consents_user_id ON user_consents(user_id);
 

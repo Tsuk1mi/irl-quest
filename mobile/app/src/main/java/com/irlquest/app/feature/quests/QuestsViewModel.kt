@@ -22,7 +22,8 @@ data class QuestsUiState(
 )
 
 class QuestsViewModel(
-    private val repo: QuestRepository = QuestRepository()
+    private val repo: QuestRepository = QuestRepository(),
+    private val mlRepo: com.irlquest.app.data.repository.MLRepository = com.irlquest.app.data.repository.MLRepository()
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(QuestsUiState())
     val uiState: StateFlow<QuestsUiState> = _uiState.asStateFlow()
@@ -81,6 +82,32 @@ class QuestsViewModel(
                 loadQuests()
             } catch (e: Exception) {
                 timber.log.Timber.e(e, "QuestsViewModel: Failed to create quest")
+                _uiState.value = _uiState.value.copy(
+                    error = "Ошибка создания квеста: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Создание квеста из ML-генерации
+     */
+    fun createQuestFromML(generated: com.irlquest.shared.models.MLQuestGenerationResponse) {
+        viewModelScope.launch {
+            try {
+                // Создаём квест с данными от ML
+                val newDto = repo.createQuest(
+                    title = generated.title,
+                    description = generated.description,
+                    difficulty = generated.difficulty // ML автоопределил сложность
+                )
+                
+                timber.log.Timber.d("QuestsViewModel: ML-generated quest created, id=${newDto.id}")
+                
+                // Обновляем список квестов
+                loadQuests()
+            } catch (e: Exception) {
+                timber.log.Timber.e(e, "QuestsViewModel: Failed to create ML quest")
                 _uiState.value = _uiState.value.copy(
                     error = "Ошибка создания квеста: ${e.message}"
                 )

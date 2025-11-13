@@ -72,8 +72,15 @@ fun QuestEditScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {
-                    // вызов с именованными параметрами, без difficulty (не поддерживается)
-                    viewModel.updateQuest(id = questId, title = title, description = description, priority = priority, status = status)
+                    // Преобразуем Int priority в String для соответствия серверу
+                    val priorityStr = when (priority) {
+                        1 -> "low"
+                        2 -> "medium"
+                        3 -> "high"
+                        4 -> "critical"
+                        else -> "medium"
+                    }
+                    viewModel.updateQuest(id = questId, title = title, description = description, priority = priorityStr, status = status)
                     onSaved()
                 }) {
                     Text("Сохранить")

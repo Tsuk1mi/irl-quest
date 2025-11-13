@@ -1,6 +1,5 @@
-﻿/// Reward Engine - Система расчета наград с модификаторами
+/// Reward Engine - Система расчета наград с модификаторами
 use crate::models::rewards::*;
-use chrono::Utc;
 use rand::Rng;
 
 pub struct RewardEngine {
@@ -13,11 +12,7 @@ impl RewardEngine {
     }
 
     /// Создать конфигурацию наград на основе сложности
-    pub fn create_reward_config(
-        &self,
-        difficulty: u8,
-        quest_type: QuestType,
-    ) -> QuestRewardConfig {
+    pub fn create_reward_config(&self, difficulty: u8, quest_type: QuestType) -> QuestRewardConfig {
         // Базовые награды на основе сложности
         let base_experience = (difficulty as u32) * 50;
         let base_gold = (difficulty as u32) * 20;
@@ -190,7 +185,7 @@ impl RewardEngine {
         // Интеллект на умственные
         // Ловкость на скорость
         // Харизма на социальные
-        
+
         let relevant_stat = match difficulty {
             1..=3 => stats.strength,
             4..=6 => stats.intelligence,
@@ -210,11 +205,7 @@ impl RewardEngine {
     }
 
     /// Обновить ежедневную статистику
-    pub fn update_daily_stats(
-        &self,
-        stats: &mut DailyRewardStats,
-        rewards: &FinalRewards,
-    ) {
+    pub fn update_daily_stats(&self, stats: &mut DailyRewardStats, rewards: &FinalRewards) {
         stats.total_experience += rewards.experience;
         stats.total_gold += rewards.gold;
         stats.total_items += rewards.items.len() as u32;
@@ -223,8 +214,10 @@ impl RewardEngine {
 
     /// Проверить и предупредить о приближении к soft cap
     pub fn check_cap_warning(&self, stats: &DailyRewardStats) -> Option<CapWarning> {
-        let exp_percent = (stats.total_experience as f32 / self.economy_caps.daily_experience_cap as f32) * 100.0;
-        let gold_percent = (stats.total_gold as f32 / self.economy_caps.daily_gold_cap as f32) * 100.0;
+        let exp_percent =
+            (stats.total_experience as f32 / self.economy_caps.daily_experience_cap as f32) * 100.0;
+        let gold_percent =
+            (stats.total_gold as f32 / self.economy_caps.daily_gold_cap as f32) * 100.0;
 
         if exp_percent >= 80.0 || gold_percent >= 80.0 {
             Some(CapWarning {
@@ -286,7 +279,7 @@ mod tests {
     fn test_reward_calculation() {
         let engine = RewardEngine::new(EconomyCaps::default());
         let config = engine.create_reward_config(5, QuestType::Daily);
-        
+
         assert_eq!(config.base_experience, 250); // 5 * 50
         assert_eq!(config.base_gold, 100); // 5 * 20
     }
@@ -295,12 +288,11 @@ mod tests {
     fn test_modifiers() {
         let engine = RewardEngine::new(EconomyCaps::default());
         let stats = CharacterStats::default();
-        
+
         let modifiers = engine.calculate_modifiers(
-            5,  // difficulty
-            1,  // solo
-            &stats,
-            true,  // first completion
+            5, // difficulty
+            1, // solo
+            &stats, true,  // first completion
             0,     // no streak
             false, // no event
             0,     // first time
@@ -327,4 +319,3 @@ mod tests {
         assert!(!soft_cap.gold_capped);
     }
 }
-

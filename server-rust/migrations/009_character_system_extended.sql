@@ -3,7 +3,7 @@
 -- Дата: 31.10.2025
 
 -- Добавить расу к пользователю
-ALTER TABLE users ADD COLUMN race TEXT DEFAULT 'human';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS race TEXT DEFAULT 'human';
 
 -- Таблица доступных очков характеристик
 CREATE TABLE IF NOT EXISTS user_stat_points (
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS user_stat_points (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_stat_points_user_id ON user_stat_points(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_stat_points_user_id ON user_stat_points(user_id);
 
 -- Таблица прокачки (history)
 CREATE TABLE IF NOT EXISTS stat_increase_history (
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS stat_increase_history (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_stat_increase_history_user_id ON stat_increase_history(user_id);
-CREATE INDEX idx_stat_increase_history_created_at ON stat_increase_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_stat_increase_history_user_id ON stat_increase_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_stat_increase_history_created_at ON stat_increase_history(created_at);
 
 -- Добавить колонку luck если её еще нет
 ALTER TABLE users ADD COLUMN IF NOT EXISTS luck INTEGER DEFAULT 10;

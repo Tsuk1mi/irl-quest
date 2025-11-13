@@ -1,9 +1,12 @@
 // Temporary stubs for RAG functionality
 // TODO: Implement proper RAG service
 
-use sqlx::PgPool;
 use crate::ml::MlClient;
-use crate::models::{QuestGenerationRequest, QuestGenerationResponse, TaskEnhancementRequest, TaskEnhancementResponse};
+use crate::models::{
+    QuestGenerationRequest, QuestGenerationResponse, TaskEnhancementRequest,
+    TaskEnhancementResponse,
+};
+use sqlx::PgPool;
 
 pub struct RagService {
     _db: PgPool,
@@ -18,18 +21,28 @@ impl RagService {
         }
     }
 
-    pub async fn generate_quest_from_todo(&self, _request: QuestGenerationRequest) -> Result<QuestGenerationResponse, String> {
+    pub async fn generate_quest_from_todo(
+        &self,
+        _request: QuestGenerationRequest,
+    ) -> Result<QuestGenerationResponse, String> {
         Err("RAG service not yet implemented".to_string())
     }
 
-    pub async fn enhance_task(&self, _request: TaskEnhancementRequest) -> Result<TaskEnhancementResponse, String> {
+    pub async fn enhance_task(
+        &self,
+        _request: TaskEnhancementRequest,
+    ) -> Result<TaskEnhancementResponse, String> {
         Err("RAG service not yet implemented".to_string())
     }
 
-    pub async fn classify_task(&self, _task_text: &str, _context: Option<&str>) -> Result<(Vec<String>, i32), String> {
+    pub async fn classify_task(
+        &self,
+        _task_text: &str,
+        _context: Option<&str>,
+    ) -> Result<(Vec<String>, i32), String> {
         Err("RAG service not yet implemented".to_string())
     }
-    
+
     pub async fn classify_task_and_generate_exam(
         &self,
         _task_text: &str,
@@ -54,12 +67,12 @@ pub mod templates {
     }
 
     pub struct QuestTemplates;
-    
+
     impl QuestTemplates {
         pub fn template_for_type(_quest_type: &str) -> Option<String> {
             None
         }
-        
+
         pub async fn generate_quest_from_todo(
             _title: &str,
             _description: Option<&str>,
@@ -70,4 +83,3 @@ pub mod templates {
         }
     }
 }
-

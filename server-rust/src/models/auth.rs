@@ -1,13 +1,12 @@
-﻿use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// JWT Claims для access token
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: String,        // user_id
-    pub exp: usize,         // expiration time
-    pub iat: usize,         // issued at
+    pub sub: String, // user_id
+    pub exp: usize,  // expiration time
+    pub iat: usize,  // issued at
     pub user_id: i32,
     pub username: String,
 }
@@ -101,14 +100,14 @@ pub struct MfaSecret {
 /// Запрос на включение MFA
 #[derive(Debug, Deserialize)]
 pub struct EnableMfaRequest {
-    pub code: String,  // TOTP code для верификации
+    pub code: String, // TOTP code для верификации
 }
 
 /// Ответ с QR кодом для MFA
 #[derive(Debug, Serialize)]
 pub struct MfaSetupResponse {
     pub secret: String,
-    pub qr_code: String,  // base64 encoded QR code image
+    pub qr_code: String, // base64 encoded QR code image
     pub backup_codes: Vec<String>,
     pub otpauth_url: String,
 }
@@ -167,4 +166,3 @@ pub struct JwtUser {
     pub username: String,
     pub email: String,
 }
-

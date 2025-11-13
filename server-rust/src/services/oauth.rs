@@ -1,11 +1,14 @@
-﻿/// OAuth2 сервис для интеграции с Google и Apple
+/// OAuth2 сервис для интеграции с Google и Apple
 use crate::config::Config;
 use crate::error::AppError;
-use crate::models::auth::{OAuthAccount, OAuthProvider, OAuthUserInfo};
+use crate::models::auth::{OAuthProvider, OAuthUserInfo};
 use crate::models::User;
+use argon2::{Argon2, PasswordHasher};
 use chrono::Utc;
+use password_hash::SaltString;
+use rand::rngs::OsRng;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sqlx::PgPool;
 
 pub struct OAuthService {
@@ -23,7 +26,7 @@ struct GoogleTokenResponse {
 
 #[derive(Debug, Deserialize)]
 struct GoogleUserInfo {
-    sub: String,           // Google user ID
+    sub: String, // Google user ID
     email: String,
     name: Option<String>,
     picture: Option<String>,
@@ -40,7 +43,7 @@ struct AppleTokenResponse {
 
 #[derive(Debug, Deserialize)]
 struct AppleUserInfo {
-    sub: String,           // Apple user ID
+    sub: String, // Apple user ID
     email: String,
     email_verified: Option<bool>,
 }
@@ -54,11 +57,17 @@ impl OAuthService {
     }
 
     /// Обменять authorization code на access token (Google)
-    async fn exchange_google_code(&self, code: &str, redirect_uri: &str) -> Result<GoogleTokenResponse, AppError> {
-        let google_client_id = std::env::var("GOOGLE_CLIENT_ID")
-            .map_err(|_| AppError::InternalServerError("GOOGLE_CLIENT_ID not configured".to_string()))?;
-        let google_client_secret = std::env::var("GOOGLE_CLIENT_SECRET")
-            .map_err(|_| AppError::InternalServerError("GOOGLE_CLIENT_SECRET not configured".to_string()))?;
+    async fn exchange_google_code(
+        &self,
+        code: &str,
+        redirect_uri: &str,
+    ) -> Result<GoogleTokenResponse, AppError> {
+        let google_client_id = std::env::var("GOOGLE_CLIENT_ID").map_err(|_| {
+            AppError::InternalServerError("GOOGLE_CLIENT_ID not configured".to_string())
+        })?;
+        let google_client_secret = std::env::var("GOOGLE_CLIENT_SECRET").map_err(|_| {
+            AppError::InternalServerError("GOOGLE_CLIENT_SECRET not configured".to_string())
+        })?;
 
         let params = [
             ("code", code),
@@ -74,17 +83,21 @@ impl OAuthService {
             .form(&params)
             .send()
             .await
-            .map_err(|e| AppError::ExternalServiceError(format!("Failed to exchange Google code: {}", e)))?;
+            .map_err(|e| {
+                AppError::ExternalServiceError(format!("Failed to exchange Google code: {}", e))
+            })?;
 
         if !response.status().is_success() {
             let error_text = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalServiceError(format!("Google OAuth error: {}", error_text)));
+            return Err(AppError::ExternalServiceError(format!(
+                "Google OAuth error: {}",
+                error_text
+            )));
         }
 
-        response
-            .json::<GoogleTokenResponse>()
-            .await
-            .map_err(|e| AppError::ExternalServiceError(format!("Failed to parse Google response: {}", e)))
+        response.json::<GoogleTokenResponse>().await.map_err(|e| {
+            AppError::ExternalServiceError(format!("Failed to parse Google response: {}", e))
+        })
     }
 
     /// Получить информацию о пользователе Google
@@ -95,16 +108,19 @@ impl OAuthService {
             .bearer_auth(access_token)
             .send()
             .await
-            .map_err(|e| AppError::ExternalServiceError(format!("Failed to get Google user info: {}", e)))?;
+            .map_err(|e| {
+                AppError::ExternalServiceError(format!("Failed to get Google user info: {}", e))
+            })?;
 
         if !response.status().is_success() {
-            return Err(AppError::ExternalServiceError("Failed to get Google user info".to_string()));
+            return Err(AppError::ExternalServiceError(
+                "Failed to get Google user info".to_string(),
+            ));
         }
 
-        response
-            .json::<GoogleUserInfo>()
-            .await
-            .map_err(|e| AppError::ExternalServiceError(format!("Failed to parse Google user info: {}", e)))
+        response.json::<GoogleUserInfo>().await.map_err(|e| {
+            AppError::ExternalServiceError(format!("Failed to parse Google user info: {}", e))
+        })
     }
 
     /// Аутентификация через Google
@@ -118,7 +134,9 @@ impl OAuthService {
         let token_response = self.exchange_google_code(code, redirect_uri).await?;
 
         // Получить информацию о пользователе
-        let user_info = self.get_google_user_info(&token_response.access_token).await?;
+        let user_info = self
+            .get_google_user_info(&token_response.access_token)
+            .await?;
 
         if !user_info.email_verified {
             return Err(AppError::BadRequest("Email not verified".to_string()));
@@ -155,8 +173,9 @@ impl OAuthService {
         // Apple Sign In требует более сложной настройки с JWT и приватными ключами
         // Здесь базовая структура, которую нужно расширить
 
-        let apple_client_id = std::env::var("APPLE_CLIENT_ID")
-            .map_err(|_| AppError::InternalServerError("APPLE_CLIENT_ID not configured".to_string()))?;
+        let apple_client_id = std::env::var("APPLE_CLIENT_ID").map_err(|_| {
+            AppError::InternalServerError("APPLE_CLIENT_ID not configured".to_string())
+        })?;
 
         // TODO: Реализовать полный Apple Sign In flow
         // Требуется:
@@ -164,7 +183,9 @@ impl OAuthService {
         // 2. Обменять code на tokens
         // 3. Декодировать id_token для получения информации о пользователе
 
-        Err(AppError::NotImplemented("Apple Sign In not fully implemented yet".to_string()))
+        Err(AppError::NotImplemented(
+            "Apple Sign In not fully implemented yet".to_string(),
+        ))
     }
 
     /// Найти или создать пользователя по OAuth информации
@@ -178,13 +199,13 @@ impl OAuthService {
         struct OAuthAccountRecord {
             user_id: i32,
         }
-        
+
         let existing_account = sqlx::query_as::<_, OAuthAccountRecord>(
             r#"
             SELECT user_id
             FROM oauth_accounts
             WHERE provider = $1 AND provider_user_id = $2
-            "#
+            "#,
         )
         .bind(oauth_info.provider.as_str())
         .bind(&oauth_info.provider_user_id)
@@ -202,7 +223,7 @@ impl OAuthService {
                        character_class, character_race, created_at
                 FROM users
                 WHERE id = $1
-                "#
+                "#,
             )
             .bind(account.user_id)
             .fetch_one(pool)
@@ -214,7 +235,7 @@ impl OAuthService {
 
         // Создать нового пользователя
         let username = self.generate_username_from_email(&oauth_info.email);
-        
+
         // Проверить, что username уникален
         let mut final_username = username.clone();
         let mut counter = 1;
@@ -234,14 +255,17 @@ impl OAuthService {
         }
 
         // Создать пользователя без пароля (OAuth only)
-        let hashed_password = bcrypt::hash("", 4)
-            .map_err(|e| AppError::InternalServerError(format!("Failed to hash password: {}", e)))?;
+        let salt = SaltString::generate(&mut OsRng);
+        let hashed_password = Argon2::default()
+            .hash_password("".as_bytes(), &salt)
+            .map_err(|e| AppError::InternalServerError(format!("Failed to hash password: {}", e)))?
+            .to_string();
 
         #[derive(sqlx::FromRow)]
         struct NewUser {
             id: i32,
         }
-        
+
         let result = sqlx::query_as::<_, NewUser>(
             r#"
             INSERT INTO users (username, email, hashed_password, level, experience, gold, character_class)
@@ -263,7 +287,7 @@ impl OAuthService {
             r#"
             INSERT INTO oauth_accounts (user_id, provider, provider_user_id)
             VALUES ($1, $2, $3)
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(oauth_info.provider.as_str())
@@ -281,7 +305,7 @@ impl OAuthService {
                    character_class, character_race, created_at
             FROM users
             WHERE id = $1
-            "#
+            "#,
         )
         .bind(user_id)
         .fetch_one(pool)
@@ -308,7 +332,7 @@ impl OAuthService {
             UPDATE oauth_accounts
             SET access_token = $1, refresh_token = $2, expires_at = $3
             WHERE provider = $4 AND provider_user_id = $5
-            "#
+            "#,
         )
         .bind(access_token)
         .bind(refresh_token)
@@ -334,4 +358,3 @@ impl OAuthService {
             .to_lowercase()
     }
 }
-

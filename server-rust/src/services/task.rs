@@ -1,7 +1,7 @@
-﻿use anyhow::Result;
+use anyhow::Result;
 use chrono::Utc;
-use sqlx::PgPool;
 use serde_json::json;
+use sqlx::PgPool;
 
 use crate::models::task::{Task, TaskCreate, TaskOut, TaskUpdate};
 
@@ -116,13 +116,12 @@ impl TaskService {
         user_id: i32,
         task_id: i32,
     ) -> Result<Option<TaskOut>> {
-        let task: Option<Task> = sqlx::query_as::<_, Task>(
-            "SELECT * FROM tasks WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(task_id)
-        .bind(user_id)
-        .fetch_optional(pool)
-        .await?;
+        let task: Option<Task> =
+            sqlx::query_as::<_, Task>("SELECT * FROM tasks WHERE id = $1 AND owner_id = $2")
+                .bind(task_id)
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await?;
 
         Ok(task.map(TaskOut::from))
     }
@@ -135,33 +134,69 @@ impl TaskService {
         task_update: TaskUpdate,
     ) -> Result<Option<TaskOut>> {
         // Load existing
-        let task: Option<Task> = sqlx::query_as::<_, Task>(
-            "SELECT * FROM tasks WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(task_id)
-        .bind(user_id)
-        .fetch_optional(pool)
-        .await?;
+        let task: Option<Task> =
+            sqlx::query_as::<_, Task>("SELECT * FROM tasks WHERE id = $1 AND owner_id = $2")
+                .bind(task_id)
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await?;
 
-        let mut task = match task { Some(t) => t, None => return Ok(None) };
+        let mut task = match task {
+            Some(t) => t,
+            None => return Ok(None),
+        };
 
-        if let Some(title) = task_update.title { task.title = title; }
-        if let Some(description) = task_update.description { task.description = Some(description); }
-        if let Some(completed) = task_update.completed { task.completed = completed; }
-        if let Some(status) = task_update.status { task.status = status; }
-        if let Some(priority) = task_update.priority { task.priority = priority; }
-        if let Some(deadline) = task_update.deadline { task.deadline = Some(deadline); }
-        if let Some(estimated_duration) = task_update.estimated_duration { task.estimated_duration = Some(estimated_duration); }
-        if let Some(actual_duration) = task_update.actual_duration { task.actual_duration = Some(actual_duration); }
-        if let Some(difficulty) = task_update.difficulty { task.difficulty = difficulty; }
-        if let Some(experience_reward) = task_update.experience_reward { task.experience_reward = experience_reward; }
-        if let Some(tags) = task_update.tags { task.tags = tags; }
-        if let Some(location_name) = task_update.location_name { task.location_name = Some(location_name); }
-        if let Some(subtasks) = task_update.subtasks { task.subtasks = subtasks; }
-        if let Some(notes) = task_update.notes { task.notes = Some(notes); }
-        if let Some(attachments) = task_update.attachments { task.attachments = attachments; }
-        if let Some(completion_proof) = task_update.completion_proof { task.completion_proof = Some(completion_proof); }
-        if let Some(metadata) = task_update.metadata { task.metadata = metadata; }
+        if let Some(title) = task_update.title {
+            task.title = title;
+        }
+        if let Some(description) = task_update.description {
+            task.description = Some(description);
+        }
+        if let Some(completed) = task_update.completed {
+            task.completed = completed;
+        }
+        if let Some(status) = task_update.status {
+            task.status = status;
+        }
+        if let Some(priority) = task_update.priority {
+            task.priority = priority;
+        }
+        if let Some(deadline) = task_update.deadline {
+            task.deadline = Some(deadline);
+        }
+        if let Some(estimated_duration) = task_update.estimated_duration {
+            task.estimated_duration = Some(estimated_duration);
+        }
+        if let Some(actual_duration) = task_update.actual_duration {
+            task.actual_duration = Some(actual_duration);
+        }
+        if let Some(difficulty) = task_update.difficulty {
+            task.difficulty = difficulty;
+        }
+        if let Some(experience_reward) = task_update.experience_reward {
+            task.experience_reward = experience_reward;
+        }
+        if let Some(tags) = task_update.tags {
+            task.tags = tags;
+        }
+        if let Some(location_name) = task_update.location_name {
+            task.location_name = Some(location_name);
+        }
+        if let Some(subtasks) = task_update.subtasks {
+            task.subtasks = subtasks;
+        }
+        if let Some(notes) = task_update.notes {
+            task.notes = Some(notes);
+        }
+        if let Some(attachments) = task_update.attachments {
+            task.attachments = attachments;
+        }
+        if let Some(completion_proof) = task_update.completion_proof {
+            task.completion_proof = Some(completion_proof);
+        }
+        if let Some(metadata) = task_update.metadata {
+            task.metadata = metadata;
+        }
 
         let updated: Task = sqlx::query_as::<_, Task>(
             r#"
@@ -200,18 +235,12 @@ impl TaskService {
     }
 
     #[allow(dead_code)]
-    pub async fn delete_task_for_user(
-        pool: &PgPool,
-        user_id: i32,
-        task_id: i32,
-    ) -> Result<bool> {
-        let result = sqlx::query(
-            "DELETE FROM tasks WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(task_id)
-        .bind(user_id)
-        .execute(pool)
-        .await?;
+    pub async fn delete_task_for_user(pool: &PgPool, user_id: i32, task_id: i32) -> Result<bool> {
+        let result = sqlx::query("DELETE FROM tasks WHERE id = $1 AND owner_id = $2")
+            .bind(task_id)
+            .bind(user_id)
+            .execute(pool)
+            .await?;
 
         Ok(result.rows_affected() > 0)
     }

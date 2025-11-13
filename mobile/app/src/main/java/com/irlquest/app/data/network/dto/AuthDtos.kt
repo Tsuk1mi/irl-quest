@@ -21,21 +21,38 @@ data class LoginRequest(
 )
 
 // Ответы аутентификации
+// Сервер использует #[serde(flatten)], что разворачивает TokenResponse на верхний уровень
 @Serializable
 data class LoginResponse(
+    // Поля из TokenResponse (развернуты из-за flatten)
     @SerialName("access_token") val accessToken: String? = null,
-    @SerialName("token") val token: String? = null,
+    @SerialName("refresh_token") val refreshToken: String? = null,
     @SerialName("token_type") val tokenType: String = "bearer",
+    @SerialName("expires_in") val expiresIn: Long? = null,
+    // Поля LoginResponse
+    @SerialName("requires_mfa") val requiresMfa: Boolean = false,
+    @SerialName("mfa_session_token") val mfaSessionToken: String? = null,
+    // Для обратной совместимости
+    @SerialName("token") val token: String? = null,
     val user: UserDto? = null,
     @SerialName("user_id") val userId: Int? = null,
     val username: String? = null,
     @SerialName("client_ip") val clientIp: String? = null
-)
+) {
+    // Вычисляемое свойство для получения токена (используем другое имя чтобы избежать конфликта)
+    val accessTokenValue: String?
+        get() = accessToken ?: token
+    
+    val refreshTokenValue: String?
+        get() = refreshToken
+}
 
 @Serializable
 data class TokenResponse(
     @SerialName("access_token") val accessToken: String,
-    @SerialName("token_type") val tokenType: String = "bearer"
+    @SerialName("refresh_token") val refreshToken: String? = null,
+    @SerialName("token_type") val tokenType: String = "bearer",
+    @SerialName("expires_in") val expiresIn: Long? = null
 )
 
 @Serializable
@@ -97,4 +114,11 @@ data class UserCreateRequest(
     val email: String,
     val username: String,
     val password: String
+)
+
+@Serializable
+data class ProfileUpdateRequest(
+    val username: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val bio: String? = null
 )

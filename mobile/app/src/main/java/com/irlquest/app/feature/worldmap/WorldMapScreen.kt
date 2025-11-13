@@ -21,7 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.irlquest.app.feature.worldmap.WorldMapViewModel
 import com.irlquest.app.ui.theme.*
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
 
 data class WorldZone(
     val id: Int,
@@ -37,11 +42,28 @@ data class WorldZone(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorldMapScreen() {
+fun WorldMapScreen(
+    viewModel: WorldMapViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
     var selectedZone by remember { mutableStateOf<WorldZone?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // Пример данных зон
-    val zones = remember {
+    LaunchedEffect(Unit) {
+        viewModel.loadZones()
+    }
+
+    // Показываем ошибку, если есть
+    uiState.error?.let { error ->
+        LaunchedEffect(error) {
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
+
+    val defaultZones = remember {
         listOf(
             WorldZone(
                 1,
@@ -96,18 +118,18 @@ fun WorldMapScreen() {
             WorldZone(
                 5,
                 "⚠️ Пещера Хаоса",
-                "Темное место, где скапливаются просроченные задачи. Чем больше " +
-                        "нерешенных дел, тем глубже и опаснее становится пещера. " +
-                        "Очисти её, чтобы вернуть свет!",
+                "Темное место, где скапливаются просроченные задачи.",
                 "overdue",
                 "⚠️",
-                80,
-                3,
+                0,
+                0,
                 0,
                 Error
             )
         )
     }
+
+    val zones = if (uiState.zones.isEmpty()) defaultZones else uiState.zones
 
     Scaffold(
         topBar = {
@@ -138,6 +160,12 @@ fun WorldMapScreen() {
                 )
                 .padding(padding)
         ) {
+            // Snackbar для ошибок
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+            
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()

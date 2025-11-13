@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.irlquest.app.data.repository.OwnedItem
 import com.irlquest.app.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -36,6 +37,7 @@ fun RewardDialog(
     goldGained: Int,
     levelUp: Boolean = false,
     newLevel: Int? = null,
+    loot: List<OwnedItem> = emptyList(),
     onDismiss: () -> Unit
 ) {
     // Анимации
@@ -196,6 +198,28 @@ fun RewardDialog(
                     }
                 }
 
+                if (loot.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f))
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Добыча",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            fontWeight = FontWeight.Bold
+                        )
+                        loot.forEach { item ->
+                            LootRow(item = item)
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Цитата NPC
@@ -226,6 +250,44 @@ fun RewardDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LootRow(item: OwnedItem) {
+    val qualityColor = when (item.quality) {
+        com.irlquest.shared.models.ItemQuality.COMMON -> OnSurface.copy(alpha = 0.7f)
+        com.irlquest.shared.models.ItemQuality.UNCOMMON -> QuestSilver
+        com.irlquest.shared.models.ItemQuality.RARE -> MysticBlue
+        com.irlquest.shared.models.ItemQuality.EPIC -> QuestGold
+        com.irlquest.shared.models.ItemQuality.LEGENDARY -> Secondary
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${item.icon} ${item.name}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = qualityColor,
+                fontWeight = FontWeight.Bold
+            )
+            item.description?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
+        Text(
+            text = "×${item.quantity}",
+            style = MaterialTheme.typography.bodyLarge,
+            color = OnSurface
+        )
     }
 }
 

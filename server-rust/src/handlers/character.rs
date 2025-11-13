@@ -1,22 +1,21 @@
-﻿/// Handlers для системы персонажей (классы, расы, характеристики)
+use crate::error::AppError;
+use crate::middleware::auth::CurrentUser;
+use crate::models::character::*;
+use crate::state::AppState;
+/// Handlers для системы персонажей (классы, расы, характеристики)
 use axum::{
     extract::{Extension, State},
     http::StatusCode,
     Json,
 };
 use sqlx::Row;
-use crate::error::AppError;
-use crate::models::character::*;
-use crate::middleware::auth::CurrentUser;
-use crate::state::AppState;
 
 /// GET /api/character/profile - Получить профиль персонажа
 pub async fn get_character_profile(
     State(state): State<AppState>,
     Extension(current_user): Extension<Option<CurrentUser>>,
 ) -> Result<Json<CharacterProfile>, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     // Получить данные пользователя
     let user_data = sqlx::query(
@@ -25,28 +24,53 @@ pub async fn get_character_profile(
                strength, intelligence, dexterity, charisma, wisdom as luck
         FROM users
         WHERE id = $1
-        "#
+        "#,
     )
     .bind(user.0.id)
     .fetch_one(&state.db)
     .await
     .map_err(|e| AppError::DatabaseError(format!("Failed to fetch user: {}", e)))?;
 
-    // Получить доступные очки характеристик
-    let stat_points = sqlx::query(
-        "SELECT available_points FROM user_stat_points WHERE user_id = $1"
-    )
-    .bind(user.0.id)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(|e| AppError::DatabaseError(format!("Failed to fetch stat points: {}", e)))?
-    .and_then(|r| r.try_get::<i32, _>("available_points").ok())
-    .unwrap_or(0);
+    // Получить доступные очки характеристик (с проверкой существования таблицы)
+    let stat_points = {
+        // Проверяем существование таблицы
+        let table_exists: Option<bool> = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'user_stat_points'
+            )
+            "#,
+        )
+        .fetch_optional(&state.db)
+        .await
+        .ok()
+        .flatten();
+
+        if table_exists == Some(true) {
+            sqlx::query("SELECT available_points FROM user_stat_points WHERE user_id = $1")
+                .bind(user.0.id)
+                .fetch_optional(&state.db)
+                .await
+                .map_err(|e| {
+                    AppError::DatabaseError(format!("Failed to fetch stat points: {}", e))
+                })?
+                .and_then(|r| r.try_get::<i32, _>("available_points").ok())
+                .unwrap_or(0)
+        } else {
+            0
+        }
+    };
 
     // Создать Character объект
     let character = Character {
         user_id: user.0.id,
-        class: match user_data.try_get::<String, _>("character_class").ok().as_deref() {
+        class: match user_data
+            .try_get::<String, _>("character_class")
+            .ok()
+            .as_deref()
+        {
             Some("warrior") => CharacterClass::Warrior,
             Some("mage") => CharacterClass::Mage,
             Some("rogue") => CharacterClass::Rogue,
@@ -83,8 +107,7 @@ pub async fn select_class_race(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(request): Json<SelectClassRaceRequest>,
 ) -> Result<StatusCode, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     // Рассчитать начальные характеристики
     let stats = CharacterStats::new(&request.class, &request.race);
@@ -96,7 +119,7 @@ pub async fn select_class_race(
         SET character_class = $1, character_race = $2,
             strength = $3, intelligence = $4, dexterity = $5, charisma = $6, wisdom = $7
         WHERE id = $8
-        "#
+        "#,
     )
     .bind(format!("{:?}", request.class).to_lowercase())
     .bind(format!("{:?}", request.race).to_lowercase())
@@ -126,19 +149,41 @@ pub async fn increase_stat(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(request): Json<IncreaseStatRequest>,
 ) -> Result<StatusCode, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     // Проверить доступные очки
-    let stat_points = sqlx::query(
-        "SELECT available_points FROM user_stat_points WHERE user_id = $1"
-    )
-    .bind(user.0.id)
-    .fetch_optional(&state.db)
-    .await
-    .map_err(|e| AppError::DatabaseError(format!("Failed to fetch stat points: {}", e)))?;
+    // Получить доступные очки характеристик (с проверкой существования таблицы)
+    let available = {
+        let table_exists: Option<bool> = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'user_stat_points'
+            )
+            "#,
+        )
+        .fetch_optional(&state.db)
+        .await
+        .ok()
+        .flatten();
 
-    let available = stat_points.and_then(|r| r.try_get::<i32, _>("available_points").ok()).unwrap_or(0);
+        if table_exists == Some(true) {
+            let stat_points =
+                sqlx::query("SELECT available_points FROM user_stat_points WHERE user_id = $1")
+                    .bind(user.0.id)
+                    .fetch_optional(&state.db)
+                    .await
+                    .map_err(|e| {
+                        AppError::DatabaseError(format!("Failed to fetch stat points: {}", e))
+                    })?;
+            stat_points
+                .and_then(|r| r.try_get::<i32, _>("available_points").ok())
+                .unwrap_or(0)
+        } else {
+            0
+        }
+    };
     let amount = request.amount.unwrap_or(1);
 
     if available < amount as i32 {
@@ -146,7 +191,7 @@ pub async fn increase_stat(
     }
 
     // Получить текущее значение характеристики
-    let current_value = sqlx::query(&format!(
+    let _current_value = sqlx::query(&format!(
         "SELECT {} FROM users WHERE id = ?",
         request.stat_name
     ))
@@ -160,7 +205,12 @@ pub async fn increase_stat(
     // Записать в историю
     // Обновить доступные очки
 
-    tracing::info!("User {} increased {} by {}", user.0.id, request.stat_name, amount);
+    tracing::info!(
+        "User {} increased {} by {}",
+        user.0.id,
+        request.stat_name,
+        amount
+    );
 
     Ok(StatusCode::OK)
 }
@@ -238,24 +288,23 @@ pub async fn level_up(
     State(state): State<AppState>,
     Extension(current_user): Extension<Option<CurrentUser>>,
 ) -> Result<Json<LevelUpResult>, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     // Получить данные пользователя
-    let user_data = sqlx::query(
-        "SELECT level, experience FROM users WHERE id = $1"
-    )
-    .bind(user.0.id)
-    .fetch_one(&state.db)
-    .await
-    .map_err(|e| AppError::DatabaseError(format!("Failed to fetch user: {}", e)))?;
+    let user_data = sqlx::query("SELECT level, experience FROM users WHERE id = $1")
+        .bind(user.0.id)
+        .fetch_one(&state.db)
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to fetch user: {}", e)))?;
 
     let level = user_data.try_get::<i32, _>("level").unwrap_or(1) as u8;
     let experience = user_data.try_get::<i32, _>("experience").unwrap_or(0) as u32;
     let required_exp = level as u32 * 100;
 
     if experience < required_exp {
-        return Err(AppError::BadRequest("Not enough experience to level up".to_string()));
+        return Err(AppError::BadRequest(
+            "Not enough experience to level up".to_string(),
+        ));
     }
 
     // Повысить уровень
@@ -263,34 +312,49 @@ pub async fn level_up(
     let new_experience = experience - required_exp;
     let stat_points_gained = if new_level % 5 == 0 { 2 } else { 1 };
 
-    sqlx::query(
-        "UPDATE users SET level = $1, experience = $2 WHERE id = $3"
-    )
-    .bind(new_level as i32)
-    .bind(new_experience as i32)
-    .bind(user.0.id)
-    .execute(&state.db)
-    .await
-    .map_err(|e| AppError::DatabaseError(format!("Failed to level up: {}", e)))?;
+    sqlx::query("UPDATE users SET level = $1, experience = $2 WHERE id = $3")
+        .bind(new_level as i32)
+        .bind(new_experience as i32)
+        .bind(user.0.id)
+        .execute(&state.db)
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to level up: {}", e)))?;
 
-    // Добавить очки характеристик
-    sqlx::query(
+    // Добавить очки характеристик (с проверкой существования таблицы)
+    let table_exists: Option<bool> = sqlx::query_scalar::<_, bool>(
         r#"
-        INSERT INTO user_stat_points (user_id, available_points, total_earned)
-        VALUES ($1, $2, $3)
-        ON CONFLICT(user_id) DO UPDATE SET
-            available_points = available_points + $4,
-            total_earned = total_earned + $5
-        "#
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'user_stat_points'
+        )
+        "#,
     )
-    .bind(user.0.id)
-    .bind(stat_points_gained as i32)
-    .bind(stat_points_gained as i32)
-    .bind(stat_points_gained as i32)
-    .bind(stat_points_gained as i32)
-    .execute(&state.db)
+    .fetch_optional(&state.db)
     .await
-    .map_err(|e| AppError::DatabaseError(format!("Failed to add stat points: {}", e)))?;
+    .ok()
+    .flatten();
+
+    if table_exists == Some(true) {
+        sqlx::query(
+            r#"
+            INSERT INTO user_stat_points (user_id, available_points, total_earned)
+            VALUES ($1, $2, $3)
+            ON CONFLICT(user_id) DO UPDATE SET
+                available_points = user_stat_points.available_points + $4,
+                total_earned = user_stat_points.total_earned + $5,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(user.0.id)
+        .bind(stat_points_gained as i32)
+        .bind(stat_points_gained as i32)
+        .bind(stat_points_gained as i32)
+        .bind(stat_points_gained as i32)
+        .execute(&state.db)
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to add stat points: {}", e)))?;
+    }
 
     // Разблокировать новые возможности
     let mut unlocked_features = vec![];
@@ -316,4 +380,3 @@ pub async fn level_up(
         unlocked_features,
     }))
 }
-

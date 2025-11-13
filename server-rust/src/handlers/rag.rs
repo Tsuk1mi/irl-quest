@@ -1,20 +1,14 @@
-﻿use axum::{
-    extract::State,
-    Extension,
-    http::StatusCode,
-    response::Json,
-    Json as ExtractJson,
-};
+use axum::{extract::State, http::StatusCode, response::Json, Extension, Json as ExtractJson};
 
+use crate::middleware::auth::CurrentUser;
 use crate::{
     models::{
-        QuestGenerationRequest, QuestGenerationResponse,
-        TaskEnhancementRequest, TaskEnhancementResponse
+        QuestGenerationRequest, QuestGenerationResponse, TaskEnhancementRequest,
+        TaskEnhancementResponse,
     },
     rag::RagService,
     AppState,
 };
-use crate::middleware::auth::CurrentUser;
 use serde::{Deserialize, Serialize};
 
 const DEFAULT_USER_LEVEL: i32 = 1; // уровень по умолчанию для анонимных запросов
@@ -83,10 +77,17 @@ pub async fn classify_task(
         None => DEFAULT_USER_LEVEL,
     };
     let user_level = req.user_level.unwrap_or(fallback_level);
-     let rag_service = RagService::new(state.db.clone(), state.ml_client.clone());
+    let rag_service = RagService::new(state.db.clone(), state.ml_client.clone());
 
-    match rag_service.classify_task_and_generate_exam(&req.task_text, req.context.as_deref(), user_level).await {
-        Ok((tags, difficulty, exam_tasks)) => Ok(Json(ClassifyResponse { tags, estimated_difficulty: difficulty, exam_tasks })),
+    match rag_service
+        .classify_task_and_generate_exam(&req.task_text, req.context.as_deref(), user_level)
+        .await
+    {
+        Ok((tags, difficulty, exam_tasks)) => Ok(Json(ClassifyResponse {
+            tags,
+            estimated_difficulty: difficulty,
+            exam_tasks,
+        })),
         Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
 }

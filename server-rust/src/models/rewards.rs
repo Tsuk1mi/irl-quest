@@ -1,4 +1,4 @@
-﻿/// Модели для системы наград и экономики
+/// Модели для системы наград и экономики
 use serde::{Deserialize, Serialize};
 
 /// Базовые награды
@@ -46,22 +46,22 @@ impl ItemRarity {
 pub struct RewardModifiers {
     /// Множитель от сложности (1.0 - 3.0)
     pub difficulty_multiplier: f32,
-    
+
     /// Бонус от характеристик персонажа
     pub character_stat_bonus: f32,
-    
+
     /// Множитель мультиплеера (1.0 - 2.0)
     pub multiplayer_bonus: f32,
-    
+
     /// Бонус за первое выполнение
     pub first_completion_bonus: f32,
-    
+
     /// Бонус за стрик (последовательное выполнение)
     pub streak_bonus: f32,
-    
+
     /// Бонус временного события
     pub event_bonus: f32,
-    
+
     /// Penalty за повторное выполнение (анти-фарм)
     pub repeat_penalty: f32,
 }
@@ -84,9 +84,9 @@ impl RewardModifiers {
     /// Рассчитать итоговый множитель
     pub fn total_multiplier(&self) -> f32 {
         let base = self.difficulty_multiplier * self.multiplayer_bonus;
-        let bonuses = self.character_stat_bonus 
-            + self.first_completion_bonus 
-            + self.streak_bonus 
+        let bonuses = self.character_stat_bonus
+            + self.first_completion_bonus
+            + self.streak_bonus
             + self.event_bonus;
         let total = base + bonuses - self.repeat_penalty;
         total.max(0.1) // Минимум 10% от базовой награды
@@ -135,13 +135,13 @@ pub struct RewardBreakdown {
 pub struct EconomyCaps {
     /// Максимум XP в день
     pub daily_experience_cap: u32,
-    
+
     /// Максимум золота в день
     pub daily_gold_cap: u32,
-    
+
     /// Максимум предметов в день
     pub daily_items_cap: u32,
-    
+
     /// Множитель после достижения soft cap (0.0-1.0)
     pub soft_cap_multiplier: f32,
 }
@@ -218,4 +218,3 @@ impl StreakInfo {
         (self.current_streak as f32 * 0.05).min(0.5)
     }
 }
-

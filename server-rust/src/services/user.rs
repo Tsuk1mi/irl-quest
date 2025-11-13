@@ -1,4 +1,4 @@
-﻿#[allow(dead_code)]
+#[allow(dead_code)]
 // User service - placeholder for future implementation
 pub struct UserService;
 

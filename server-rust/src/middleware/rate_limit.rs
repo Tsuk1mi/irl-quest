@@ -1,4 +1,5 @@
-﻿/// Middleware для Rate Limiting и IP-blocking
+use crate::config::Config;
+/// Middleware для Rate Limiting и IP-blocking
 use axum::{
     extract::{ConnectInfo, Request, State},
     http::StatusCode,
@@ -10,7 +11,6 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use crate::config::Config;
 
 /// Информация о клиенте для rate limiting
 #[derive(Debug, Clone)]
@@ -41,17 +41,22 @@ impl RateLimiter {
         let now = Instant::now();
 
         // Получить или создать информацию о клиенте
-        let client_info = clients.entry(client_ip.to_string()).or_insert_with(|| ClientInfo {
-            request_count: 0,
-            window_start: now,
-            blocked_until: None,
-        });
+        let client_info = clients
+            .entry(client_ip.to_string())
+            .or_insert_with(|| ClientInfo {
+                request_count: 0,
+                window_start: now,
+                blocked_until: None,
+            });
 
         // Проверить, заблокирован ли клиент
         if let Some(blocked_until) = client_info.blocked_until {
             if now < blocked_until {
                 let remaining = (blocked_until - now).as_secs();
-                return Err(format!("Too many requests. Try again in {} seconds", remaining));
+                return Err(format!(
+                    "Too many requests. Try again in {} seconds",
+                    remaining
+                ));
             } else {
                 // Разблокировать
                 client_info.blocked_until = None;
@@ -264,4 +269,3 @@ mod tests {
         assert!(!blacklist.is_blocked("192.168.1.1").await);
     }
 }
-

@@ -1,6 +1,6 @@
-﻿/// Модели для геолокации и AR квестов
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+/// Модели для геолокации и AR квестов
+use serde::{Deserialize, Serialize};
 
 /// Геолокация (широта, долгота)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,12 +46,12 @@ pub struct GeoZone {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum GeoZoneType {
-    Home,       // Дом
-    Work,       // Работа
-    Gym,        // Спортзал
-    Shop,       // Магазин
-    Park,       // Парк
-    Custom,     // Пользовательская
+    Home,   // Дом
+    Work,   // Работа
+    Gym,    // Спортзал
+    Shop,   // Магазин
+    Park,   // Парк
+    Custom, // Пользовательская
 }
 
 /// Гео-триггер для квестов
@@ -70,8 +70,8 @@ pub struct GeoTrigger {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum TriggerType {
-    OnEnter,   // При входе в зону
-    OnExit,    // При выходе из зоны
+    OnEnter,     // При входе в зону
+    OnExit,      // При выходе из зоны
     WhileInside, // Пока внутри зоны
 }
 
@@ -125,10 +125,10 @@ pub struct ARMarker {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ARMarkerType {
-    Artifact,   // Артефакт
-    Chest,      // Сундук
-    Npc,        // NPC персонаж
-    Waypoint,   // Точка интереса
+    Artifact, // Артефакт
+    Chest,    // Сундук
+    Npc,      // NPC персонаж
+    Waypoint, // Точка интереса
 }
 
 /// Изображение для верификации
@@ -137,33 +137,33 @@ pub struct ImageVerification {
     pub id: i32,
     pub quest_id: i32,
     pub user_id: i32,
-    pub image_hash: String,  // SHA256 hash для проверки
+    pub image_hash: String, // SHA256 hash для проверки
     pub verification_status: VerificationStatus,
     pub ai_confidence: Option<f32>,
     pub ai_detected_objects: Option<Vec<String>>,
     pub moderator_id: Option<i32>,
     pub created_at: DateTime<Utc>,
     pub verified_at: Option<DateTime<Utc>>,
-    pub auto_delete_at: DateTime<Utc>,  // TTL для автоудаления
+    pub auto_delete_at: DateTime<Utc>, // TTL для автоудаления
 }
 
 /// Статус верификации
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum VerificationStatus {
-    Pending,      // Ожидает проверки
-    AiApproved,   // Одобрено ИИ (высокий confidence)
-    AiRejected,   // Отклонено ИИ
-    NeedsReview,  // Требует ручной модерации (низкий confidence)
-    Approved,     // Одобрено модератором
-    Rejected,     // Отклонено модератором
+    Pending,     // Ожидает проверки
+    AiApproved,  // Одобрено ИИ (высокий confidence)
+    AiRejected,  // Отклонено ИИ
+    NeedsReview, // Требует ручной модерации (низкий confidence)
+    Approved,    // Одобрено модератором
+    Rejected,    // Отклонено модератором
 }
 
 /// Запрос на загрузку изображения для верификации
 #[derive(Debug, Deserialize)]
 pub struct UploadImageRequest {
     pub quest_id: i32,
-    pub image_data: String,  // Base64 encoded image
+    pub image_data: String, // Base64 encoded image
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
 }
@@ -208,4 +208,3 @@ pub struct ImageProcessingMetadata {
     pub ai_confidence: Option<f32>,
     pub location: Option<Location>,
 }
-

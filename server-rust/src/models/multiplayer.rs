@@ -1,6 +1,6 @@
-﻿/// Модели для мультиплеера (гильдии, кооп-миссии, чаты)
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+/// Модели для мультиплеера (гильдии, кооп-миссии, чаты)
+use serde::{Deserialize, Serialize};
 
 /// Гильдия
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -9,10 +9,10 @@ pub struct Guild {
     pub name: String,
     pub description: Option<String>,
     pub leader_id: i32,
-    pub level: u8,
-    pub experience: u32,
-    pub member_count: u32,
-    pub max_members: u32,
+    pub level: i32,
+    pub experience: i32,
+    pub member_count: i32,
+    pub max_members: i32,
     pub created_at: DateTime<Utc>,
 }
 
@@ -48,8 +48,8 @@ pub enum GuildRole {
 pub struct CoopMission {
     pub id: i32,
     pub quest_id: i32,
-    pub party_size: u8,
-    pub max_party_size: u8,
+    pub party_size: i32,
+    pub max_party_size: i32,
     pub leader_id: i32,
     pub status: MissionStatus,
     pub is_public: bool,
@@ -60,10 +60,10 @@ pub struct CoopMission {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum MissionStatus {
-    Recruiting,  // Набор участников
-    InProgress,  // В процессе
-    Completed,   // Завершена
-    Failed,      // Провалена
+    Recruiting, // Набор участников
+    InProgress, // В процессе
+    Completed,  // Завершена
+    Failed,     // Провалена
 }
 
 /// Участник миссии
@@ -73,7 +73,7 @@ pub struct PartyMember {
     pub mission_id: i32,
     pub user_id: i32,
     pub role: PartyRole,
-    pub contribution: u32,  // Вклад в выполнение
+    pub contribution: i32, // Вклад в выполнение
     pub joined_at: DateTime<Utc>,
 }
 
@@ -81,10 +81,10 @@ pub struct PartyMember {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum PartyRole {
-    Tank,     // Танк - защитник
-    Dps,      // DPS - урон
-    Healer,   // Хилер - поддержка
-    Support,  // Саппорт - универсал
+    Tank,    // Танк - защитник
+    Dps,     // DPS - урон
+    Healer,  // Хилер - поддержка
+    Support, // Саппорт - универсал
 }
 
 impl PartyRole {
@@ -105,38 +105,52 @@ pub enum WsMessage {
     // Client -> Server
     #[serde(rename = "join_room")]
     JoinRoom { room_id: String },
-    
+
     #[serde(rename = "leave_room")]
     LeaveRoom { room_id: String },
-    
+
     #[serde(rename = "chat_message")]
     ChatMessage { room_id: String, message: String },
-    
+
     #[serde(rename = "quest_update")]
     QuestUpdate { quest_id: i32, progress: u8 },
-    
+
     #[serde(rename = "ping")]
     Ping,
-    
+
     // Server -> Client
     #[serde(rename = "pong")]
     Pong,
-    
+
     #[serde(rename = "user_joined")]
-    UserJoined { room_id: String, user_id: i32, username: String },
-    
+    UserJoined {
+        room_id: String,
+        user_id: i32,
+        username: String,
+    },
+
     #[serde(rename = "user_left")]
     UserLeft { room_id: String, user_id: i32 },
-    
+
     #[serde(rename = "chat")]
-    Chat { room_id: String, user_id: i32, username: String, message: String, timestamp: i64 },
-    
+    Chat {
+        room_id: String,
+        user_id: i32,
+        username: String,
+        message: String,
+        timestamp: i64,
+    },
+
     #[serde(rename = "quest_progress")]
-    QuestProgress { quest_id: i32, progress: u8, user_id: i32 },
-    
+    QuestProgress {
+        quest_id: i32,
+        progress: u8,
+        user_id: i32,
+    },
+
     #[serde(rename = "party_update")]
     PartyUpdate { party: Vec<PartyMemberInfo> },
-    
+
     #[serde(rename = "error")]
     Error { message: String },
 }
@@ -146,7 +160,7 @@ pub enum WsMessage {
 pub struct PartyMemberInfo {
     pub user_id: i32,
     pub username: String,
-    pub level: u8,
+    pub level: i32,
     pub class: String,
     pub role: PartyRole,
     pub is_ready: bool,
@@ -155,10 +169,10 @@ pub struct PartyMemberInfo {
 /// Matchmaking запрос
 #[derive(Debug, Deserialize)]
 pub struct MatchmakingRequest {
-    pub quest_difficulty: u8,
+    pub quest_difficulty: i32,
     pub preferred_role: PartyRole,
-    pub min_party_size: u8,
-    pub max_party_size: u8,
+    pub min_party_size: i32,
+    pub max_party_size: i32,
 }
 
 /// Matchmaking результат
@@ -202,7 +216,7 @@ pub enum InvitationStatus {
 #[derive(Debug, Deserialize)]
 pub struct CreateCoopMissionRequest {
     pub quest_id: i32,
-    pub max_party_size: u8,
+    pub max_party_size: i32,
     pub is_public: bool,
 }
 
@@ -212,4 +226,3 @@ pub struct JoinMissionRequest {
     pub mission_id: i32,
     pub preferred_role: PartyRole,
 }
-

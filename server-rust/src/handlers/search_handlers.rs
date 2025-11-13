@@ -1,14 +1,9 @@
-﻿use axum::{
-    extract::{Query, State, Extension},
+use crate::{error::AppError, models::search::*, state::AppState};
+use axum::{
+    extract::{Extension, Query, State},
     Json,
 };
 use serde::Deserialize;
-use sqlx::Row;
-use crate::{
-    models::search::*,
-    state::AppState,
-    error::AppError,
-};
 
 #[derive(Debug, Deserialize)]
 pub struct SearchQuery {

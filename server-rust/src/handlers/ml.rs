@@ -1,18 +1,13 @@
-﻿use axum::{
-    extract::State,
-    http::StatusCode,
-    response::Json,
-    Json as ExtractJson,
-};
+use axum::{extract::State, http::StatusCode, response::Json, Json as ExtractJson};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    rag::templates::{auto_difficulty_for_text, auto_tags_for_text, is_boss_marker},
     rag::templates::QuestTemplates,
+    rag::templates::{auto_difficulty_for_text, auto_tags_for_text, is_boss_marker},
     AppState,
 };
 
-use crate::models::{RagKnowledgeOut, Quest, QuestGenerationResponse};
+use crate::models::{QuestGenerationResponse, RagKnowledgeOut};
 use sqlx::query_as;
 
 #[derive(Debug, Deserialize)]
@@ -74,7 +69,8 @@ pub async fn dataset_todo_to_quest(
             req.context.as_deref(),
             req.difficulty_preference.unwrap_or(3).clamp(1, 5),
             1,
-        ).await;
+        )
+        .await;
         // Wrap in QuestGenerationResponse
         let response = match quest_result {
             Ok(quest) => QuestGenerationResponse {
@@ -100,7 +96,10 @@ pub async fn dataset_todo_to_quest(
                 story_context: None,
             },
         };
-        pairs.push(TodoQuestPair { todo_text: todo, quest: response });
+        pairs.push(TodoQuestPair {
+            todo_text: todo,
+            quest: response,
+        });
     }
     Ok(Json(pairs))
 }
@@ -114,7 +113,12 @@ pub async fn dataset_task_tags(
         let diff = auto_difficulty_for_text(&task);
         let tags = auto_tags_for_text(&task);
         let is_boss = is_boss_marker(&task);
-        records.push(TagRecord { task_text: task, tags, estimated_difficulty: diff, is_boss });
+        records.push(TagRecord {
+            task_text: task,
+            tags,
+            estimated_difficulty: diff,
+            is_boss,
+        });
     }
     Ok(Json(records))
 }
@@ -158,5 +162,7 @@ pub async fn export_rag(
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
 
-    Ok(Json(records.into_iter().map(RagKnowledgeOut::from).collect()))
+    Ok(Json(
+        records.into_iter().map(RagKnowledgeOut::from).collect(),
+    ))
 }

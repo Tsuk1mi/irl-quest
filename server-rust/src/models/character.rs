@@ -1,14 +1,14 @@
-﻿/// Модели для системы персонажей (классы, расы, характеристики)
+/// Модели для системы персонажей (классы, расы, характеристики)
 use serde::{Deserialize, Serialize};
 
 /// Класс персонажа
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CharacterClass {
-    Warrior,   // Воин
-    Mage,      // Маг
-    Rogue,     // Вор
-    Cleric,    // Жрец/Целитель
+    Warrior, // Воин
+    Mage,    // Маг
+    Rogue,   // Вор
+    Cleric,  // Жрец/Целитель
 }
 
 impl CharacterClass {
@@ -69,10 +69,10 @@ impl CharacterClass {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum CharacterRace {
-    Human,   // Человек
-    Elf,     // Эльф
-    Dwarf,   // Дворф
-    Orc,     // Орк
+    Human, // Человек
+    Elf,   // Эльф
+    Dwarf, // Дворф
+    Orc,   // Орк
 }
 
 impl CharacterRace {
@@ -141,11 +141,11 @@ pub struct StatBonuses {
 /// Характеристики персонажа
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterStats {
-    pub strength: u8,      // Сила
-    pub intelligence: u8,  // Интеллект
-    pub dexterity: u8,     // Ловкость
-    pub charisma: u8,      // Харизма
-    pub luck: u8,          // Удача
+    pub strength: u8,     // Сила
+    pub intelligence: u8, // Интеллект
+    pub dexterity: u8,    // Ловкость
+    pub charisma: u8,     // Харизма
+    pub luck: u8,         // Удача
 }
 
 impl Default for CharacterStats {
@@ -168,10 +168,22 @@ impl CharacterStats {
         let race_bonuses = race.stat_bonuses();
 
         Self {
-            strength: Self::apply_bonus(base.strength, class_bonuses.strength + race_bonuses.strength),
-            intelligence: Self::apply_bonus(base.intelligence, class_bonuses.intelligence + race_bonuses.intelligence),
-            dexterity: Self::apply_bonus(base.dexterity, class_bonuses.dexterity + race_bonuses.dexterity),
-            charisma: Self::apply_bonus(base.charisma, class_bonuses.charisma + race_bonuses.charisma),
+            strength: Self::apply_bonus(
+                base.strength,
+                class_bonuses.strength + race_bonuses.strength,
+            ),
+            intelligence: Self::apply_bonus(
+                base.intelligence,
+                class_bonuses.intelligence + race_bonuses.intelligence,
+            ),
+            dexterity: Self::apply_bonus(
+                base.dexterity,
+                class_bonuses.dexterity + race_bonuses.dexterity,
+            ),
+            charisma: Self::apply_bonus(
+                base.charisma,
+                class_bonuses.charisma + race_bonuses.charisma,
+            ),
             luck: Self::apply_bonus(base.luck, class_bonuses.luck + race_bonuses.luck),
         }
     }
@@ -206,7 +218,7 @@ impl CharacterStats {
             _ => return,
         };
 
-        *stat = (*stat + amount).min(20);  // Максимум 20
+        *stat = (*stat + amount).min(20); // Максимум 20
     }
 }
 
@@ -233,7 +245,7 @@ pub struct CreateCharacterRequest {
 /// Запрос на повышение характеристики
 #[derive(Debug, Deserialize)]
 pub struct IncreaseStatRequest {
-    pub stat_name: String,  // "strength", "intelligence", etc.
+    pub stat_name: String, // "strength", "intelligence", etc.
     pub amount: Option<u8>,
 }
 
@@ -246,7 +258,7 @@ pub struct StatInfluence {
     pub quest_type_bonuses: Vec<QuestTypeBonus>,
     pub success_chance_bonus: f32,
     pub reward_bonus: f32,
-    pub time_reduction: f32,  // В процентах
+    pub time_reduction: f32, // В процентах
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -265,12 +277,10 @@ impl Character {
             stat_name: "strength".to_string(),
             current_value: self.stats.strength,
             modifier: self.stats.get_modifier("strength"),
-            quest_type_bonuses: vec![
-                QuestTypeBonus {
-                    quest_type: "физические".to_string(),
-                    bonus_description: "+15% к наградам".to_string(),
-                },
-            ],
+            quest_type_bonuses: vec![QuestTypeBonus {
+                quest_type: "физические".to_string(),
+                bonus_description: "+15% к наградам".to_string(),
+            }],
             success_chance_bonus: self.stats.strength as f32 * 0.01,
             reward_bonus: self.stats.strength as f32 * 0.015,
             time_reduction: self.stats.strength as f32 * 0.01,
@@ -281,12 +291,10 @@ impl Character {
             stat_name: "intelligence".to_string(),
             current_value: self.stats.intelligence,
             modifier: self.stats.get_modifier("intelligence"),
-            quest_type_bonuses: vec![
-                QuestTypeBonus {
-                    quest_type: "умственные".to_string(),
-                    bonus_description: "+20% к XP".to_string(),
-                },
-            ],
+            quest_type_bonuses: vec![QuestTypeBonus {
+                quest_type: "умственные".to_string(),
+                bonus_description: "+20% к XP".to_string(),
+            }],
             success_chance_bonus: self.stats.intelligence as f32 * 0.015,
             reward_bonus: self.stats.intelligence as f32 * 0.02,
             time_reduction: self.stats.intelligence as f32 * 0.015,
@@ -297,12 +305,10 @@ impl Character {
             stat_name: "dexterity".to_string(),
             current_value: self.stats.dexterity,
             modifier: self.stats.get_modifier("dexterity"),
-            quest_type_bonuses: vec![
-                QuestTypeBonus {
-                    quest_type: "быстрые".to_string(),
-                    bonus_description: "Уменьшение времени на 15%".to_string(),
-                },
-            ],
+            quest_type_bonuses: vec![QuestTypeBonus {
+                quest_type: "быстрые".to_string(),
+                bonus_description: "Уменьшение времени на 15%".to_string(),
+            }],
             success_chance_bonus: self.stats.dexterity as f32 * 0.01,
             reward_bonus: self.stats.dexterity as f32 * 0.01,
             time_reduction: self.stats.dexterity as f32 * 0.02,
@@ -313,12 +319,10 @@ impl Character {
             stat_name: "charisma".to_string(),
             current_value: self.stats.charisma,
             modifier: self.stats.get_modifier("charisma"),
-            quest_type_bonuses: vec![
-                QuestTypeBonus {
-                    quest_type: "социальные".to_string(),
-                    bonus_description: "+25% к наградам".to_string(),
-                },
-            ],
+            quest_type_bonuses: vec![QuestTypeBonus {
+                quest_type: "социальные".to_string(),
+                bonus_description: "+25% к наградам".to_string(),
+            }],
             success_chance_bonus: self.stats.charisma as f32 * 0.012,
             reward_bonus: self.stats.charisma as f32 * 0.025,
             time_reduction: self.stats.charisma as f32 * 0.005,
@@ -431,4 +435,3 @@ impl CharacterProfile {
         }
     }
 }
-

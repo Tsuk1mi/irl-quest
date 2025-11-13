@@ -38,7 +38,7 @@ fun TaskDetailScreen(
                 val task = uiState.task!!
                 Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(text = task.title, style = MaterialTheme.typography.headlineSmall)
-            if (task.description.isNotBlank()) Text(text = task.description, style = MaterialTheme.typography.bodyMedium)
+            if (!task.description.isNullOrBlank()) Text(text = task.description, style = MaterialTheme.typography.bodyMedium)
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

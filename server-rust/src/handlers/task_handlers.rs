@@ -1,11 +1,7 @@
-﻿use axum::{extract::{Path, State, Extension},
+use crate::{error::AppError, middleware::auth::CurrentUser, models::task::*, state::AppState};
+use axum::{
+    extract::{Extension, Path, State},
     Json,
-};
-use crate::{
-    models::task::*,
-    state::AppState,
-    error::AppError,
-    middleware::auth::CurrentUser,
 };
 
 pub async fn create_task(
@@ -18,19 +14,19 @@ pub async fn create_task(
         None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
     };
     let user_id = user.0.id;
-    
+
     // Проверяем доступ к квесту, если он указан
     if let Some(quest_id) = task_data.quest_id {
-        let quest_exists_row = sqlx::query(
-            "SELECT id FROM quests WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(quest_id)
-        .bind(user_id)
-        .fetch_optional(&state.db)
-        .await?;
+        let quest_exists_row = sqlx::query("SELECT id FROM quests WHERE id = $1 AND owner_id = $2")
+            .bind(quest_id)
+            .bind(user_id)
+            .fetch_optional(&state.db)
+            .await?;
 
         if quest_exists_row.is_none() {
-            return Err(AppError::NotFound("Quest not found or access denied".into()));
+            return Err(AppError::NotFound(
+                "Quest not found or access denied".into(),
+            ));
         }
     }
 

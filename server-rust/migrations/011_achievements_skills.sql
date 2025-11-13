@@ -18,15 +18,15 @@ CREATE TABLE IF NOT EXISTS achievements (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_achievements_code ON achievements(code);
-CREATE INDEX idx_achievements_category ON achievements(category);
-CREATE INDEX idx_achievements_rarity ON achievements(rarity);
+CREATE INDEX IF NOT EXISTS idx_achievements_code ON achievements(code);
+CREATE INDEX IF NOT EXISTS idx_achievements_category ON achievements(category);
+CREATE INDEX IF NOT EXISTS idx_achievements_rarity ON achievements(rarity);
 
 -- Прогресс достижений пользователя
 -- Удаляем старую версию таблицы если она есть
 DROP TABLE IF EXISTS user_achievements CASCADE;
 
-CREATE TABLE user_achievements (
+CREATE TABLE IF NOT EXISTS user_achievements (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     achievement_id INTEGER NOT NULL,
@@ -40,8 +40,8 @@ CREATE TABLE user_achievements (
     UNIQUE(user_id, achievement_id)
 );
 
-CREATE INDEX idx_user_achievements_user_id ON user_achievements(user_id);
-CREATE INDEX idx_user_achievements_completed ON user_achievements(completed);
+CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_achievements_completed ON user_achievements(completed);
 
 -- Таблица навыков (Skill Tree)
 CREATE TABLE IF NOT EXISTS skills (
@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS skills (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_skills_code ON skills(code);
-CREATE INDEX idx_skills_tier ON skills(tier);
+CREATE INDEX IF NOT EXISTS idx_skills_code ON skills(code);
+CREATE INDEX IF NOT EXISTS idx_skills_tier ON skills(tier);
 
 -- Навыки пользователя
 CREATE TABLE IF NOT EXISTS user_skills (
@@ -77,11 +77,11 @@ CREATE TABLE IF NOT EXISTS user_skills (
     UNIQUE(user_id, skill_id)
 );
 
-CREATE INDEX idx_user_skills_user_id ON user_skills(user_id);
-CREATE INDEX idx_user_skills_unlocked ON user_skills(is_unlocked);
+CREATE INDEX IF NOT EXISTS idx_user_skills_user_id ON user_skills(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_skills_unlocked ON user_skills(is_unlocked);
 
 -- Очки навыков
-ALTER TABLE user_stat_points ADD COLUMN skill_points INTEGER DEFAULT 0;
+ALTER TABLE user_stat_points ADD COLUMN IF NOT EXISTS skill_points INTEGER DEFAULT 0;
 
 -- Предзаполнение базовых достижений
 INSERT INTO achievements (code, name, description, icon, category, rarity, reward_experience, reward_gold, required_progress) VALUES
@@ -91,7 +91,8 @@ INSERT INTO achievements (code, name, description, icon, category, rarity, rewar
 ('legendary_hero', 'Легендарный герой', 'Достигните 20 уровня', '👑', 'progression', 'legendary', 2000, 1000, 1),
 ('social_butterfly', 'Социальная бабочка', 'Пригласите 5 друзей', '🦋', 'social', 'rare', 300, 150, 5),
 ('treasure_hunter', 'Охотник за сокровищами', 'Соберите 50 предметов', '💎', 'collection', 'rare', 400, 200, 50),
-('streak_champion', 'Чемпион стрика', 'Достигните стрика в 30 дней', '🔥', 'progression', 'epic', 1500, 750, 30);
+('streak_champion', 'Чемпион стрика', 'Достигните стрика в 30 дней', '🔥', 'progression', 'epic', 1500, 750, 30)
+ON CONFLICT (code) DO NOTHING;
 
 -- Предзаполнение базовых навыков
 INSERT INTO skills (code, name, description, icon, tier, max_level, cost_per_level, prerequisites) VALUES
@@ -107,5 +108,6 @@ INSERT INTO skills (code, name, description, icon, tier, max_level, cost_per_lev
 
 -- Tier 3 (мощные навыки)
 ('party_leader', 'Лидер группы', 'Дополнительные награды в мультиплеере', '👥', 3, 3, 3, '["master_planner"]'),
-('legendary_luck', 'Легендарная удача', 'Шанс легендарных предметов +5%', '🍀', 3, 3, 3, '["gold_rush"]');
+('legendary_luck', 'Легендарная удача', 'Шанс легендарных предметов +5%', '🍀', 3, 3, 3, '["gold_rush"]')
+ON CONFLICT (code) DO NOTHING;
 

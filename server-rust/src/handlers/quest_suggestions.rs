@@ -1,10 +1,4 @@
-﻿use axum::{
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-    Extension,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Extension, Json};
 use serde::{Deserialize, Serialize};
 
 use crate::middleware::auth::CurrentUser;
@@ -41,10 +35,16 @@ pub async fn get_daily_quest_suggestion(
 ) -> impl IntoResponse {
     let user = match user {
         Some(u) => u,
-        None => return (StatusCode::UNAUTHORIZED, Json(QuestSuggestionResponse {
-            quest: None,
-            message: "Unauthorized".to_string(),
-        })).into_response(),
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(QuestSuggestionResponse {
+                    quest: None,
+                    message: "Unauthorized".to_string(),
+                }),
+            )
+                .into_response()
+        }
     };
     match QuestAnalyzer::generate_daily_quest(&state.db, user.0.id).await {
         Ok(quest) => (
@@ -71,10 +71,16 @@ pub async fn get_weekly_quest_suggestion(
 ) -> impl IntoResponse {
     let user = match user {
         Some(u) => u,
-        None => return (StatusCode::UNAUTHORIZED, Json(QuestSuggestionResponse {
-            quest: None,
-            message: "Unauthorized".to_string(),
-        })).into_response(),
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(QuestSuggestionResponse {
+                    quest: None,
+                    message: "Unauthorized".to_string(),
+                }),
+            )
+                .into_response()
+        }
     };
     match QuestAnalyzer::generate_weekly_quest(&state.db, user.0.id).await {
         Ok(quest) => (
@@ -101,9 +107,15 @@ pub async fn get_merge_suggestions(
 ) -> impl IntoResponse {
     let user = match user {
         Some(u) => u,
-        None => return (StatusCode::UNAUTHORIZED, Json(MergeSuggestionsResponse {
-            suggestions: vec![],
-        })).into_response(),
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(MergeSuggestionsResponse {
+                    suggestions: vec![],
+                }),
+            )
+                .into_response()
+        }
     };
     match QuestAnalyzer::get_merge_suggestions(&state.db, user.0.id).await {
         Ok(suggestions) => {
@@ -141,4 +153,3 @@ pub async fn accept_daily_quest(
         })),
     )
 }
-

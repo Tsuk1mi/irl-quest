@@ -31,8 +31,20 @@ fun StatsScreen(
     viewModel: StatsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
 
-    LazyColumn(
+    // Показываем ошибки
+    uiState.error?.let { error ->
+        LaunchedEffect(error) {
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = androidx.compose.material3.SnackbarDuration.Long
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
@@ -40,7 +52,7 @@ fun StatsScreen(
     ) {
         item {
             Text(
-                text = "📊 Статистика Героя",
+                text = "Статистика Героя",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = com.irlquest.app.ui.theme.TavernWood
@@ -148,6 +160,13 @@ fun StatsScreen(
         item {
             ActivityHeatmapCard(activityData = uiState.activityData)
         }
+    }
+    
+    // Snackbar для ошибок
+    androidx.compose.material3.SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.align(Alignment.BottomCenter)
+    )
     }
 }
 
@@ -445,20 +464,6 @@ fun ActivityHeatmapCard(activityData: List<ActivityDay>) {
     }
 }
 
-@Composable
-fun StatisticsItem(/* параметры */) {
-    // ...существующий код...
-}
-
-@Composable
-fun renderStatItem(/* параметры */) {
-    // ...существующий код...
-}
-
-@Composable
-fun renderChart(/* параметры */) {
-    // ...существующий код...
-}
 
 private fun DrawScope.drawWeeklyChart(weeklyData: List<DayData>, size: androidx.compose.ui.geometry.Size, color: androidx.compose.ui.graphics.Color) {
     if (weeklyData.isEmpty()) return

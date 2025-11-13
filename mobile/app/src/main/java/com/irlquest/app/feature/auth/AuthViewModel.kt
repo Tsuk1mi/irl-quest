@@ -71,6 +71,29 @@ class AuthViewModel(
         _currentUser.value = null
     }
 
+    fun updateProfile(
+        username: String?,
+        avatarUrl: String?,
+        bio: String?,
+        onSuccess: (() -> Unit)? = null,
+        onError: ((String) -> Unit)? = null
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val updated = repo.updateProfile(username, avatarUrl, bio)
+                _currentUser.value = updated
+                onSuccess?.invoke()
+            } catch (e: Exception) {
+                val message = e.message ?: "Не удалось обновить профиль"
+                _error.value = message
+                onError?.invoke(message)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun addExperienceAndGold(xp: Int, gold: Int) {
         viewModelScope.launch {
             val user = _currentUser.value ?: return@launch

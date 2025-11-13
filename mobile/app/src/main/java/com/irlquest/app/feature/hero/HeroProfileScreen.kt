@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.data.network.dto.UserDto
 import com.irlquest.app.feature.auth.AuthViewModel
+import com.irlquest.app.data.repository.InventoryRepository
+import com.irlquest.app.data.repository.OwnedItem
 import com.irlquest.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,9 +34,18 @@ fun HeroProfileScreen(
     authViewModel: AuthViewModel = viewModel()
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
+    val characterRepo = remember { com.irlquest.app.data.repository.CharacterRepository() }
+    val inventoryRepository = remember { InventoryRepository(authViewModel) }
+    val inventoryItems by inventoryRepository.items.collectAsState()
+    var characterProfile by remember { mutableStateOf<com.irlquest.app.data.network.dto.CharacterProfile?>(null) }
 
     LaunchedEffect(Unit) {
         authViewModel.fetchMe()
+        try {
+            characterProfile = characterRepo.getCharacterProfile()
+        } catch (e: Exception) {
+            // Игнорируем ошибку, используем данные из currentUser
+        }
     }
 
     Scaffold(
@@ -42,7 +53,7 @@ fun HeroProfileScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "⚔️ Профиль Героя",
+                        "Профиль Героя",
                         fontWeight = FontWeight.Bold
                     ) 
                 },
@@ -72,8 +83,11 @@ fun HeroProfileScreen(
             }
 
             item {
-                // D&D Характеристики
-                CharacteristicsSection(currentUser)
+                // D&D Характеристики (используем данные из Character API если доступны)
+                CharacteristicsSection(
+                    user = currentUser,
+                    characterProfile = characterProfile
+                )
             }
 
             item {
@@ -84,6 +98,10 @@ fun HeroProfileScreen(
             item {
                 // Статистика достижений
                 AchievementsSection(currentUser)
+            }
+
+            item {
+                HeroEquipmentSection(inventoryItems)
             }
         }
     }
@@ -118,7 +136,7 @@ private fun HeroAvatarSection(user: UserDto?) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = getCharacterEmoji(user?.characterClass ?: "warrior"),
+                    text = getCharacterIcon(user?.characterClass ?: "warrior"),
                     fontSize = 64.sp
                 )
             }
@@ -179,7 +197,6 @@ private fun LevelAndExperienceSection(user: UserDto?) {
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "💰", fontSize = 28.sp)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${user?.gold ?: 0}",
@@ -232,7 +249,21 @@ private fun LevelAndExperienceSection(user: UserDto?) {
 }
 
 @Composable
-private fun CharacteristicsSection(user: UserDto?) {
+private fun CharacteristicsSection(
+    user: UserDto?,
+    characterProfile: com.irlquest.app.data.network.dto.CharacterProfile?
+) {
+    // Используем данные из Character API если доступны, иначе из UserDto
+    val stats = characterProfile?.character?.stats
+    val strength = stats?.strength ?: user?.strength ?: 10
+    val intelligence = stats?.intelligence ?: user?.intelligence ?: 10
+    val charisma = stats?.charisma ?: user?.charisma ?: 10
+    val dexterity = stats?.dexterity ?: user?.dexterity ?: 10
+    // CharacterStats не содержит constitution и wisdom, используем из UserDto
+    val constitution = user?.constitution ?: 10
+    val wisdom = user?.wisdom ?: 10
+    val luck = stats?.luck ?: 10
+
     Surface(
         shape = RoundedCornerShape(16.dp),
         tonalElevation = 2.dp,
@@ -241,7 +272,7 @@ private fun CharacteristicsSection(user: UserDto?) {
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "🎲 Характеристики",
+                text = "Характеристики",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -256,15 +287,15 @@ private fun CharacteristicsSection(user: UserDto?) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     CharacteristicCard(
-                        "💪",
+                        "STR",
                         "Сила",
-                        user?.strength ?: 10,
+                        strength,
                         modifier = Modifier.weight(1f)
                     )
                     CharacteristicCard(
-                        "🧠",
+                        "INT",
                         "Интеллект",
-                        user?.intelligence ?: 10,
+                        intelligence,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -273,15 +304,15 @@ private fun CharacteristicsSection(user: UserDto?) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     CharacteristicCard(
-                        "🎭",
+                        "CHA",
                         "Харизма",
-                        user?.charisma ?: 10,
+                        charisma,
                         modifier = Modifier.weight(1f)
                     )
                     CharacteristicCard(
-                        "🎯",
+                        "DEX",
                         "Ловкость",
-                        user?.dexterity ?: 10,
+                        dexterity,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -290,15 +321,15 @@ private fun CharacteristicsSection(user: UserDto?) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     CharacteristicCard(
-                        "🛡️",
+                        "CON",
                         "Телосложение",
-                        user?.constitution ?: 10,
+                        constitution,
                         modifier = Modifier.weight(1f)
                     )
                     CharacteristicCard(
-                        "🦉",
-                        "Мудрость",
-                        user?.wisdom ?: 10,
+                        "LUCK",
+                        "Удача",
+                        luck,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -307,9 +338,16 @@ private fun CharacteristicsSection(user: UserDto?) {
     }
 }
 
+/**
+ * Карточка характеристики героя
+ * @param icon Иконка/аббревиатура характеристики (STR, INT, DEX и т.д.)
+ * @param name Название характеристики
+ * @param value Значение характеристики
+ * @param modifier Модификатор для настройки размера и расположения
+ */
 @Composable
 private fun CharacteristicCard(
-    emoji: String,
+    icon: String,
     name: String,
     value: Int,
     modifier: Modifier = Modifier
@@ -324,7 +362,7 @@ private fun CharacteristicCard(
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = emoji, fontSize = 24.sp)
+            Text(text = icon, fontSize = 24.sp)
             Text(
                 text = name,
                 fontSize = 12.sp,
@@ -370,13 +408,13 @@ private fun ClassAndRaceSection(user: UserDto?) {
                 InfoCard(
                     title = "Класс",
                     value = getClassName(user?.characterClass),
-                    icon = "⚔️",
+                    icon = "Class",
                     modifier = Modifier.weight(1f)
                 )
                 InfoCard(
                     title = "Раса",
                     value = getRaceName(user?.characterRace),
-                    icon = "🧬",
+                    icon = "Race",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -428,7 +466,7 @@ private fun AchievementsSection(user: UserDto?) {
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "🏆 Достижения",
+                text = "Достижения",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -449,18 +487,98 @@ private fun AchievementsSection(user: UserDto?) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                AchievementBadge("🎯", "Первый Шаг", true)
-                AchievementBadge("⭐", "Новичок", user?.level ?: 1 >= 2)
-                AchievementBadge("📜", "Квестодатель", false)
-                AchievementBadge("🏆", "Мастер Дел", false)
+                AchievementBadge("1", "Первый Шаг", true)
+                AchievementBadge("2", "Новичок", user?.level ?: 1 >= 2)
+                AchievementBadge("3", "Квестодатель", false)
+                AchievementBadge("4", "Мастер Дел", false)
             }
         }
     }
 }
 
 @Composable
+private fun HeroEquipmentSection(items: List<OwnedItem>) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "Инвентарь",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (items.isEmpty()) {
+                Text(
+                    text = "Предметы появятся после завершения миссий. Попробуйте кооперативные задания, чтобы получить редкую добычу!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items.take(5).forEach { item ->
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            tonalElevation = 1.dp,
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${item.icon} ${item.name}",
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                    item.description?.let {
+                                        Text(
+                                            text = it,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = "×${item.quantity}",
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                    }
+                    if (items.size > 5) {
+                        Text(
+                            text = "… и ещё ${items.size - 5} предметов. Загляните в аукцион, чтобы продать лишнее!",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Бейдж достижения
+ * @param icon Иконка/символ достижения
+ * @param title Название достижения
+ * @param unlocked Разблокировано ли достижение
+ */
+@Composable
 private fun AchievementBadge(
-    emoji: String,
+    icon: String,
     title: String,
     unlocked: Boolean
 ) {
@@ -485,7 +603,7 @@ private fun AchievementBadge(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = emoji,
+                text = icon,
                 fontSize = 28.sp,
                 modifier = Modifier.alpha(if (unlocked) 1f else 0.3f)
             )
@@ -501,14 +619,14 @@ private fun AchievementBadge(
 }
 
 // Вспомогательные функции
-private fun getCharacterEmoji(classKey: String): String {
+private fun getCharacterIcon(classKey: String): String {
     return when (classKey.lowercase()) {
-        "warrior" -> "⚔️"
-        "mage" -> "🧙"
-        "rogue" -> "🗡️"
-        "cleric" -> "✨"
-        "ranger" -> "🏹"
-        else -> "🎭"
+        "warrior" -> "W"
+        "mage" -> "M"
+        "rogue" -> "R"
+        "cleric" -> "C"
+        "ranger" -> "Rg"
+        else -> "?"
     }
 }
 

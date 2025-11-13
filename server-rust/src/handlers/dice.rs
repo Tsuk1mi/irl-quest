@@ -1,13 +1,13 @@
-﻿/// Handlers для системы кубиков (D&D dice)
+use crate::error::AppError;
+use crate::middleware::auth::CurrentUser;
+use crate::models::dice::*;
+use crate::state::AppState;
+/// Handlers для системы кубиков (D&D dice)
 use axum::{
     extract::{Extension, State},
     Json,
 };
 use sqlx::Row;
-use crate::error::AppError;
-use crate::models::dice::*;
-use crate::middleware::auth::CurrentUser;
-use crate::state::AppState;
 
 /// POST /api/dice/roll - Бросить кубик
 pub async fn roll_dice(
@@ -57,8 +57,9 @@ pub async fn skill_check(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(request): Json<SkillCheckRequest>,
 ) -> Result<Json<SkillCheckResult>, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Authentication required".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized(
+        "Authentication required".to_string(),
+    ))?;
 
     // Получить характеристики пользователя из БД
     let user_data = sqlx::query(
@@ -66,7 +67,7 @@ pub async fn skill_check(
         SELECT strength, intelligence, dexterity, charisma
         FROM users
         WHERE id = $1
-        "#
+        "#,
     )
     .bind(user.0.id)
     .fetch_one(&state.db)
@@ -79,7 +80,9 @@ pub async fn skill_check(
     let charisma = user_data.try_get::<i32, _>("charisma").unwrap_or(10) as u8;
 
     // Рассчитать модификатор на основе навыка и характеристик
-    let modifier = request.skill.get_modifier(strength, intelligence, dexterity, charisma);
+    let modifier = request
+        .skill
+        .get_modifier(strength, intelligence, dexterity, charisma);
 
     // Бросить d20 (стандарт для skill checks в D&D)
     let roll = DiceRoll::roll(DiceType::D20, modifier);
@@ -105,42 +108,42 @@ pub async fn get_dice_types() -> Result<Json<Vec<DiceInfo>>, AppError> {
         DiceInfo {
             dice_type: DiceType::D4,
             sides: 4,
-            emoji: "🔺".to_string(),
+            emoji: "D4".to_string(),
             name: "D4 - Тетраэдр".to_string(),
             description: "Используется для малых повреждений и простых проверок".to_string(),
         },
         DiceInfo {
             dice_type: DiceType::D6,
             sides: 6,
-            emoji: "🎲".to_string(),
+            emoji: "D6".to_string(),
             name: "D6 - Куб".to_string(),
             description: "Стандартный игральный кубик".to_string(),
         },
         DiceInfo {
             dice_type: DiceType::D8,
             sides: 8,
-            emoji: "🔷".to_string(),
+            emoji: "D8".to_string(),
             name: "D8 - Октаэдр".to_string(),
             description: "Средние повреждения оружия".to_string(),
         },
         DiceInfo {
             dice_type: DiceType::D10,
             sides: 10,
-            emoji: "🔟".to_string(),
+            emoji: "D10".to_string(),
             name: "D10 - Десятигранник".to_string(),
             description: "Процентные проверки и большие повреждения".to_string(),
         },
         DiceInfo {
             dice_type: DiceType::D12,
             sides: 12,
-            emoji: "⬡".to_string(),
+            emoji: "D12".to_string(),
             name: "D12 - Додекаэдр".to_string(),
             description: "Максимальные повреждения оружия".to_string(),
         },
         DiceInfo {
             dice_type: DiceType::D20,
             sides: 20,
-            emoji: "🎯".to_string(),
+            emoji: "D20".to_string(),
             name: "D20 - Икосаэдр".to_string(),
             description: "Классический D&D кубик для проверок навыков и атак".to_string(),
         },
@@ -233,4 +236,3 @@ pub struct SkillInfo {
     description: String,
     stat: String,
 }
-

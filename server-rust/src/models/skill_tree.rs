@@ -1,18 +1,18 @@
-﻿/// Система дерева навыков (Skill Tree)
+/// Система дерева навыков (Skill Tree)
 use serde::{Deserialize, Serialize};
 
 /// Навык в дереве
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Skill {
     pub id: i32,
-    pub code: String,  // Уникальный код
+    pub code: String, // Уникальный код
     pub name: String,
     pub description: String,
     pub icon: String,
-    pub tier: u8,  // Уровень в дереве (1-5)
+    pub tier: u8, // Уровень в дереве (1-5)
     pub max_level: u8,
-    pub cost_per_level: u8,  // Стоимость в skill points
-    pub prerequisites: Vec<String>,  // Коды требуемых навыков
+    pub cost_per_level: u8,         // Стоимость в skill points
+    pub prerequisites: Vec<String>, // Коды требуемых навыков
     pub effects: SkillEffects,
 }
 
@@ -56,6 +56,5 @@ pub struct SkillWithProgress {
     pub skill: Skill,
     pub current_level: u8,
     pub is_unlocked: bool,
-    pub can_unlock: bool,  // Выполнены ли prerequisites
+    pub can_unlock: bool, // Выполнены ли prerequisites
 }
-

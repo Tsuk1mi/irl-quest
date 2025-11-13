@@ -1,6 +1,6 @@
-﻿use sqlx::PgPool;
 use crate::error::AppError;
 use sqlx::FromRow;
+use sqlx::PgPool;
 
 pub async fn search_quests_and_tasks(
     pool: &PgPool,
@@ -84,10 +84,7 @@ pub struct TaskSearchResult {
     pub completed: bool,
 }
 
-pub async fn get_popular_tags(
-    pool: &PgPool,
-    owner_id: i32,
-) -> Result<Vec<TagCount>, AppError> {
+pub async fn get_popular_tags(pool: &PgPool, owner_id: i32) -> Result<Vec<TagCount>, AppError> {
     sqlx::query_as::<_, TagCount>(
         r#"
         WITH combined_tags AS (

@@ -101,7 +101,7 @@ fun QuestCompletionDialog(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "✨ Квест Завершен! ✨",
+                                text = "Квест Завершен!",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Primary,
@@ -127,7 +127,7 @@ fun QuestCompletionDialog(
                         // Опыт
                         AnimatedRewardCard(
                             visible = showXP,
-                            icon = "🧠",
+                            icon = "XP",
                             title = "Получен опыт",
                             value = "+${reward.experienceGained} XP",
                             color = Secondary
@@ -136,7 +136,7 @@ fun QuestCompletionDialog(
                         // Золото
                         AnimatedRewardCard(
                             visible = showGold,
-                            icon = "💰",
+                            icon = "Gold",
                             title = "Получено золота",
                             value = "+${reward.goldGained}",
                             color = Primary
@@ -221,7 +221,7 @@ private fun AnimatedSuccessIcon(visible: Boolean) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "🏆",
+            text = "Level",
             fontSize = 56.sp
         )
     }

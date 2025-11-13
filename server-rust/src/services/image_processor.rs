@@ -1,4 +1,4 @@
-﻿/// Сервис обработки изображений с автоудалением (Privacy by Design)
+/// Сервис обработки изображений с автоудалением (Privacy by Design)
 use crate::config::Config;
 use crate::models::geolocation::*;
 use chrono::{Duration, Utc};
@@ -23,7 +23,7 @@ impl ImageProcessor {
     /// Обработать изображение для верификации
     pub async fn process_image(
         &self,
-        image_data: &str,  // Base64 encoded
+        image_data: &str, // Base64 encoded
         quest_id: i32,
         user_id: i32,
     ) -> Result<ImageVerificationResponse, Box<dyn std::error::Error>> {
@@ -37,7 +37,9 @@ impl ImageProcessor {
         let image_hash = format!("{:x}", hasher.finalize());
 
         // Временное сохранение для AI обработки
-        let temp_file_path = self.temp_storage_path.join(format!("{}_{}.jpg", user_id, image_hash));
+        let temp_file_path = self
+            .temp_storage_path
+            .join(format!("{}_{}.jpg", user_id, image_hash));
         fs::create_dir_all(&self.temp_storage_path).await?;
         fs::write(&temp_file_path, &image_bytes).await?;
 
@@ -50,23 +52,30 @@ impl ImageProcessor {
         } else if ai_confidence < 0.5 {
             VerificationStatus::AiRejected
         } else {
-            VerificationStatus::NeedsReview  // Human-in-loop
+            VerificationStatus::NeedsReview // Human-in-loop
         };
 
         let requires_review = status == VerificationStatus::NeedsReview;
 
         // Установить TTL для автоудаления
-        let auto_delete_at = Utc::now() + Duration::minutes(self.config.image_retention_minutes as i64);
+        let auto_delete_at =
+            Utc::now() + Duration::minutes(self.config.image_retention_minutes as i64);
 
         // Запланировать удаление изображения
         let file_path_clone = temp_file_path.clone();
         let delete_at = auto_delete_at;
         tokio::spawn(async move {
-            let wait_duration = (delete_at - Utc::now()).to_std().unwrap_or(std::time::Duration::from_secs(300));
+            let wait_duration = (delete_at - Utc::now())
+                .to_std()
+                .unwrap_or(std::time::Duration::from_secs(300));
             tokio::time::sleep(wait_duration).await;
-            
+
             if let Err(e) = fs::remove_file(&file_path_clone).await {
-                tracing::warn!("Failed to auto-delete image {}: {}", file_path_clone.display(), e);
+                tracing::warn!(
+                    "Failed to auto-delete image {}: {}",
+                    file_path_clone.display(),
+                    e
+                );
             } else {
                 tracing::info!("Auto-deleted image: {}", file_path_clone.display());
             }
@@ -90,24 +99,22 @@ impl ImageProcessor {
     ) -> Result<(Vec<DetectedObject>, f32), Box<dyn std::error::Error>> {
         // Здесь должна быть интеграция с моделью object detection
         // Пока возвращаем моковые данные
-        
+
         // TODO: Интеграция с:
         // - YOLO для object detection
         // - TensorFlow/PyTorch модель
         // - Cloud Vision API (Google, AWS Rekognition)
 
-        let detected_objects = vec![
-            DetectedObject {
-                label: "person".to_string(),
-                confidence: 0.92,
-                bounding_box: Some(BoundingBox {
-                    x: 100.0,
-                    y: 100.0,
-                    width: 200.0,
-                    height: 300.0,
-                }),
-            },
-        ];
+        let detected_objects = vec![DetectedObject {
+            label: "person".to_string(),
+            confidence: 0.92,
+            bounding_box: Some(BoundingBox {
+                x: 100.0,
+                y: 100.0,
+                width: 200.0,
+                height: 300.0,
+            }),
+        }];
 
         let ai_confidence = 0.92;
 
@@ -118,7 +125,7 @@ impl ImageProcessor {
     pub async fn delete_image(&self, image_hash: &str) -> Result<(), Box<dyn std::error::Error>> {
         // Найти файл по hash
         let pattern = format!("*_{}.jpg", image_hash);
-        
+
         // Удалить все файлы с этим hash
         let mut entries = fs::read_dir(&self.temp_storage_path).await?;
         while let Some(entry) = entries.next_entry().await? {
@@ -141,10 +148,11 @@ impl ImageProcessor {
 
         while let Some(entry) = entries.next_entry().await? {
             let metadata = entry.metadata().await?;
-            
+
             if let Ok(modified) = metadata.modified() {
                 let age = std::time::SystemTime::now().duration_since(modified)?;
-                let max_age = std::time::Duration::from_secs(self.config.image_retention_minutes * 60);
+                let max_age =
+                    std::time::Duration::from_secs(self.config.image_retention_minutes * 60);
 
                 if age > max_age {
                     fs::remove_file(entry.path()).await?;
@@ -180,7 +188,7 @@ mod tests {
         };
 
         let distance = moscow.distance_to(&spb);
-        
+
         // Примерно 635 км
         assert!(distance > 600000.0 && distance < 650000.0);
     }
@@ -200,4 +208,3 @@ mod tests {
         assert!(center.is_within_radius(&nearby, 100.0));
     }
 }
-

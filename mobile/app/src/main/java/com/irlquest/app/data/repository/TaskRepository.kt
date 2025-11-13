@@ -1,85 +1,144 @@
 package com.irlquest.app.data.repository
 
-import com.irlquest.app.data.network.RetrofitClient
+import com.irlquest.app.data.SharedRepositoryProvider
+import com.irlquest.app.data.network.dto.CreateQuestRequest
 import com.irlquest.app.data.network.dto.CreateTaskRequest
-import com.irlquest.app.data.network.dto.TaskDto
-import com.irlquest.app.data.network.dto.UpdateTaskRequest
+import com.irlquest.app.data.network.dto.QuestDto
 import com.irlquest.app.data.network.dto.RagClassifyRequest
 import com.irlquest.app.data.network.dto.RagClassifyResponse
 import com.irlquest.app.data.network.dto.RagQuestGenerationRequest
 import com.irlquest.app.data.network.dto.RagQuestGenerationResponse
-import com.irlquest.app.data.network.dto.CreateQuestRequest
-import com.irlquest.app.data.network.dto.QuestDto
+import com.irlquest.app.data.network.dto.TaskDto
+import com.irlquest.app.data.network.dto.UpdateTaskRequest
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.statement.bodyAsText
+import timber.log.Timber
 
-class TaskRepository {
-    private val api = RetrofitClient.apiService
+class TaskRepository : BaseKmpRepository() {
+    private val apiClient = SharedRepositoryProvider.apiClient
 
     suspend fun listTasks(): List<TaskDto> {
-        return api.getTasks().body() ?: emptyList()
+        val token = currentToken()
+        return try {
+            apiClient.get(
+                path = "/tasks",
+                headers = authHeaders(token)
+            )
+        } catch (e: ClientRequestException) {
+            val message = runCatching { e.response.bodyAsText() }.getOrNull()
+            throw Exception(message ?: "Failed to load tasks: ${e.response.status.value}")
+        } catch (e: ServerResponseException) {
+            val message = runCatching { e.response.bodyAsText() }.getOrNull()
+            throw Exception(message ?: "Server error ${e.response.status.value} while loading tasks")
+        }
     }
 
     suspend fun getTask(id: Int): TaskDto? {
-        return api.getTask(id).body()
+        return listTasks().find { it.id == id }
     }
 
     suspend fun createTask(title: String, description: String?): TaskDto {
-        // CreateTaskRequest требует множество полей — заполним разумными значениями по умолчанию
+        val token = requireToken()
         val request = CreateTaskRequest(
             title = title,
-            description = description ?: "",
+            description = description,
             priority = "medium",
-            experienceReward = 0,
+            experienceReward = 10,
             estimatedDuration = null,
             difficulty = 1,
             questId = null,
             deadline = null,
-            tags = emptyList()
+            tags = null
         )
-        return api.createTask(request).body()!!
+        return createTask(request, token)
     }
 
-    suspend fun updateTask(id: Int, title: String? = null, description: String? = null, completed: Boolean? = null, priority: String? = null, difficulty: Int? = null, tags: List<String>? = null): TaskDto {
-        // UpdateTaskRequest содержит подходящие поля
-        val status = when (completed) {
-            true -> "completed"
-            false -> "pending"
-            null -> null
+    suspend fun createTaskForQuest(request: CreateTaskRequest): TaskDto {
+        val token = requireToken()
+        return createTask(request, token)
+    }
+
+    private suspend fun createTask(request: CreateTaskRequest, token: String): TaskDto {
+        return try {
+            apiClient.postWithBody(
+                path = "/tasks",
+                body = request,
+                headers = authHeaders(token)
+            )
+        } catch (e: ClientRequestException) {
+            val message = runCatching { e.response.bodyAsText() }.getOrNull()
+            throw Exception(message ?: "Failed to create task: ${e.response.status.value}")
+        } catch (e: ServerResponseException) {
+            val message = runCatching { e.response.bodyAsText() }.getOrNull()
+            throw Exception(message ?: "Server error ${e.response.status.value} while creating task")
         }
-        return api.updateTask(id, UpdateTaskRequest(title = title, description = description, status = status, priority = priority, difficulty = difficulty, tags = tags)).body()!!
+    }
+
+    suspend fun updateTask(
+        id: Int,
+        @Suppress("UNUSED_PARAMETER") title: String? = null,
+        @Suppress("UNUSED_PARAMETER") description: String? = null,
+        completed: Boolean? = null,
+        @Suppress("UNUSED_PARAMETER") priority: String? = null,
+        @Suppress("UNUSED_PARAMETER") difficulty: Int? = null,
+        @Suppress("UNUSED_PARAMETER") tags: List<String>? = null
+    ): TaskDto {
+        if (completed == true) {
+            val token = requireToken()
+            return try {
+                apiClient.post(
+                    path = "/tasks/$id/complete",
+                    headers = authHeaders(token)
+                )
+            } catch (e: ClientRequestException) {
+                val message = runCatching { e.response.bodyAsText() }.getOrNull()
+                throw Exception(message ?: "Failed to complete task: ${e.response.status.value}")
+            }
+        }
+        Timber.w("TaskRepository.updateTask: server does not support partial updates, returning cached task")
+        return getTask(id) ?: throw Exception("Task not found")
     }
 
     suspend fun deleteTask(id: Int) {
-        api.deleteTask(id)
+        throw UnsupportedOperationException("Server does not support task deletion. Tasks can only be completed.")
     }
 
-    // RAG / ML integration
     suspend fun classifyTask(taskText: String, context: String? = null, userLevel: Int? = null): RagClassifyResponse {
-        val req = RagClassifyRequest(taskText = taskText, context = context, userLevel = userLevel)
-        return api.classifyTask(req).body()!!
+        val token = currentToken()
+        val request = RagClassifyRequest(taskText = taskText, context = context, userLevel = userLevel)
+        return apiClient.postWithBody(
+            path = "/rag/classify_task",
+            body = request,
+            headers = authHeaders(token)
+        )
     }
 
-    suspend fun generateQuestFromTask(title: String, description: String?, priority: String, estimatedDuration: Int?, difficulty: Int, tags: List<String>): RagQuestGenerationResponse {
-        val req = RagQuestGenerationRequest(todoText = title, context = description, difficultyPreference = difficulty, userLevel = null, tagsOverride = if (tags.isEmpty()) null else tags)
-        return api.generateQuestRag(req).body()!!
+    suspend fun generateQuestFromTask(
+        title: String,
+        description: String?,
+        @Suppress("UNUSED_PARAMETER") priority: String,
+        @Suppress("UNUSED_PARAMETER") estimatedDuration: Int?,
+        difficulty: Int,
+        tags: List<String>
+    ): RagQuestGenerationResponse {
+        val token = currentToken()
+        val request = RagQuestGenerationRequest(
+            todoText = title,
+            context = description,
+            difficultyPreference = difficulty,
+            userLevel = null,
+            tagsOverride = tags.takeIf { it.isNotEmpty() }
+        )
+        return apiClient.postWithBody(
+            path = "/rag/generate_quest",
+            body = request,
+            headers = authHeaders(token)
+        )
     }
 
-    // Сохранение сгенерированного квеста на сервер как полноценный Quest
     suspend fun createQuestFromGenerated(gen: RagQuestGenerationResponse): QuestDto {
-        // Преобразуем генерированные задачи в CreateTaskRequest
-        val createTasks = gen.tasks.map { t ->
-            CreateTaskRequest(
-                title = t.title,
-                description = t.description,
-                priority = "medium",
-                experienceReward = t.experienceReward,
-                estimatedDuration = t.estimatedDuration,
-                difficulty = t.difficulty,
-                questId = null,
-                deadline = null,
-                tags = emptyList()
-            )
-        }
-
+        val token = requireToken()
         val request = CreateQuestRequest(
             title = gen.title,
             description = gen.description,
@@ -92,7 +151,11 @@ class TaskRepository {
             tags = gen.tags,
             isPublic = false
         )
-
-        return api.createQuest(request).body()!!
+        return apiClient.postWithBody(
+            path = "/quests",
+            body = request,
+            headers = authHeaders(token)
+        )
     }
 }
+

@@ -1,6 +1,5 @@
-﻿/// Расширенная система аутентификации
+/// Расширенная система аутентификации
 /// Включает: JWT + Refresh tokens, OAuth2, MFA (TOTP)
-
 use crate::config::Config;
 use crate::error::AppError;
 use crate::models::auth::*;
@@ -26,7 +25,9 @@ impl AuthService {
     pub fn create_access_token(&self, user: &User) -> Result<String, AppError> {
         let expiration = Utc::now()
             .checked_add_signed(Duration::hours(self.config.jwt_expiration_hours as i64))
-            .ok_or(AppError::InternalServerError("Invalid expiration time".to_string()))?
+            .ok_or(AppError::InternalServerError(
+                "Invalid expiration time".to_string(),
+            ))?
             .timestamp() as usize;
 
         let claims = Claims {
@@ -54,14 +55,18 @@ impl AuthService {
     ) -> Result<String, AppError> {
         let token = Uuid::new_v4().to_string();
         let expires_at = Utc::now()
-            .checked_add_signed(Duration::days(self.config.refresh_token_expiration_days as i64))
-            .ok_or(AppError::InternalServerError("Invalid expiration time".to_string()))?;
+            .checked_add_signed(Duration::days(
+                self.config.refresh_token_expiration_days as i64,
+            ))
+            .ok_or(AppError::InternalServerError(
+                "Invalid expiration time".to_string(),
+            ))?;
 
         sqlx::query(
             r#"
             INSERT INTO refresh_tokens (user_id, token, expires_at, device_info)
             VALUES ($1, $2, $3, $4)
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(&token)
@@ -87,7 +92,7 @@ impl AuthService {
                    revoked, device_info
             FROM refresh_tokens
             WHERE token = $1 AND revoked = false
-            "#
+            "#,
         )
         .bind(refresh_token)
         .fetch_optional(pool)
@@ -109,7 +114,7 @@ impl AuthService {
                    character_class, character_race, created_at
             FROM users
             WHERE id = $1
-            "#
+            "#,
         )
         .bind(token_record.user_id)
         .fetch_one(pool)
@@ -117,17 +122,17 @@ impl AuthService {
         .map_err(|e| AppError::DatabaseError(format!("Failed to fetch user: {}", e)))?;
 
         // Отозвать старый refresh token
-        sqlx::query(
-            "UPDATE refresh_tokens SET revoked = true WHERE token = $1"
-        )
-        .bind(refresh_token)
-        .execute(pool)
-        .await
-        .map_err(|e| AppError::DatabaseError(format!("Failed to revoke token: {}", e)))?;
+        sqlx::query("UPDATE refresh_tokens SET revoked = true WHERE token = $1")
+            .bind(refresh_token)
+            .execute(pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(format!("Failed to revoke token: {}", e)))?;
 
         // Создать новые токены
         let access_token = self.create_access_token(&user)?;
-        let new_refresh_token = self.create_refresh_token(pool, user.id, token_record.device_info).await?;
+        let new_refresh_token = self
+            .create_refresh_token(pool, user.id, token_record.device_info)
+            .await?;
 
         Ok(TokenResponse {
             access_token,
@@ -148,14 +153,16 @@ impl AuthService {
     }
 
     /// Отозвать все refresh tokens пользователя
-    pub async fn revoke_all_refresh_tokens(&self, pool: &PgPool, user_id: i32) -> Result<(), AppError> {
-        sqlx::query(
-            "UPDATE refresh_tokens SET revoked = true WHERE user_id = $1"
-        )
-        .bind(user_id)
-        .execute(pool)
-        .await
-        .map_err(|e| AppError::DatabaseError(format!("Failed to revoke tokens: {}", e)))?;
+    pub async fn revoke_all_refresh_tokens(
+        &self,
+        pool: &PgPool,
+        user_id: i32,
+    ) -> Result<(), AppError> {
+        sqlx::query("UPDATE refresh_tokens SET revoked = true WHERE user_id = $1")
+            .bind(user_id)
+            .execute(pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(format!("Failed to revoke tokens: {}", e)))?;
 
         Ok(())
     }
@@ -177,7 +184,7 @@ impl AuthService {
                    character_class, character_race, created_at
             FROM users
             WHERE username = $1
-            "#
+            "#,
         )
         .bind(username)
         .fetch_optional(pool)
@@ -185,13 +192,20 @@ impl AuthService {
         .map_err(|e| AppError::DatabaseError(format!("Failed to fetch user: {}", e)))?
         .ok_or(AppError::Unauthorized("Invalid credentials".to_string()))?;
 
-        // Проверить пароль
-        let valid = bcrypt::verify(password, &user.hashed_password)
-            .map_err(|e| AppError::InternalServerError(format!("Failed to verify password: {}", e)))?;
+        // Проверить пароль (используем Argon2 для совместимости с auth_handlers)
+        use argon2::{Argon2, PasswordHash, PasswordVerifier};
+        let parsed_hash = PasswordHash::new(&user.hashed_password).map_err(|e| {
+            AppError::InternalServerError(format!("Failed to parse password hash: {}", e))
+        })?;
+
+        let valid = Argon2::default()
+            .verify_password(password.as_bytes(), &parsed_hash)
+            .is_ok();
 
         if !valid {
             // Логировать неудачную попытку
-            self.log_login_attempt(pool, Some(user.id), username, false, "Invalid password").await?;
+            self.log_login_attempt(pool, Some(user.id), username, false, "Invalid password")
+                .await?;
             return Err(AppError::Unauthorized("Invalid credentials".to_string()));
         }
 
@@ -209,7 +223,7 @@ impl AuthService {
                 r#"
                 INSERT INTO mfa_sessions (session_id, user_id, expires_at)
                 VALUES ($1, $2, $3)
-                "#
+                "#,
             )
             .bind(&session_id)
             .bind(user.id)
@@ -227,7 +241,9 @@ impl AuthService {
 
         // Создать токены
         let access_token = self.create_access_token(&user)?;
-        let refresh_token = self.create_refresh_token(pool, user.id, device_info).await?;
+        let refresh_token = self
+            .create_refresh_token(pool, user.id, device_info)
+            .await?;
 
         // Обновить last_login
         sqlx::query("UPDATE users SET last_login = $1 WHERE id = $2")
@@ -238,7 +254,8 @@ impl AuthService {
             .ok();
 
         // Логировать успешный вход
-        self.log_login_attempt(pool, Some(user.id), username, true, "").await?;
+        self.log_login_attempt(pool, Some(user.id), username, true, "")
+            .await?;
 
         Ok(LoginResponse {
             tokens: Some(TokenResponse {
@@ -266,13 +283,13 @@ impl AuthService {
             user_id: i32,
             expires_at: chrono::DateTime<Utc>,
         }
-        
+
         let session = sqlx::query_as::<_, MfaSession>(
             r#"
             SELECT user_id, expires_at
             FROM mfa_sessions
             WHERE session_id = $1
-            "#
+            "#,
         )
         .bind(session_token)
         .fetch_optional(pool)
@@ -286,7 +303,9 @@ impl AuthService {
         }
 
         // Проверить MFA код
-        let valid = self.verify_mfa_code(pool, session.user_id, mfa_code).await?;
+        let valid = self
+            .verify_mfa_code(pool, session.user_id, mfa_code)
+            .await?;
         if !valid {
             return Err(AppError::Unauthorized("Invalid MFA code".to_string()));
         }
@@ -307,7 +326,7 @@ impl AuthService {
                    character_class, character_race, created_at
             FROM users
             WHERE id = $1
-            "#
+            "#,
         )
         .bind(session.user_id)
         .fetch_one(pool)
@@ -316,7 +335,9 @@ impl AuthService {
 
         // Создать токены
         let access_token = self.create_access_token(&user)?;
-        let refresh_token = self.create_refresh_token(pool, user.id, device_info).await?;
+        let refresh_token = self
+            .create_refresh_token(pool, user.id, device_info)
+            .await?;
 
         // Обновить last_login
         sqlx::query("UPDATE users SET last_login = $1 WHERE id = $2")
@@ -340,13 +361,33 @@ impl AuthService {
         struct MfaEnabled {
             enabled: bool,
         }
-        
+
+        // Проверяем существование таблицы перед запросом
+        // Если таблицы нет, значит MFA не настроен - возвращаем false
+        let table_exists: Option<bool> = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'mfa_secrets'
+            )
+            "#,
+        )
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten();
+
+        if table_exists != Some(true) {
+            return Ok(false);
+        }
+
         let result = sqlx::query_as::<_, MfaEnabled>(
             r#"
             SELECT enabled
             FROM mfa_secrets
             WHERE user_id = $1
-            "#
+            "#,
         )
         .bind(user_id)
         .fetch_optional(pool)
@@ -369,7 +410,7 @@ impl AuthService {
             r#"
             INSERT INTO login_attempts (user_id, username, success, failure_reason)
             VALUES ($1, $2, $3, $4)
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(username)
@@ -383,14 +424,18 @@ impl AuthService {
     }
 
     /// Настроить MFA для пользователя (генерация секрета)
-    pub async fn setup_mfa(&self, pool: &PgPool, user_id: i32) -> Result<MfaSetupResponse, AppError> {
+    pub async fn setup_mfa(
+        &self,
+        pool: &PgPool,
+        user_id: i32,
+    ) -> Result<MfaSetupResponse, AppError> {
         // Получить пользователя
         let user = sqlx::query_as::<_, User>(
             r#"SELECT id, username, email, hashed_password, is_active,
                       level, experience, gold, avatar_url, bio, timezone, last_login, settings,
                       strength, intelligence, charisma, dexterity, constitution, wisdom,
                       character_class, character_race, created_at
-               FROM users WHERE id = $1"#
+               FROM users WHERE id = $1"#,
         )
         .bind(user_id)
         .fetch_one(pool)
@@ -417,20 +462,26 @@ impl AuthService {
         .map_err(|e| AppError::InternalServerError(format!("Failed to create TOTP: {}", e)))?;
 
         // Генерировать QR код
-        let qr_code_url = totp.get_qr_base64()
-            .map_err(|e| AppError::InternalServerError(format!("Failed to generate QR code: {}", e)))?;
+        let qr_code_url = totp.get_qr_base64().map_err(|e| {
+            AppError::InternalServerError(format!("Failed to generate QR code: {}", e))
+        })?;
 
         // Генерировать backup коды
         let backup_codes: Vec<String> = (0..10)
             .map(|_| {
                 use rand::Rng;
                 let mut rng = rand::thread_rng();
-                format!("{:04}-{:04}", rng.gen_range(0..10000), rng.gen_range(0..10000))
+                format!(
+                    "{:04}-{:04}",
+                    rng.gen_range(0..10000),
+                    rng.gen_range(0..10000)
+                )
             })
             .collect();
 
-        let backup_codes_json = serde_json::to_string(&backup_codes)
-            .map_err(|e| AppError::InternalServerError(format!("Failed to serialize backup codes: {}", e)))?;
+        let backup_codes_json = serde_json::to_string(&backup_codes).map_err(|e| {
+            AppError::InternalServerError(format!("Failed to serialize backup codes: {}", e))
+        })?;
 
         // Сохранить в БД (disabled до подтверждения)
         sqlx::query(
@@ -440,7 +491,7 @@ impl AuthService {
             ON CONFLICT(user_id) DO UPDATE SET
                 secret = excluded.secret,
                 backup_codes = excluded.backup_codes
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(&secret_str)
@@ -458,7 +509,12 @@ impl AuthService {
     }
 
     /// Включить MFA после верификации кода
-    pub async fn enable_mfa(&self, pool: &PgPool, user_id: i32, code: &str) -> Result<(), AppError> {
+    pub async fn enable_mfa(
+        &self,
+        pool: &PgPool,
+        user_id: i32,
+        code: &str,
+    ) -> Result<(), AppError> {
         // Проверить код
         let valid = self.verify_mfa_code(pool, user_id, code).await?;
         if !valid {
@@ -466,13 +522,11 @@ impl AuthService {
         }
 
         // Включить MFA
-        sqlx::query(
-            "UPDATE mfa_secrets SET enabled = true WHERE user_id = $1"
-        )
-        .bind(user_id)
-        .execute(pool)
-        .await
-        .map_err(|e| AppError::DatabaseError(format!("Failed to enable MFA: {}", e)))?;
+        sqlx::query("UPDATE mfa_secrets SET enabled = true WHERE user_id = $1")
+            .bind(user_id)
+            .execute(pool)
+            .await
+            .map_err(|e| AppError::DatabaseError(format!("Failed to enable MFA: {}", e)))?;
 
         Ok(())
     }
@@ -489,20 +543,25 @@ impl AuthService {
     }
 
     /// Проверить MFA код
-    pub async fn verify_mfa_code(&self, pool: &PgPool, user_id: i32, code: &str) -> Result<bool, AppError> {
+    pub async fn verify_mfa_code(
+        &self,
+        pool: &PgPool,
+        user_id: i32,
+        code: &str,
+    ) -> Result<bool, AppError> {
         // Получить секрет
         #[derive(sqlx::FromRow)]
         struct MfaSecret {
             secret: String,
             backup_codes: Option<String>,
         }
-        
+
         let mfa_secret = sqlx::query_as::<_, MfaSecret>(
             r#"
             SELECT secret, backup_codes
             FROM mfa_secrets
             WHERE user_id = $1
-            "#
+            "#,
         )
         .bind(user_id)
         .fetch_optional(pool)
@@ -531,15 +590,17 @@ impl AuthService {
             .duration_since(std::time::UNIX_EPOCH)
             .map_err(|e| AppError::InternalServerError(format!("Time error: {}", e)))?
             .as_secs();
-        
+
         if totp.check(code, current_time) {
             return Ok(true);
         }
 
         // Проверить backup коды
         if let Some(backup_codes_json) = &mfa_secret.backup_codes {
-            let backup_codes: Vec<String> = serde_json::from_str(backup_codes_json)
-                .map_err(|e| AppError::InternalServerError(format!("Failed to parse backup codes: {}", e)))?;
+            let backup_codes: Vec<String> =
+                serde_json::from_str(backup_codes_json).map_err(|e| {
+                    AppError::InternalServerError(format!("Failed to parse backup codes: {}", e))
+                })?;
 
             let code_string = code.to_string();
             if backup_codes.contains(&code_string) {
@@ -549,17 +610,20 @@ impl AuthService {
                     .filter(|c| c != &code_string)
                     .collect();
 
-                let new_backup_codes_json = serde_json::to_string(&new_backup_codes)
-                    .map_err(|e| AppError::InternalServerError(format!("Failed to serialize backup codes: {}", e)))?;
+                let new_backup_codes_json =
+                    serde_json::to_string(&new_backup_codes).map_err(|e| {
+                        AppError::InternalServerError(format!(
+                            "Failed to serialize backup codes: {}",
+                            e
+                        ))
+                    })?;
 
-                sqlx::query(
-                    "UPDATE mfa_secrets SET backup_codes = $1 WHERE user_id = $2"
-                )
-                .bind(&new_backup_codes_json)
-                .bind(user_id)
-                .execute(pool)
-                .await
-                .ok();
+                sqlx::query("UPDATE mfa_secrets SET backup_codes = $1 WHERE user_id = $2")
+                    .bind(&new_backup_codes_json)
+                    .bind(user_id)
+                    .execute(pool)
+                    .await
+                    .ok();
 
                 return Ok(true);
             }
@@ -571,4 +635,3 @@ impl AuthService {
 
 // Добавить зависимость rand в Cargo.toml
 use rand;
-

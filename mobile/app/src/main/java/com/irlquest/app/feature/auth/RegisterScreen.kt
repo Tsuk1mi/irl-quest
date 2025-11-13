@@ -39,7 +39,7 @@ fun RegisterScreen(
         if (currentUser != null) onRegistered()
     }
 
-    // 📜 ФЭНТЕЗИ ЭКРАН РЕГИСТРАЦИИ - ВСТУПЛЕНИЕ В ГИЛЬДИЮ
+    // Экран регистрации нового пользователя
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -62,12 +62,6 @@ fun RegisterScreen(
         ) {
             // Заголовок
             Text(
-                text = "🎭",
-                fontSize = 64.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            
-            Text(
                 text = "Регистрация Героя",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
@@ -76,7 +70,7 @@ fun RegisterScreen(
             )
             
             Text(
-                text = "✨ Начни свой путь к легенде ✨",
+                text = "Начни свой путь к легенде",
                 style = MaterialTheme.typography.titleMedium,
                 color = TavernWood,
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -122,7 +116,7 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("⚔️ Имя героя") },
+                        label = { Text("Имя героя") },
                         leadingIcon = {
                             Icon(Icons.Default.Person, contentDescription = null, tint = Secondary)
                         },
@@ -164,7 +158,7 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "⚠️ $error",
+                                text = "Ошибка: $error",
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.padding(12.dp)
                             )

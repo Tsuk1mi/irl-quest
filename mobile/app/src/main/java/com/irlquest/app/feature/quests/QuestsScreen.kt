@@ -32,6 +32,7 @@ fun QuestsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showCreateDialog by remember { mutableStateOf(false) }
+    var showMLGeneratorDialog by remember { mutableStateOf(false) }
     
     LaunchedEffect(Unit) {
         viewModel.loadQuests()
@@ -80,16 +81,30 @@ fun QuestsScreen(
             }
         }
         
-        // FAB внизу справа (правильное расположение)
-        FloatingActionButton(
-            onClick = { showCreateDialog = true },
+        // FABs внизу справа
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
-            containerColor = com.irlquest.app.ui.theme.Primary,
-            contentColor = com.irlquest.app.ui.theme.OnPrimary
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Создать квест")
+            // ML генератор квестов
+            FloatingActionButton(
+                onClick = { showMLGeneratorDialog = true },
+                containerColor = MagicPurple,
+                contentColor = com.irlquest.app.ui.theme.OnPrimary
+            ) {
+                Icon(Icons.Default.AutoAwesome, contentDescription = "Сгенерировать квест с ИИ")
+            }
+
+            // Создание вручную
+            FloatingActionButton(
+                onClick = { showCreateDialog = true },
+                containerColor = com.irlquest.app.ui.theme.Primary,
+                contentColor = com.irlquest.app.ui.theme.OnPrimary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Создать квест")
+            }
         }
         
         if (showCreateDialog) {
@@ -98,6 +113,16 @@ fun QuestsScreen(
                 onCreateQuest = { title, description, difficulty ->
                     viewModel.createQuest(title, description, difficulty)
                     showCreateDialog = false
+                }
+            )
+        }
+
+        if (showMLGeneratorDialog) {
+            QuestGeneratorDialog(
+                onDismiss = { showMLGeneratorDialog = false },
+                onAccept = { generated ->
+                    viewModel.createQuestFromML(generated)
+                    showMLGeneratorDialog = false
                 }
             )
         }
@@ -380,7 +405,7 @@ fun CreateQuestDialog(
         containerColor = com.irlquest.app.ui.theme.Surface,
         title = { 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("📜", fontSize = 32.sp, modifier = Modifier.padding(end = 8.dp))
+                // Иконка квеста
                 Text(
                     "Новый Квест",
                     fontWeight = FontWeight.Bold,
@@ -395,7 +420,7 @@ fun CreateQuestDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("⚔️ Название приключения") },
+                    label = { Text("Название приключения") },
                     placeholder = { Text("Например: Изучить Kotlin") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -408,7 +433,7 @@ fun CreateQuestDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("📖 Легенда квеста") },
+                    label = { Text("Легенда квеста") },
                     placeholder = { Text("Опциально: расскажите подробнее") },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3,
@@ -427,16 +452,16 @@ fun CreateQuestDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "🎯 Сложность:",
+                            "Сложность:",
                             fontWeight = FontWeight.Medium,
                             color = com.irlquest.app.ui.theme.TavernWood
                         )
                         Text(
                             when (difficulty) {
-                                1 -> "🥉 Легкий"
-                                2 -> "🥈 Средний"
-                                3, 4 -> "🥇 Сложный"
-                                else -> "⚡ Легендарный"
+                                1 -> "Легкий"
+                                2 -> "Средний"
+                                3, 4 -> "Сложный"
+                                else -> "Легендарный"
                             },
                             fontWeight = FontWeight.Bold,
                             color = when (difficulty) {
@@ -460,7 +485,7 @@ fun CreateQuestDialog(
                     
                     // Подсказка по наградам
                     Text(
-                        text = "💰 Награда: +${difficulty * 20} золота, ⭐ +${difficulty * 50} XP",
+                        text = "Награда: +${difficulty * 20} золота, +${difficulty * 50} XP",
                         style = MaterialTheme.typography.bodySmall,
                         color = com.irlquest.app.ui.theme.OnSurface.copy(alpha = 0.6f),
                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic

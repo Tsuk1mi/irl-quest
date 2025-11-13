@@ -1,4 +1,4 @@
-﻿use axum::{
+use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
     Json,
@@ -60,9 +60,7 @@ impl IntoResponse for AppError {
                 tracing::error!("External service error: {}", msg);
                 (StatusCode::BAD_GATEWAY, msg)
             }
-            AppError::NotImplemented(msg) => {
-                (StatusCode::NOT_IMPLEMENTED, msg)
-            }
+            AppError::NotImplemented(msg) => (StatusCode::NOT_IMPLEMENTED, msg),
         };
 
         let body = Json(json!({

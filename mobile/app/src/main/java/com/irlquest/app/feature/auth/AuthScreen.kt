@@ -59,7 +59,7 @@ fun AuthScreen(
                 showRegister = false
             }, viewModel = viewModel)
         } else {
-            // 🏰 ФЭНТЕЗИ ЭКРАН ЛОГИНА - ВХОД В ТАВЕРНУ
+            // Экран входа в приложение
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,13 +81,7 @@ fun AuthScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 🏰 Заголовок таверны
-                    Text(
-                        text = "🏰",
-                        fontSize = 72.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
+                    // Заголовок приложения
                     Text(
                         text = "IRL QUEST",
                         style = MaterialTheme.typography.displayMedium,
@@ -97,7 +91,7 @@ fun AuthScreen(
                     )
                     
                     Text(
-                        text = "⚔️ Таверна Героев ⚔️",
+                        text = "Таверна Героев",
                         style = MaterialTheme.typography.titleMedium,
                         color = TavernWood,
                         fontWeight = FontWeight.Medium,
@@ -124,7 +118,7 @@ fun AuthScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "📜 Вход в Гильдию",
+                                text = "Вход в Гильдию",
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = TavernWood
@@ -136,7 +130,7 @@ fun AuthScreen(
                             OutlinedTextField(
                                 value = username,
                                 onValueChange = { username = it },
-                                label = { Text("⚔️ Имя героя") },
+                                label = { Text("Имя героя") },
                                 leadingIcon = {
                                     Icon(Icons.Default.Person, contentDescription = null, tint = Primary)
                                 },
@@ -195,7 +189,7 @@ fun AuthScreen(
                                         horizontalArrangement = Arrangement.Center
                                     ) {
                                         Text(
-                                            text = "⚔️ Войти в таверну",
+                                            text = "Войти в таверну",
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold
                                         )

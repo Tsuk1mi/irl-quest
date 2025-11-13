@@ -1,4 +1,4 @@
-﻿use anyhow::Result;
+use anyhow::Result;
 use chrono::Utc;
 use sqlx::PgPool;
 
@@ -72,13 +72,12 @@ impl QuestService {
         user_id: i32,
         quest_id: i32,
     ) -> Result<Option<QuestOut>> {
-        let quest: Option<Quest> = sqlx::query_as::<_, Quest>(
-            "SELECT * FROM quests WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(quest_id)
-        .bind(user_id)
-        .fetch_optional(pool)
-        .await?;
+        let quest: Option<Quest> =
+            sqlx::query_as::<_, Quest>("SELECT * FROM quests WHERE id = $1 AND owner_id = $2")
+                .bind(quest_id)
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await?;
 
         Ok(quest.map(QuestOut::from))
     }
@@ -91,29 +90,57 @@ impl QuestService {
         quest_update: QuestUpdate,
     ) -> Result<Option<QuestOut>> {
         // Load existing
-        let quest: Option<Quest> = sqlx::query_as::<_, Quest>(
-            "SELECT * FROM quests WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(quest_id)
-        .bind(user_id)
-        .fetch_optional(pool)
-        .await?;
+        let quest: Option<Quest> =
+            sqlx::query_as::<_, Quest>("SELECT * FROM quests WHERE id = $1 AND owner_id = $2")
+                .bind(quest_id)
+                .bind(user_id)
+                .fetch_optional(pool)
+                .await?;
 
-        let mut quest = match quest { Some(q) => q, None => return Ok(None) };
+        let mut quest = match quest {
+            Some(q) => q,
+            None => return Ok(None),
+        };
 
-        if let Some(title) = quest_update.title { quest.title = title; }
-        if let Some(description) = quest_update.description { quest.description = Some(description); }
-        if let Some(difficulty) = quest_update.difficulty { quest.difficulty = difficulty; }
-        if let Some(status) = quest_update.status { quest.status = status; }
-        if let Some(priority) = quest_update.priority { quest.priority = priority; }
-        if let Some(deadline) = quest_update.deadline { quest.deadline = Some(deadline); }
-        if let Some(reward_experience) = quest_update.reward_experience { quest.reward_experience = Some(reward_experience); }
-        if let Some(reward_description) = quest_update.reward_description { quest.reward_description = Some(reward_description); }
-        if let Some(tags) = quest_update.tags { quest.tags = tags; }
-        if let Some(is_public) = quest_update.is_public { quest.is_public = is_public; }
-        if let Some(location_name) = quest_update.location_name { quest.location_name = Some(location_name); }
-        if let Some(quest_type) = quest_update.quest_type { quest.quest_type = quest_type; }
-        if let Some(metadata) = quest_update.metadata { quest.metadata = metadata; }
+        if let Some(title) = quest_update.title {
+            quest.title = title;
+        }
+        if let Some(description) = quest_update.description {
+            quest.description = Some(description);
+        }
+        if let Some(difficulty) = quest_update.difficulty {
+            quest.difficulty = difficulty;
+        }
+        if let Some(status) = quest_update.status {
+            quest.status = status;
+        }
+        if let Some(priority) = quest_update.priority {
+            quest.priority = priority;
+        }
+        if let Some(deadline) = quest_update.deadline {
+            quest.deadline = Some(deadline);
+        }
+        if let Some(reward_experience) = quest_update.reward_experience {
+            quest.reward_experience = Some(reward_experience);
+        }
+        if let Some(reward_description) = quest_update.reward_description {
+            quest.reward_description = Some(reward_description);
+        }
+        if let Some(tags) = quest_update.tags {
+            quest.tags = tags;
+        }
+        if let Some(is_public) = quest_update.is_public {
+            quest.is_public = is_public;
+        }
+        if let Some(location_name) = quest_update.location_name {
+            quest.location_name = Some(location_name);
+        }
+        if let Some(quest_type) = quest_update.quest_type {
+            quest.quest_type = quest_type;
+        }
+        if let Some(metadata) = quest_update.metadata {
+            quest.metadata = metadata;
+        }
 
         let updated: Quest = sqlx::query_as::<_, Quest>(
             r#"
@@ -147,18 +174,12 @@ impl QuestService {
     }
 
     #[allow(dead_code)]
-    pub async fn delete_quest_for_user(
-        pool: &PgPool,
-        user_id: i32,
-        quest_id: i32,
-    ) -> Result<bool> {
-        let result = sqlx::query(
-            "DELETE FROM quests WHERE id = $1 AND owner_id = $2",
-        )
-        .bind(quest_id)
-        .bind(user_id)
-        .execute(pool)
-        .await?;
+    pub async fn delete_quest_for_user(pool: &PgPool, user_id: i32, quest_id: i32) -> Result<bool> {
+        let result = sqlx::query("DELETE FROM quests WHERE id = $1 AND owner_id = $2")
+            .bind(quest_id)
+            .bind(user_id)
+            .execute(pool)
+            .await?;
 
         Ok(result.rows_affected() > 0)
     }

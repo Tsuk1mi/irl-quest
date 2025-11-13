@@ -37,32 +37,38 @@ class TaskDetailViewModel(
         val task = _uiState.value.task ?: return
         viewModelScope.launch {
             try {
-                repo.updateTask(task.id, completed = !task.completed)
-                loadTask(task.id)
+                if (!task.completed) {
+                    // Сервер поддерживает только завершение задачи
+                    repo.updateTask(task.id, completed = true)
+                    loadTask(task.id)
+                } else {
+                    // Сервер не поддерживает "разавершение" задачи
+                    _uiState.value = _uiState.value.copy(error = "Разавершение задачи не поддерживается")
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
 
-    fun updateTask(title: String?, description: String?) {
-        val task = _uiState.value.task ?: return
+    fun updateTask(@Suppress("UNUSED_PARAMETER") title: String?, @Suppress("UNUSED_PARAMETER") description: String?) {
+        if (_uiState.value.task == null) return
         viewModelScope.launch {
             try {
-                repo.updateTask(task.id, title = title, description = description, completed = task.completed)
-                loadTask(task.id)
+                // ⚠️ Сервер не поддерживает обновление задач (только завершение)
+                _uiState.value = _uiState.value.copy(error = "Обновление задач не поддерживается сервером. Можно только завершить задачу.")
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
 
-    fun deleteTask(onDeleted: () -> Unit = {}) {
-        val task = _uiState.value.task ?: return
+    fun deleteTask(@Suppress("UNUSED_PARAMETER") onDeleted: () -> Unit = {}) {
+        if (_uiState.value.task == null) return
         viewModelScope.launch {
             try {
-                repo.deleteTask(task.id)
-                onDeleted()
+                // ⚠️ Сервер не поддерживает удаление задач
+                _uiState.value = _uiState.value.copy(error = "Удаление задач не поддерживается. Завершите задачу вместо этого.")
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
             }

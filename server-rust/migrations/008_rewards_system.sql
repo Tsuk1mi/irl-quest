@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS daily_reward_stats (
     UNIQUE(user_id, date)
 );
 
-CREATE INDEX idx_daily_reward_stats_user_date ON daily_reward_stats(user_id, date);
-CREATE INDEX idx_daily_reward_stats_date ON daily_reward_stats(date);
+CREATE INDEX IF NOT EXISTS idx_daily_reward_stats_user_date ON daily_reward_stats(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_daily_reward_stats_date ON daily_reward_stats(date);
 
 -- Таблица для стриков (последовательное выполнение)
 CREATE TABLE IF NOT EXISTS user_streaks (
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS user_streaks (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_streaks_user_id ON user_streaks(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_streaks_user_id ON user_streaks(user_id);
 
 -- Таблица для инвентаря предметов
 CREATE TABLE IF NOT EXISTS user_inventory (
@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS user_inventory (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_inventory_user_id ON user_inventory(user_id);
-CREATE INDEX idx_user_inventory_item_id ON user_inventory(user_id, item_id);
+CREATE INDEX IF NOT EXISTS idx_user_inventory_user_id ON user_inventory(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_inventory_item_id ON user_inventory(user_id, item_id);
 
 -- Таблица для истории наград
 CREATE TABLE IF NOT EXISTS reward_history (
@@ -67,9 +67,9 @@ CREATE TABLE IF NOT EXISTS reward_history (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_reward_history_user_id ON reward_history(user_id);
-CREATE INDEX idx_reward_history_created_at ON reward_history(created_at);
-CREATE INDEX idx_reward_history_quest_id ON reward_history(quest_id);
+CREATE INDEX IF NOT EXISTS idx_reward_history_user_id ON reward_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_reward_history_created_at ON reward_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_reward_history_quest_id ON reward_history(quest_id);
 
 -- Таблица для временных событий (бонусы)
 CREATE TABLE IF NOT EXISTS reward_events (
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS reward_events (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_reward_events_active ON reward_events(is_active, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_reward_events_active ON reward_events(is_active, start_date, end_date);
 
 -- Добавить колонки к таблице users для характеристик
 -- Already added in migration 006
@@ -106,5 +106,5 @@ CREATE TABLE IF NOT EXISTS quest_completions (
     UNIQUE(user_id, quest_id)
 );
 
-CREATE INDEX idx_quest_completions_user_quest ON quest_completions(user_id, quest_id);
+CREATE INDEX IF NOT EXISTS idx_quest_completions_user_quest ON quest_completions(user_id, quest_id);
 

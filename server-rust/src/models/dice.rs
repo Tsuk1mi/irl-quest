@@ -1,17 +1,17 @@
-﻿/// Система кубиков (D&D dice system)
-use serde::{Deserialize, Serialize};
 use rand::Rng;
+/// Система кубиков (D&D dice system)
+use serde::{Deserialize, Serialize};
 
 /// Тип кубика
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum DiceType {
-    D4,   // Тетраэдр
-    D6,   // Стандартный куб
-    D8,   // Октаэдр
-    D10,  // Десятигранник
-    D12,  // Додекаэдр
-    D20,  // Икосаэдр (классический D&D)
+    D4,  // Тетраэдр
+    D6,  // Стандартный куб
+    D8,  // Октаэдр
+    D10, // Десятигранник
+    D12, // Додекаэдр
+    D20, // Икосаэдр (классический D&D)
 }
 
 impl DiceType {
@@ -28,12 +28,12 @@ impl DiceType {
 
     pub fn emoji(&self) -> &str {
         match self {
-            DiceType::D4 => "🔺",
-            DiceType::D6 => "🎲",
-            DiceType::D8 => "🔷",
-            DiceType::D10 => "🔟",
-            DiceType::D12 => "⬡",
-            DiceType::D20 => "🎯",
+            DiceType::D4 => "D4",
+            DiceType::D6 => "D6",
+            DiceType::D8 => "D8",
+            DiceType::D10 => "D10",
+            DiceType::D12 => "D12",
+            DiceType::D20 => "D20",
         }
     }
 }
@@ -45,8 +45,8 @@ pub struct DiceRoll {
     pub result: u8,
     pub modifier: i8,
     pub total: i16,
-    pub is_critical_success: bool,  // Максимальное значение
-    pub is_critical_failure: bool,  // Минимальное значение
+    pub is_critical_success: bool, // Максимальное значение
+    pub is_critical_failure: bool, // Минимальное значение
     pub timestamp: i64,
 }
 
@@ -56,7 +56,7 @@ impl DiceRoll {
         let mut rng = rand::thread_rng();
         let result = rng.gen_range(1..=dice_type.sides());
         let total = result as i16 + modifier as i16;
-        
+
         let is_critical_success = result == dice_type.sides();
         let is_critical_failure = result == 1;
 
@@ -90,7 +90,7 @@ pub struct RollDiceRequest {
 #[derive(Debug, Deserialize)]
 pub struct SkillCheckRequest {
     pub skill: SkillType,
-    pub difficulty: u8,  // DC (Difficulty Class) 1-30
+    pub difficulty: u8, // DC (Difficulty Class) 1-30
     pub quest_id: Option<i32>,
 }
 
@@ -99,19 +99,19 @@ pub struct SkillCheckRequest {
 #[serde(rename_all = "lowercase")]
 pub enum SkillType {
     // На основе Силы
-    Athletics,        // Атлетика
+    Athletics, // Атлетика
     // На основе Ловкости
-    Acrobatics,       // Акробатика
-    SleightOfHand,    // Ловкость рук
-    Stealth,          // Скрытность
+    Acrobatics,    // Акробатика
+    SleightOfHand, // Ловкость рук
+    Stealth,       // Скрытность
     // На основе Интеллекта
-    Investigation,    // Анализ
-    History,          // История
-    Arcana,           // Магия
+    Investigation, // Анализ
+    History,       // История
+    Arcana,        // Магия
     // На основе Харизмы
-    Persuasion,       // Убеждение
-    Deception,        // Обман
-    Performance,      // Выступление
+    Persuasion,  // Убеждение
+    Deception,   // Обман
+    Performance, // Выступление
 }
 
 impl SkillType {
@@ -123,7 +123,7 @@ impl SkillType {
             SkillType::Investigation | SkillType::History | SkillType::Arcana => intelligence,
             SkillType::Persuasion | SkillType::Deception | SkillType::Performance => charisma,
         };
-        
+
         // D&D формула: (Stat - 10) / 2
         ((stat as i16 - 10) / 2) as i8
     }
@@ -159,17 +159,17 @@ pub struct SkillCheckResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SuccessDegree {
-    CriticalFailure,  // Критический провал (1 на кубике)
-    Failure,          // Провал
-    Success,          // Успех
-    CriticalSuccess,  // Критический успех (макс на кубике или превышение на 10+)
+    CriticalFailure, // Критический провал (1 на кубике)
+    Failure,         // Провал
+    Success,         // Успех
+    CriticalSuccess, // Критический успех (макс на кубике или превышение на 10+)
 }
 
 impl SkillCheckResult {
     pub fn new(skill: SkillType, roll: DiceRoll, difficulty: u8) -> Self {
         let success = roll.check_success(difficulty);
         let margin = roll.total - difficulty as i16;
-        
+
         let degree_of_success = if roll.is_critical_failure {
             SuccessDegree::CriticalFailure
         } else if roll.is_critical_success || margin >= 10 {
@@ -182,17 +182,17 @@ impl SkillCheckResult {
 
         let description = match degree_of_success {
             SuccessDegree::CriticalFailure => {
-                "💀 Критический провал! Что-то пошло очень не так...".to_string()
-            },
+                "Критический провал! Что-то пошло очень не так...".to_string()
+            }
             SuccessDegree::Failure => {
-                format!("❌ Провал. Не хватило {} очков.", margin.abs())
-            },
+                format!("Провал. Не хватило {} очков.", margin.abs())
+            }
             SuccessDegree::Success => {
-                format!("✅ Успех! Превышение на {} очков.", margin)
-            },
+                format!("Успех! Превышение на {} очков.", margin)
+            }
             SuccessDegree::CriticalSuccess => {
-                "⭐ Критический успех! Невероятное достижение!".to_string()
-            },
+                "Критический успех! Невероятное достижение!".to_string()
+            }
         };
 
         Self {
@@ -210,10 +210,10 @@ impl SkillCheckResult {
 #[derive(Debug, Deserialize)]
 pub struct MultiRollRequest {
     pub dice_type: DiceType,
-    pub count: u8,  // Количество кубиков (1-10)
+    pub count: u8, // Количество кубиков (1-10)
     pub modifier: Option<i8>,
-    pub keep_highest: Option<u8>,  // Оставить N лучших результатов
-    pub keep_lowest: Option<u8>,   // Оставить N худших результатов
+    pub keep_highest: Option<u8>, // Оставить N лучших результатов
+    pub keep_lowest: Option<u8>,  // Оставить N худших результатов
 }
 
 /// Результат множественного броска
@@ -230,18 +230,18 @@ pub struct MultiRollResult {
 impl MultiRollResult {
     pub fn roll(request: &MultiRollRequest) -> Self {
         let mut rng = rand::thread_rng();
-        let count = request.count.min(10);  // Максимум 10 кубиков
-        
+        let count = request.count.min(10); // Максимум 10 кубиков
+
         let mut rolls: Vec<u8> = (0..count)
             .map(|_| rng.gen_range(1..=request.dice_type.sides()))
             .collect();
 
         // Применить keep_highest или keep_lowest
         let kept_rolls = if let Some(keep_high) = request.keep_highest {
-            rolls.sort_by(|a, b| b.cmp(a));  // Сортировка по убыванию
+            rolls.sort_by(|a, b| b.cmp(a)); // Сортировка по убыванию
             rolls.iter().take(keep_high as usize).copied().collect()
         } else if let Some(keep_low) = request.keep_lowest {
-            rolls.sort();  // Сортировка по возрастанию
+            rolls.sort(); // Сортировка по возрастанию
             rolls.iter().take(keep_low as usize).copied().collect()
         } else {
             rolls.clone()
@@ -292,7 +292,7 @@ impl DiceHistory {
         if roll.is_critical_failure {
             self.critical_failures += 1;
         }
-        
+
         // Хранить последние 100 бросков
         self.rolls.push(roll);
         if self.rolls.len() > 100 {
@@ -301,10 +301,12 @@ impl DiceHistory {
     }
 
     pub fn average_roll(&self, dice_type: DiceType) -> f32 {
-        let rolls: Vec<&DiceRoll> = self.rolls.iter()
+        let rolls: Vec<&DiceRoll> = self
+            .rolls
+            .iter()
             .filter(|r| r.dice_type == dice_type)
             .collect();
-        
+
         if rolls.is_empty() {
             return 0.0;
         }
@@ -313,4 +315,3 @@ impl DiceHistory {
         sum as f32 / rolls.len() as f32
     }
 }
-

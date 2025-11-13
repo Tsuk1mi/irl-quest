@@ -1,20 +1,20 @@
-﻿/// Система достижений (Achievements)
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+/// Система достижений (Achievements)
+use serde::{Deserialize, Serialize};
 
 /// Достижение
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Achievement {
     pub id: i32,
-    pub code: String,  // Уникальный код (quest_master, speed_demon, etc.)
+    pub code: String, // Уникальный код (quest_master, speed_demon, etc.)
     pub name: String,
     pub description: String,
-    pub icon: String,  // Emoji или URL
+    pub icon: String, // Emoji или URL
     pub category: AchievementCategory,
     pub rarity: AchievementRarity,
     pub reward_experience: u32,
     pub reward_gold: u32,
-    pub hidden: bool,  // Скрытые достижения
+    pub hidden: bool, // Скрытые достижения
 }
 
 /// Категория достижений
@@ -77,4 +77,3 @@ pub enum AchievementEvent {
     PartyJoined,
     FirstLogin,
 }
-

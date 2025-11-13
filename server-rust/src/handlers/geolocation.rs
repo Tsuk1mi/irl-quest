@@ -1,15 +1,15 @@
-﻿/// Handlers для геолокации и AR
+use crate::error::AppError;
+use crate::middleware::auth::CurrentUser;
+use crate::models::geolocation::*;
+use crate::services::ImageProcessor;
+use crate::state::AppState;
+/// Handlers для геолокации и AR
 use axum::{
     extract::{Extension, State},
     http::StatusCode,
     Json,
 };
 use sqlx::Row;
-use crate::error::AppError;
-use crate::models::geolocation::*;
-use crate::middleware::auth::CurrentUser;
-use crate::services::ImageProcessor;
-use crate::state::AppState;
 
 /// POST /api/geo/zones - Создать геозону
 pub async fn create_geo_zone(
@@ -17,15 +17,14 @@ pub async fn create_geo_zone(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(request): Json<CreateGeoZoneRequest>,
 ) -> Result<Json<GeoZone>, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     let zone_record = sqlx::query(
         r#"
         INSERT INTO geo_zones (user_id, name, latitude, longitude, radius_meters, zone_type)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id, name, latitude, longitude, radius_meters, zone_type, created_at
-        "#
+        "#,
     )
     .bind(user.0.id)
     .bind(&request.name)
@@ -44,9 +43,13 @@ pub async fn create_geo_zone(
             latitude: zone_record.try_get::<f32, _>("latitude").unwrap_or(0.0) as f64,
             longitude: zone_record.try_get::<f32, _>("longitude").unwrap_or(0.0) as f64,
         },
-        radius_meters: zone_record.try_get::<f32, _>("radius_meters").unwrap_or(0.0) as f64,
+        radius_meters: zone_record
+            .try_get::<f32, _>("radius_meters")
+            .unwrap_or(0.0) as f64,
         zone_type: request.zone_type,
-        created_at: zone_record.try_get("created_at").unwrap_or_else(|_| chrono::Utc::now()),
+        created_at: zone_record
+            .try_get("created_at")
+            .unwrap_or_else(|_| chrono::Utc::now()),
     };
 
     tracing::info!("Created geo zone {} for user {}", zone.id, user.0.id);
@@ -60,8 +63,7 @@ pub async fn check_location(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(request): Json<CheckLocationRequest>,
 ) -> Result<Json<LocationCheckResponse>, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     let current_location = Location {
         latitude: request.latitude,
@@ -83,7 +85,7 @@ pub async fn check_location(
         let latitude: f32 = record.try_get("latitude").unwrap_or(0.0);
         let longitude: f32 = record.try_get("longitude").unwrap_or(0.0);
         let radius: f32 = record.try_get("radius_meters").unwrap_or(0.0);
-        
+
         let zone_location = Location {
             latitude: latitude as f64,
             longitude: longitude as f64,
@@ -100,7 +102,7 @@ pub async fn check_location(
                 "park" => GeoZoneType::Park,
                 _ => GeoZoneType::Custom,
             };
-            
+
             in_zones.push(GeoZoneInfo {
                 zone_id: record.try_get("id").unwrap_or(0),
                 zone_name: record.try_get("name").unwrap_or_default(),
@@ -114,9 +116,13 @@ pub async fn check_location(
     let triggered_quests = vec![];
 
     // Получить близкие AR маркеры
-    let ar_markers = vec![];  // TODO: реализовать поиск маркеров в радиусе
+    let ar_markers = vec![]; // TODO: реализовать поиск маркеров в радиусе
 
-    tracing::info!("Location check for user {}: {} zones active", user.0.id, in_zones.len());
+    tracing::info!(
+        "Location check for user {}: {} zones active",
+        user.0.id,
+        in_zones.len()
+    );
 
     Ok(Json(LocationCheckResponse {
         in_zones,
@@ -131,11 +137,12 @@ pub async fn upload_verification_image(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(request): Json<UploadImageRequest>,
 ) -> Result<Json<ImageVerificationResponse>, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     if !state.config.enable_image_processing {
-        return Err(AppError::NotImplemented("Image processing is disabled".to_string()));
+        return Err(AppError::NotImplemented(
+            "Image processing is disabled".to_string(),
+        ));
     }
 
     // Проверить согласие на обработку изображений
@@ -144,20 +151,21 @@ pub async fn upload_verification_image(
         SELECT camera_consent
         FROM user_consents
         WHERE user_id = $1
-        "#
+        "#,
     )
     .bind(user.0.id)
     .fetch_optional(&state.db)
     .await
     .map_err(|e| AppError::DatabaseError(format!("Failed to check consent: {}", e)))?;
 
-    let camera_consent = consent.as_ref()
+    let camera_consent = consent
+        .as_ref()
         .and_then(|r| r.try_get::<bool, _>("camera_consent").ok())
         .unwrap_or(false);
-        
+
     if !camera_consent {
         return Err(AppError::Forbidden(
-            "Camera consent required. Please accept privacy policy.".to_string()
+            "Camera consent required. Please accept privacy policy.".to_string(),
         ));
     }
 
@@ -184,8 +192,7 @@ pub async fn give_consent(
     Extension(current_user): Extension<Option<CurrentUser>>,
     Json(consent): Json<ConsentRequest>,
 ) -> Result<StatusCode, AppError> {
-    let user = current_user
-        .ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
+    let user = current_user.ok_or(AppError::Unauthorized("Not authenticated".to_string()))?;
 
     sqlx::query(
         r#"
@@ -217,4 +224,3 @@ pub struct ConsentRequest {
     location_consent: bool,
     data_processing_consent: bool,
 }
-

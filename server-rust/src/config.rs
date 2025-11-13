@@ -1,4 +1,4 @@
-﻿use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::env;
 use std::net::IpAddr;
 
@@ -14,24 +14,24 @@ pub struct Config {
     pub ml_model_path: Option<String>,
     pub ml_infer_cmd: Option<String>,
     pub ml_embed_cmd: Option<String>,
-    
+
     // Security
     pub rate_limit_per_minute: u32,
     pub rate_limit_burst: u32,
     pub enable_mfa: bool,
     pub password_min_length: usize,
-    
+
     // Features
     pub enable_oauth: bool,
     pub enable_image_processing: bool,
     pub image_retention_minutes: u64,
     pub enable_ar: bool,
     pub enable_multiplayer: bool,
-    
+
     // Server info (auto-detected)
     pub public_ip: Option<String>,
     pub local_ip: Option<String>,
-    
+
     // Client-safe config endpoint
     pub client_config_endpoint: bool,
 }
@@ -86,7 +86,7 @@ impl Config {
 pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
     // Автодетект IP адресов
     let (public_ip, local_ip) = detect_ip_addresses();
-    
+
     let config = Config {
         database_url: env::var("DATABASE_URL")
             .unwrap_or_else(|_| "postgres://postgres:tsukimi@localhost:5432/irl_quest".to_string()),
@@ -101,14 +101,13 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
         refresh_token_expiration_days: env::var("REFRESH_TOKEN_EXPIRATION_DAYS")
             .unwrap_or_else(|_| "30".to_string())
             .parse()?,
-        cors_origin: env::var("CORS_ORIGIN")
-            .unwrap_or_else(|_| "*".to_string()),
+        cors_origin: env::var("CORS_ORIGIN").unwrap_or_else(|_| "*".to_string()),
         ml_base_url: env::var("ML_BASE_URL")
             .unwrap_or_else(|_| "http://localhost:8080".to_string()),
         ml_model_path: env::var("ML_MODEL_PATH").ok(),
         ml_infer_cmd: env::var("ML_INFER_CMD").ok(),
         ml_embed_cmd: env::var("ML_EMBED_CMD").ok(),
-        
+
         // Security
         rate_limit_per_minute: env::var("RATE_LIMIT_PER_MINUTE")
             .unwrap_or_else(|_| "60".to_string())
@@ -122,7 +121,7 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
         password_min_length: env::var("PASSWORD_MIN_LENGTH")
             .unwrap_or_else(|_| "8".to_string())
             .parse()?,
-        
+
         // Features
         enable_oauth: env::var("ENABLE_OAUTH")
             .unwrap_or_else(|_| "false".to_string())
@@ -139,16 +138,16 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
         enable_multiplayer: env::var("ENABLE_MULTIPLAYER")
             .unwrap_or_else(|_| "false".to_string())
             .parse()?,
-        
+
         // Server info
         public_ip,
         local_ip,
-        
+
         client_config_endpoint: env::var("CLIENT_CONFIG_ENDPOINT")
             .unwrap_or_else(|_| "true".to_string())
             .parse()?,
     };
-    
+
     Ok(config)
 }
 
@@ -156,24 +155,24 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
 fn detect_ip_addresses() -> (Option<String>, Option<String>) {
     let local_ip = detect_local_ip();
     let public_ip = env::var("PUBLIC_IP").ok();
-    
+
     // Не пытаемся автоматически определить публичный IP при загрузке конфига
     // так как это вызывает проблемы с blocking вызовами в async контексте
     // Используйте переменную окружения PUBLIC_IP если нужно
-    
+
     (public_ip, local_ip)
 }
 
 /// Определение локального IP адреса
 fn detect_local_ip() -> Option<String> {
     use std::net::UdpSocket;
-    
+
     // Трюк: подключаемся к внешнему адресу (не отправляя данные)
     // чтобы узнать, какой локальный интерфейс будет использоваться
     let socket = UdpSocket::bind("0.0.0.0:0").ok()?;
     socket.connect("8.8.8.8:80").ok()?;
     let local_addr = socket.local_addr().ok()?;
-    
+
     Some(local_addr.ip().to_string())
 }
 
@@ -182,20 +181,20 @@ fn detect_local_ip() -> Option<String> {
 #[allow(dead_code)]
 pub async fn detect_public_ip_async() -> Option<String> {
     use std::time::Duration;
-    
+
     // Используем async HTTP клиент
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(5))
         .build()
         .ok()?;
-    
+
     // Пробуем несколько сервисов
     let services = vec![
         "https://api.ipify.org",
         "https://ifconfig.me/ip",
         "https://icanhazip.com",
     ];
-    
+
     for service in services {
         if let Ok(response) = client.get(service).send().await {
             if let Ok(ip_str) = response.text().await {
@@ -207,7 +206,7 @@ pub async fn detect_public_ip_async() -> Option<String> {
             }
         }
     }
-    
+
     tracing::warn!("Could not detect public IP from external services");
     None
 }

@@ -3,12 +3,19 @@ package com.irlquest.app.feature.stats
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.irlquest.app.data.repository.StatsRepository
+import com.irlquest.app.data.repository.CharacterRepository
+import com.irlquest.app.data.repository.TaskRepository
+import com.irlquest.app.data.repository.QuestRepository
 import com.irlquest.app.ui.theme.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import java.text.SimpleDateFormat
+import java.util.*
+import timber.log.Timber
 
 data class UserProfile(
     val username: String,
@@ -69,7 +76,12 @@ data class StatsData(
     val weeklyData: List<DayData>
 )
 
-class StatsViewModel : ViewModel() {
+class StatsViewModel(
+    private val statsRepo: StatsRepository = StatsRepository(),
+    private val characterRepo: CharacterRepository = CharacterRepository(),
+    private val taskRepo: TaskRepository = TaskRepository(),
+    private val questRepo: QuestRepository = QuestRepository()
+) : ViewModel() {
     private val _uiState = MutableStateFlow(StatsUiState())
     val uiState: StateFlow<StatsUiState> = _uiState.asStateFlow()
 
@@ -90,7 +102,95 @@ class StatsViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                // Имитация загрузки данных
+                // Загружаем реальные данные с сервера
+                val totalStats = statsRepo.getTotalStats()
+                val dailyStats = statsRepo.getDailyStats()
+                val characterProfile = characterRepo.getCharacterProfile()
+                val tasks = taskRepo.listTasks()
+                val quests = questRepo.listQuests()
+
+                // Сегодняшняя статистика
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val todayStatsData = dailyStats.find { it.date == today }
+                
+                // Подсчитываем выполненные задачи за сегодня
+                val todayCompletedTasks = tasks.count { task ->
+                    task.completed && task.completedAt?.startsWith(today) == true
+                }
+                
+                val todayStats = TodayStats(
+                    completedTasks = todayStatsData?.tasksCompleted ?: todayCompletedTasks,
+                    focusMinutes = todayStatsData?.focusTime ?: 0,
+                    experienceGained = todayStatsData?.experienceGained ?: 0,
+                    productivityScore = if (todayStatsData != null && todayStatsData.tasksTotal > 0) {
+                        (todayStatsData.tasksCompleted * 100 / todayStatsData.tasksTotal).coerceIn(0, 100)
+                    } else if (tasks.isNotEmpty()) {
+                        (todayCompletedTasks * 100 / tasks.size).coerceIn(0, 100)
+                    } else 0
+                )
+
+                // Профиль пользователя
+                val character = characterProfile?.character
+                val totalStatsData = totalStats
+                
+                // Используем данные из totalStats, если доступны, иначе из character
+                val level = totalStatsData?.currentLevel ?: character?.level ?: 1
+                val experience = totalStatsData?.totalExperience ?: character?.experience ?: 0
+                val nextLevelExp = totalStatsData?.nextLevelExperience ?: characterProfile?.experienceToNextLevel ?: (level * 100)
+                
+                // Правильный расчет прогресса: текущий опыт относительно опыта для следующего уровня
+                val levelProgress = if (nextLevelExp > 0) {
+                    // Если у нас есть totalExperience, нужно вычислить опыт текущего уровня
+                    val currentLevelExp = if (level > 1) {
+                        // Опыт для предыдущего уровня (упрощенная формула: каждый уровень требует level * 100)
+                        (level - 1) * 100
+                    } else 0
+                    val expInCurrentLevel = experience - currentLevelExp
+                    val expNeededForNextLevel = nextLevelExp - currentLevelExp
+                    if (expNeededForNextLevel > 0) (expInCurrentLevel.toFloat() / expNeededForNextLevel).coerceIn(0f, 1f) else 0f
+                } else 0f
+
+                val userProfile = UserProfile(
+                    username = characterProfile?.character?.characterClass ?: "Герой",
+                    level = level,
+                    experience = experience,
+                    nextLevelExperience = nextLevelExp,
+                    experienceProgress = levelProgress
+                )
+
+                // Недельная статистика
+                val weeklyData = dailyStats.takeLast(7).mapIndexed { index, stat ->
+                    DayData(
+                        dayName = getDayName(index),
+                        value = stat.tasksCompleted.toFloat()
+                    )
+                }
+
+                // Если данных меньше 7 дней, дополняем нулями
+                val fullWeeklyData = if (weeklyData.size < 7) {
+                    weeklyData + List(7 - weeklyData.size) { index ->
+                        DayData(getDayName(weeklyData.size + index), 0f)
+                    }
+                } else weeklyData
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    userProfile = userProfile,
+                    todayStats = todayStats,
+                    weeklyData = fullWeeklyData,
+                    achievements = createMockAchievements(), // TODO: загрузить с сервера
+                    activityData = createActivityDataFromStats(dailyStats),
+                    focusTimeStats = dailyStats.takeLast(7).mapIndexed { index, stat ->
+                        DayData(getDayName(index), stat.focusTime.toFloat())
+                    },
+                    levelProgress = levelProgress,
+                    currentLevel = level,
+                    currentExperience = experience,
+                    nextLevelExperience = nextLevelExp
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load stats")
+                // Fallback на мок-данные при ошибке
                 val mockData = createMockData()
                 val mockStats = createMockStats()
                 _uiState.value = _uiState.value.copy(
@@ -104,14 +204,31 @@ class StatsViewModel : ViewModel() {
                     levelProgress = mockStats.levelProgress,
                     currentLevel = mockStats.currentLevel,
                     currentExperience = mockStats.currentExperience,
-                    nextLevelExperience = mockStats.nextLevelExperience
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message
+                    nextLevelExperience = mockStats.nextLevelExperience,
+                    error = "Не удалось загрузить статистику: ${e.message}"
                 )
             }
+        }
+    }
+
+    private fun getDayName(index: Int): String {
+        val days = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+        val calendar = Calendar.getInstance()
+        calendar.firstDayOfWeek = Calendar.MONDAY
+        val dayOfWeek = (calendar.get(Calendar.DAY_OF_WEEK) - 2 + index) % 7
+        return days[if (dayOfWeek < 0) dayOfWeek + 7 else dayOfWeek]
+    }
+
+    private fun createActivityDataFromStats(dailyStats: List<com.irlquest.app.data.network.dto.DailyStatsDto>): List<ActivityDay> {
+        return dailyStats.takeLast(30).map { stat ->
+            val intensity = when {
+                stat.tasksCompleted >= 10 -> 4
+                stat.tasksCompleted >= 7 -> 3
+                stat.tasksCompleted >= 4 -> 2
+                stat.tasksCompleted >= 1 -> 1
+                else -> 0
+            }
+            ActivityDay(stat.date, intensity)
         }
     }
 

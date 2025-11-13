@@ -1,20 +1,16 @@
-﻿use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
 use crate::config::ClientConfig;
 use crate::state::AppState;
+use axum::{extract::State, http::StatusCode, Json};
 
 /// GET /api/config - Получить клиентскую конфигурацию
-/// 
+///
 /// Возвращает конфигурацию сервера для мобильного клиента
 /// (без секретных данных, только публичные настройки)
 pub async fn get_client_config(
     State(state): State<AppState>,
 ) -> Result<Json<ClientConfig>, StatusCode> {
     let config = &state.config;
-    
+
     // Формируем URL сервера
     let server_url = if let Some(public_ip) = &config.public_ip {
         format!("http://{}:{}", public_ip, config.port)
@@ -23,11 +19,11 @@ pub async fn get_client_config(
     } else {
         format!("http://localhost:{}", config.port)
     };
-    
+
     let client_config = config.to_client_config(server_url);
-    
+
     tracing::info!("Client config requested: {:?}", client_config);
-    
+
     Ok(Json(client_config))
 }
 
@@ -47,7 +43,7 @@ mod tests {
             .connect("postgres://postgres:tsukimi@localhost:5432/irl_quest")
             .await
             .unwrap();
-            
+
         let state = AppState::new_with_config(
             pool,
             Config {
@@ -78,10 +74,9 @@ mod tests {
 
         let result = get_client_config(State(state)).await;
         assert!(result.is_ok());
-        
+
         let config = result.unwrap().0;
         assert_eq!(config.api_version, "2.1.0");
         assert!(config.server_url.contains("1.2.3.4"));
     }
 }
-

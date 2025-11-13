@@ -12,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,12 +31,18 @@ import com.irlquest.app.ui.theme.*
 import com.irlquest.app.ui.utils.toQuestTitle
 import com.irlquest.app.ui.components.RewardDialog
 import androidx.compose.runtime.remember
+import com.irlquest.app.feature.home.MultiplayerCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToQuest: (Int) -> Unit = {},
     onNavigateToTask: (Int) -> Unit = {},
+    onNavigateToTasks: () -> Unit = {},
+    onNavigateToGuilds: () -> Unit = {},
+    onNavigateToCoop: () -> Unit = {},
+    onNavigateToAuction: () -> Unit = {},
+    onNavigateToFocus: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel(),
     questsViewModel: QuestsViewModel = viewModel(),
     tasksViewModel: TasksViewModel = remember { TasksViewModel(authViewModel) }
@@ -47,90 +55,211 @@ fun HomeScreen(
         // authViewModel.fetchMe() // Temporarily disabled - endpoint returns 404
         questsViewModel.loadQuests()
         tasksViewModel.loadTasks()
+        
+        // Генерируем ежедневные задачи на основе активности (отключено для снижения нагрузки при старте)
+        // tasksViewModel.generateDailyTasksFromActivity()
     }
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)) {
-            
-            // 🏰 Заголовок таверны
-            Text(
-                text = "⚔️ Таверна Героя ⚔️",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 👤 Карточка персонажа
-            HeroCard(currentUser)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 📜 Доска квестов
-            Text(
-                text = "📜 Доска Квестов",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            QuestsSection(
-                questsState = questsState,
-                onNavigateToQuest = onNavigateToQuest
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ✅ Список задач
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "✅ Задания Дня",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.tertiary
+        .background(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    MaterialTheme.colorScheme.background
                 )
-                TextButton(onClick = { tasksViewModel.showCreateDialog() }) {
-                    Text(text = "+ Добавить", color = MaterialTheme.colorScheme.primary)
+            )
+        )) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Primary.copy(alpha = 0.2f),
+                                    PrimaryDark.copy(alpha = 0.1f),
+                                    Primary.copy(alpha = 0.2f)
+                                )
+                            ),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                        )
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🏰 Таверна Героя",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TavernWood,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Primary.copy(alpha = 0.3f),
+                                blurRadius = 8f
+                            )
+                        )
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            item {
+                // 👤 Карточка персонажа
+                HeroCard(currentUser)
+            }
 
-            TasksSection(
-                tasksState = tasksState,
-                onNavigateToTask = onNavigateToTask,
-                onToggleTask = { taskId -> tasksViewModel.toggleTask(taskId) },
-                onDeleteTask = { taskId -> tasksViewModel.deleteTask(taskId) }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "📜 Доска Квестов",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TavernWood
+                        )
+                    }
+                }
+            }
+
+            item {
+                QuestsSection(
+                    questsState = questsState,
+                    onNavigateToQuest = onNavigateToQuest
+                )
+            }
+
+            item {
+                // ✅ Список задач
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "✅ Задания Дня",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TavernWood
+                        )
+                    }
+                    Button(
+                        onClick = { tasksViewModel.showCreateDialog() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Secondary
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "+ Добавить",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            item {
+                TasksSection(
+                    tasksState = tasksState,
+                    onNavigateToTask = onNavigateToTask,
+                    onToggleTask = { taskId -> tasksViewModel.toggleTask(taskId) },
+                    onDeleteTask = { taskId -> tasksViewModel.deleteTask(taskId) }
+                )
+            }
+
+            item {
+                // Фокус-сессии
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "🎯 Фокус",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TavernWood
+                    )
+                }
+            }
+
+            item {
+                MultiplayerCard(
+                    title = "🧘 Фокус-сессии",
+                    description = "Сконцентрируйся на задачах",
+                    onClick = onNavigateToFocus,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            item {
+                // Мультиплеер секция
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "⚔️ Мультиплеер и Торговля",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TavernWood
+                    )
+                }
+            }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MultiplayerCard(
+                        title = "🛡️ Гильдии",
+                        description = "Присоединяйтесь к гильдиям и сражайтесь вместе",
+                        onClick = onNavigateToGuilds,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    MultiplayerCard(
+                        title = "⚔️ Кооп-миссии",
+                        description = "Выполняйте эпические квесты в команде",
+                        onClick = onNavigateToCoop,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    MultiplayerCard(
+                        title = "📋 Все задания",
+                        description = "Полный список ваших заданий",
+                        onClick = onNavigateToTasks,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    MultiplayerCard(
+                        title = "🎲 Аукцион героев",
+                        description = "Покупайте и продавайте артефакты",
+                        onClick = onNavigateToAuction,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+        
+        // Показываем награды при завершении задачи
+        if (tasksState.showRewardDialog && tasksState.lastCompletedTask != null) {
+            val task = tasksState.lastCompletedTask!!
+            RewardDialog(
+                questTitle = task.title,
+                xpGained = task.experienceReward,
+                goldGained = task.difficulty * 10,
+                levelUp = tasksState.leveledUp,
+                newLevel = tasksState.newLevel,
+                loot = tasksState.recentLoot,
+                onDismiss = { tasksViewModel.dismissRewardDialog() }
             )
         }
-    }
-    
-    // Показываем награды при завершении задачи
-    if (tasksState.showRewardDialog && tasksState.lastCompletedTask != null) {
-        val task = tasksState.lastCompletedTask!!
-        RewardDialog(
-            questTitle = task.title,
-            xpGained = task.experienceReward,
-            goldGained = task.difficulty * 10,
-            levelUp = tasksState.leveledUp,
-            newLevel = tasksState.newLevel,
-            onDismiss = { tasksViewModel.dismissRewardDialog() }
-        )
     }
 }
 
 @Composable
-private fun QuestsSection(
+fun QuestsSection(
     questsState: com.irlquest.app.feature.quests.QuestsUiState,
     onNavigateToQuest: (Int) -> Unit
 ) {
@@ -149,7 +278,7 @@ private fun QuestsSection(
             questsState.filteredQuests.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "🗺️ Нет активных квестов\nНажмите + чтобы создать новое приключение!",
+                        text = "Нет активных квестов\nНажмите + чтобы создать новое приключение!",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
@@ -170,14 +299,16 @@ private fun QuestsSection(
 }
 
 @Composable
-private fun TasksSection(
+fun TasksSection(
     tasksState: com.irlquest.app.feature.tasks.TasksUiState,
     onNavigateToTask: (Int) -> Unit,
     onToggleTask: (Int) -> Unit,
     onDeleteTask: (Int) -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp), // Фиксированная высота для избежания бесконечных constraint
         shape = RoundedCornerShape(12.dp),
         tonalElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface
@@ -191,18 +322,19 @@ private fun TasksSection(
             tasksState.tasks.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "📝 Список задач пуст\nОтличная работа!",
+                        text = "Список задач пуст\nОтличная работа!",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }
             else -> {
-                LazyColumn(
+                // Показываем только первые 3 задачи для компактности
+                Column(
                     modifier = Modifier.fillMaxSize().padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(tasksState.tasks) { t ->
+                    tasksState.tasks.take(3).forEach { t ->
                         TaskRow(
                             t,
                             onClick = { onNavigateToTask(t.id) },
@@ -217,7 +349,7 @@ private fun TasksSection(
 }
 
 @Composable
-private fun HeroCard(user: UserDto?) {
+fun HeroCard(user: UserDto?) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         tonalElevation = 3.dp,
@@ -260,10 +392,6 @@ private fun HeroCard(user: UserDto?) {
             Column(horizontalAlignment = Alignment.End) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "💰",
-                        fontSize = 20.sp
-                    )
-                    Text(
                         text = " ${user?.gold ?: 0}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -282,7 +410,7 @@ private fun HeroCard(user: UserDto?) {
 }
 
 // Вспомогательные функции
-private fun getCharacterClassName(classKey: String): String {
+fun getCharacterClassName(classKey: String): String {
     return when (classKey.lowercase()) {
         "warrior" -> "Воин"
         "mage" -> "Маг"
@@ -292,17 +420,17 @@ private fun getCharacterClassName(classKey: String): String {
     }
 }
 
-private fun calculateXPProgress(xp: Int): Float {
+fun calculateXPProgress(xp: Int): Float {
     // Упрощенная формула: каждый уровень требует level * 100 XP
     val currentLevelXP = (xp % 100).toFloat()
     return (currentLevelXP / 100f).coerceIn(0f, 1f)
 }
 
-private fun getXPForNextLevel(level: Int): Int {
+fun getXPForNextLevel(level: Int): Int {
     return level * 100
 }
 
-private fun getRankName(level: Int): String {
+fun getRankName(level: Int): String {
     return when {
         level < 5 -> "Новичок"
         level < 10 -> "Искатель"
@@ -313,7 +441,7 @@ private fun getRankName(level: Int): String {
 }
 
 @Composable
-private fun CompactQuestCard(quest: QuestUi, onClick: () -> Unit) {
+fun CompactQuestCard(quest: QuestUi, onClick: () -> Unit) {
     // Используем новый компонент из дизайн-системы
     com.irlquest.app.ui.components.CompactQuestCard(
         title = quest.title,
@@ -325,7 +453,7 @@ private fun CompactQuestCard(quest: QuestUi, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TaskRow(t: TaskUi, onClick: () -> Unit, onToggle: () -> Unit, onDelete: () -> Unit) {
+fun TaskRow(t: TaskUi, onClick: () -> Unit, onToggle: () -> Unit, onDelete: () -> Unit) {
     // Определяем цвет и иконку по приоритету
     val priorityColor = when (t.priority) {
         TaskPriority.CRITICAL -> QuestLegendary
@@ -334,11 +462,12 @@ private fun TaskRow(t: TaskUi, onClick: () -> Unit, onToggle: () -> Unit, onDele
         TaskPriority.LOW -> Neutral
     }
     
+    // Приоритет задачи определяет цвет и стиль отображения
     val priorityIcon = when (t.priority) {
-        TaskPriority.CRITICAL -> "⚡"
-        TaskPriority.HIGH -> "🔥"
-        TaskPriority.MEDIUM -> "📌"
-        TaskPriority.LOW -> "🔵"
+        TaskPriority.CRITICAL -> "!"
+        TaskPriority.HIGH -> "H"
+        TaskPriority.MEDIUM -> "M"
+        TaskPriority.LOW -> "L"
     }
     
     // 🎭 Выбираем что показывать: фэнтези-версию или оригинал

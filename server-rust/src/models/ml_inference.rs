@@ -1,4 +1,4 @@
-﻿/// Модели для ML Inference endpoints
+/// Модели для ML Inference endpoints
 use serde::{Deserialize, Serialize};
 
 /// Запрос на определение тегов
@@ -18,8 +18,8 @@ pub struct TagsResponse {
 #[derive(Debug, Serialize, Clone)]
 pub struct TagPrediction {
     pub tag: String,
-    pub confidence: f32,  // 0.0 - 1.0
-    pub requires_review: bool,  // true если confidence < threshold
+    pub confidence: f32,       // 0.0 - 1.0
+    pub requires_review: bool, // true если confidence < threshold
 }
 
 /// Запрос на оценку сложности
@@ -32,7 +32,7 @@ pub struct DifficultyRequest {
 /// Ответ с оценкой сложности
 #[derive(Debug, Serialize)]
 pub struct DifficultyResponse {
-    pub difficulty: u8,  // 1-10
+    pub difficulty: u8, // 1-10
     pub confidence: f32,
     pub factors: Vec<DifficultyFactor>,
     pub requires_review: bool,
@@ -42,7 +42,7 @@ pub struct DifficultyResponse {
 #[derive(Debug, Serialize)]
 pub struct DifficultyFactor {
     pub factor: String,
-    pub impact: f32,  // -1.0 to 1.0
+    pub impact: f32, // -1.0 to 1.0
     pub explanation: String,
 }
 
@@ -109,8 +109,8 @@ pub struct QuestRecommendation {
     pub difficulty: u8,
     pub estimated_time_minutes: u32,
     pub tags: Vec<String>,
-    pub score: f32,  // Relevance score 0.0-1.0
-    pub reasons: Vec<String>,  // Why this quest is recommended
+    pub score: f32,           // Relevance score 0.0-1.0
+    pub reasons: Vec<String>, // Why this quest is recommended
 }
 
 /// Конфигурация ML inference
@@ -132,4 +132,3 @@ impl Default for MlConfig {
         }
     }
 }
-

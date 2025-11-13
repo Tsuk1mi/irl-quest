@@ -16,7 +16,7 @@ android {
     versionName = "0.1"
     // Configurable base URL for API. For local development on emulator use 10.0.2.2 -> host's localhost
     // If you run on a physical device, replace with your machine IP (e.g. http://192.168.43.52:8003/)
-    buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.67:8003/api/v1/\"")
+    buildConfigField("String", "API_BASE_URL", "\"http://192.168.43.52:8003/api/v1/\"")
   }
 
   buildTypes {
@@ -46,6 +46,9 @@ android {
 }
 
 dependencies {
+  // Shared KMP module
+  implementation(project(":shared"))
+  
   // Заменяем BOM на явные версии, чтобы избежать проблем с разрешением артефактов
   val composeVersion = "1.5.3"
   val material3Version = "1.1.1"
@@ -70,12 +73,10 @@ dependencies {
   implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
   implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-  // Retrofit и сетевые компоненты
-  implementation("com.squareup.retrofit2:retrofit:2.9.0")
-  implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-  implementation("com.squareup.okhttp3:okhttp:4.12.0")
-  implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-  implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+  val ktorVersion = "2.3.5"
+  implementation("io.ktor:ktor-client-core:$ktorVersion")
+  implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+  implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
   // Kotlin Serialization
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")

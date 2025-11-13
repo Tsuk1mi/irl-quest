@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.irlquest.app.data.network.dto.TaskDto
 
@@ -59,7 +60,16 @@ fun QuestDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(text = "Задачи", style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Задачи", style = MaterialTheme.typography.titleMedium)
+                Button(onClick = { viewModel.showAddTaskDialog = true }) {
+                    Text("+ Добавить задачу")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             // Список задач в квесте
@@ -67,6 +77,68 @@ fun QuestDetailScreen(
                 items(quest.tasks) { task ->
                     TaskRow(task = task, onToggle = { viewModel.toggleTaskCompletion(task.id) }, onClick = { onTaskClick(task.id) })
                 }
+            }
+
+            // Кнопка завершения квеста
+            if (quest.status != QuestStatus.COMPLETED) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        viewModel.requestQuestVerification(
+                            questId = quest.id,
+                            questTitle = quest.title,
+                            questDescription = quest.description,
+                            userLevel = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = com.irlquest.app.ui.theme.Success
+                    )
+                ) {
+                    Text("✅ Завершить квест")
+                }
+            }
+
+            // Диалог добавления задачи
+            if (viewModel.showAddTaskDialog) {
+                AddTaskToQuestDialog(
+                    questId = quest.id,
+                    onDismiss = { viewModel.showAddTaskDialog = false },
+                    onAddTask = { title, description ->
+                        viewModel.addTaskToQuest(quest.id, title, description)
+                        viewModel.showAddTaskDialog = false
+                    }
+                )
+            }
+
+            // Диалог верификации
+            if (uiState.showVerificationDialog && uiState.verification != null) {
+                QuestVerificationDialog(
+                    questTitle = quest.title,
+                    verification = uiState.verification!!,
+                    onQuizSubmit = { answers ->
+                        viewModel.submitQuizAnswers(quest.id, answers)
+                    },
+                    onPhotoSubmit = { imageBase64 ->
+                        viewModel.submitPhotoVerification(quest.id, imageBase64)
+                    },
+                    onDismiss = { viewModel.dismissVerificationDialog() }
+                )
+            }
+
+            // Результат верификации
+            uiState.verificationResult?.let { result ->
+                AlertDialog(
+                    onDismissRequest = { viewModel.clearVerificationResult() },
+                    title = { Text("Результат проверки") },
+                    text = { Text(result) },
+                    confirmButton = {
+                        Button(onClick = { viewModel.clearVerificationResult() }) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
                 }
             }
@@ -86,9 +158,59 @@ private fun TaskRow(task: TaskDto, onToggle: () -> Unit, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = task.title, style = MaterialTheme.typography.bodyLarge)
-                if (task.description.isNotBlank()) Text(text = task.description, style = MaterialTheme.typography.bodySmall)
+                if (!task.description.isNullOrBlank()) Text(text = task.description, style = MaterialTheme.typography.bodySmall)
             }
             Text(text = "${task.experienceReward} XP")
         }
     }
+}
+
+@Composable
+fun AddTaskToQuestDialog(
+    questId: Int,
+    onDismiss: () -> Unit,
+    onAddTask: (String, String?) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Добавить задачу в квест") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Название задачи") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Описание (необязательно)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (title.isNotBlank()) {
+                        onAddTask(title, description.takeIf { it.isNotBlank() })
+                    }
+                },
+                enabled = title.isNotBlank()
+            ) {
+                Text("Добавить")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        }
+    )
 }

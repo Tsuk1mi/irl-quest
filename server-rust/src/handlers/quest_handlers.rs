@@ -1,13 +1,7 @@
-﻿use axum::{
-    extract::{Path, State, Extension},
+use crate::{error::AppError, middleware::auth::CurrentUser, models::quest::*, state::AppState};
+use axum::{
+    extract::{Extension, Path, State},
     Json,
-    http::StatusCode,
-};
-use crate::{
-    models::quest::*,
-    state::AppState,
-    error::AppError,
-    middleware::auth::CurrentUser,
 };
 
 pub async fn create_quest(
@@ -115,7 +109,7 @@ pub async fn update_quest(
         None => return Err(AppError::Unauthorized("Not authenticated".to_string())),
     };
     let user_id = user.0.id;
-    
+
     let mut quest = sqlx::query_as::<_, Quest>(
         r#"
         SELECT * FROM quests
